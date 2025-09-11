@@ -1,4 +1,4 @@
-/* PPX Widget — Teil 1/3: Bootstrapping, Utilities, Panel & Home
+/* PPX Widget — Teil 1/3 (NEU): Bootstrapping, Utilities, Panel & Startansicht
    Erwartet, dass /bot/loader.js window.__PPX_DATA__ geladen hat.
 */
 (function () {
@@ -20,7 +20,7 @@
   var close  = document.getElementById('ppx-close');
   var view   = document.getElementById('ppx-v');
 
-  // ------- Kleinere Helpers -------
+  // ------- Helpers -------
   function el(tag, attrs) {
     var node = document.createElement(tag);
     if (attrs) {
@@ -48,7 +48,9 @@
   function clearView() { view.innerHTML = ''; }
   function append(node) { view.appendChild(node); }
   function msgBot(text) {
-    append(el('div', { class: 'ppx-bot ppx-appear' }, el('div', { class: 'ppx-m' , text: text })));
+    append(el('div', { class: 'ppx-bot ppx-appear' },
+      el('div', { class: 'ppx-m', text: text })
+    ));
   }
   function grid() { return el('div', { class: 'ppx-grid ppx-appear' }); }
   function pill(label, action, extraDataset) {
@@ -59,7 +61,7 @@
   function opt(label, action, extraDataset) {
     var ds = extraDataset || {};
     ds.action = action;
-    return el('div', { class: 'ppx-opt' , dataset: ds },
+    return el('div', { class: 'ppx-opt', dataset: ds },
       el('div', { class: 'ppx-ico' }, '★'),
       el('div', { class: 'ppx-m'  }, label)
     );
@@ -94,10 +96,9 @@
       keys.forEach(function (k) { if (!seen.has(k)) ordered.push(k); });
       return ordered;
     }
-    // leichte Priorisierung, sonst alphabetisch
-    var prio = ['antipasti', 'pizza', 'pasta', 'salads', 'drinks', 'desserts'];
+    var prio = ['antipasti','pizza','pasta','salads','drinks','desserts'];
     return keys.sort(function(a,b){
-      var ia = prio.indexOf(a); var ib = prio.indexOf(b);
+      var ia = prio.indexOf(a), ib = prio.indexOf(b);
       if (ia === -1 && ib === -1) return a.localeCompare(b);
       if (ia === -1) return 1;
       if (ib === -1) return -1;
@@ -112,78 +113,104 @@
   if (launch) launch.addEventListener('click', function(){ openPanel(); stepHome(); });
   if (close)  close.addEventListener('click', function(){ closePanel(); });
 
-  // ------- Navigation im View (Event Delegation) -------
+  // ------- Navigation im View (Bubble-Phase) -------
   view.addEventListener('click', function (e) {
     var t = e.target;
-    // bubble bis .dataset.action gefunden
     while (t && t !== view && !t.dataset.action) t = t.parentElement;
     if (!t || !t.dataset || !t.dataset.action) return;
     var action = t.dataset.action;
-    if (action === 'home') return stepHome(true);
-    if (action === 'menu') return stepMenuCategories();
-    if (action === 'reserve') return stepReserveIntro();
-    if (action === 'info') return stepInfo();
-    if (action === 'cat') return stepCategory(t.dataset.cat);
+    if (action === 'home')   return stepHome(true);
+    if (action === 'menu')   return stepMenuCategories();
+    if (action === 'reserve')return stepReserveIntro();
+    if (action === 'info')   return stepInfo();
+    if (action === 'cat')    return stepCategory(t.dataset.cat);
+    // 'hours' / 'contact' / 'faq' werden in Teil 3 im Capture-Listener behandelt.
   });
 
-  // ------- Start/Home -------
+  // ------- Start/Home (NEU – wie früher: vertikale Liste, zentriert) -------
   function stepHome(isBack) {
     clearView();
     var brand = (CFG.brand || 'Pizza Papa Hamburg');
-    msgBot('Ciao! Willkommen bei ' + brand + ' – wie kann ich helfen?');
 
-    var row = el('div', { class: 'ppx-minirow ppx-appear' },
-      pill('Tisch reservieren', 'reserve'),
-      pill('Speisen – Kategorien', 'menu'),
-      pill('Öffnungszeiten & Kontakt', 'info')
+    // Begrüßung
+    append(el('div', { class: 'ppx-bot ppx-appear' },
+      el('div', { class: 'ppx-m' },
+        '👋 WILLKOMMEN BEI ' + brand.toUpperCase() + '!\n' +
+        'Schön, dass du da bist. Wie können wir dir heute helfen?'
+      )
+    ));
+
+    // Vertikale Liste der Hauptaktionen
+    var col = el('div', {
+      class: 'ppx-appear',
+      style: { display:'flex', flexDirection:'column', gap:'12px', alignItems:'stretch' }
+    });
+
+    col.appendChild(
+      el('div', { class:'ppx-opt', dataset:{ action:'menu' }, style:{ width:'100%' } },
+        el('div', { class:'ppx-ico' }, '🍽'),
+        el('div', { class:'ppx-m'  }, 'Speisen')
+      )
     );
-    append(row);
+    col.appendChild(
+      el('div', { class:'ppx-opt', dataset:{ action:'reserve' }, style:{ width:'100%' } },
+        el('div', { class:'ppx-ico' }, '🗓'),
+        el('div', { class:'ppx-m'  }, 'Reservieren')
+      )
+    );
+    col.appendChild(
+      el('div', { class:'ppx-opt', dataset:{ action:'hours' }, style:{ width:'100%' } },
+        el('div', { class:'ppx-ico' }, '🕒'),
+        el('div', { class:'ppx-m'  }, 'Öffnungszeiten')
+      )
+    );
+    col.appendChild(
+      el('div', { class:'ppx-opt', dataset:{ action:'contact' }, style:{ width:'100%' } },
+        el('div', { class:'ppx-ico' }, '📞'),
+        el('div', { class:'ppx-m'  }, 'Kontaktdaten')
+      )
+    );
+    col.appendChild(
+      el('div', { class:'ppx-opt', dataset:{ action:'faq' }, style:{ width:'100%' } },
+        el('div', { class:'ppx-ico' }, '❓'),
+        el('div', { class:'ppx-m'  }, 'Q&As')
+      )
+    );
 
-    // Optional: kleine Empfehlungen
-    var g = grid();
-    g.appendChild(opt('Heute beliebt: Margherita & Diavola', 'menu', { hint: 'pizza' }));
-    g.appendChild(opt('Durst? Getränke ansehen', 'menu', { cat: 'drinks' }));
-    append(g);
-
-    // Markenleiste bleibt unten aus deinem HTML
+    append(col);
   }
 
-  // ------- Platzhalter für nächste Teile (Menu & Reservierung) -------
+  // ------- Platzhalter (werden in Teil 2/3 & 3/3 umgesetzt) -------
   function stepMenuCategories() {
-    // Implementierung kommt in Teil 2/3 (inkl. 500ms Delay & dynamische Kategorien)
     clearView();
     msgBot('Speisen\n…oder wähle eine Kategorie:');
   }
 
   function stepCategory(catKey) {
-    // Implementierung folgt in Teil 2/3
     clearView();
     msgBot('Zeige Kategorie: ' + (CAT_LABELS[catKey] || catKey));
     append(backRow('Zurück zu Kategorien', 'menu'));
   }
 
   function stepReserveIntro() {
-    // Implementierung folgt in Teil 3/3 (Zeitslots, Formular, EmailJS)
     clearView();
     msgBot('Lass uns eine Reservierung anlegen. Ich brauche gleich Personen, Datum, Uhrzeit, Name & Telefonnummer.');
     append(backRow());
   }
 
   function stepInfo() {
-    // Implementierung folgt in Teil 3/3 (Kontaktkarte & Öffnungszeiten aus cfg)
     clearView();
     msgBot('Hier findest du gleich Kontakt & Öffnungszeiten.');
     append(backRow());
   }
 
   // Auto-Start beim Laden, falls Panel offen
-  // (wird außerdem beim Klick auf den Launcher geöffnet)
   if (panel && panel.classList.contains('ppx-open')) {
     stepHome();
   }
 
 })();
-
+/* PPX Widget — Teil 2/3 (NEU): Menü-Kategorien & Gerichte (dynamisch aus bot.json) */
 (function () {
   'use strict';
 
@@ -194,7 +221,7 @@
   var view  = document.getElementById('ppx-v');
   var panel = document.getElementById('ppx-panel');
 
-  // Hilfsfunktionen (lokal, dupliziert um unabhängig von Teil 1 zu sein)
+  // ---- Helpers (lokal, unabhängig von Teil 1) ----
   function el(tag, attrs) {
     var node = document.createElement(tag);
     if (attrs) {
@@ -260,7 +287,7 @@
     });
   }
 
-  // --- Capture: merke, was geklickt wurde (damit wir preselect wissen) ---
+  // --- Capture: merke, was geklickt wurde (für preselect) ---
   var LAST_CLICK_DATA = null;
   if (view) {
     view.addEventListener('click', function (e) {
@@ -270,7 +297,7 @@
     }, true);
   }
 
-  // --- Intercept: übernimm "menu" & "cat" in der Capture-Phase (vor Teil 1 Handler) ---
+  // --- Intercept: übernimm "menu" & "cat" (vor Teil 1 Handler) ---
   if (view) {
     view.addEventListener('click', function (e) {
       var t = e.target;
@@ -286,11 +313,11 @@
         e.stopPropagation(); e.preventDefault();
         return stepCategory2(ds.cat);
       }
-      // "home", "info", "reserve" lässt der ursprüngliche Handler bearbeiten
+      // "home", "info", "reserve" lässt der Teil-1-Handler bearbeiten
     }, true);
   }
 
-  // --- Menü-Kategorien (mit 500–600 ms Delay) ---
+  // --- Menü-Kategorien (mit ~550 ms Verzögerung) ---
   function stepMenuCategories2(opts) {
     clearView();
     msgBot('Speisen\n…oder wähle eine Kategorie:');
@@ -321,7 +348,7 @@
       append(g);
       append(backRow('Zurück', 'home'));
 
-      // Falls preselect gesetzt ist, direkt öffnen
+      // Falls preselect gesetzt ist → direkt öffnen
       if (preselect && DISHES[preselect]) {
         stepCategory2(preselect);
       }
@@ -346,7 +373,6 @@
       return;
     }
 
-    // Kartenliste
     items.forEach(function (d) {
       var name  = d.name || d.id || 'Gericht';
       var info  = d.info || '';
@@ -356,7 +382,6 @@
         heading(name, true),
         el('div', { class: 'ppx-price compact', text: price })
       );
-
       var body = el('div', { class: 'ppx-desc', text: info });
 
       append(el('div', { class: 'ppx-card ppx-appear' }, head, body));
@@ -366,7 +391,7 @@
   }
 
 })();
-
+/* PPX Widget — Teil 3/3 (NEU): Reservierung, Info (stunden/kontakt) & FAQ */
 (function () {
   'use strict';
 
@@ -426,8 +451,7 @@
   }
   function weekdayIdx(dateStr){
     var d = new Date(dateStr + 'T00:00:00');
-    // getDay(): 0=So..6=Sa (passt zu OPEN)
-    return d.getDay();
+    return d.getDay(); // 0=So..6=Sa
   }
   function intersectRange(aStart, aEnd, bStart, bEnd){
     var s = Math.max(aStart, bStart), e = Math.min(aEnd, bEnd);
@@ -444,12 +468,13 @@
     clearView();
     msgBot('Lass uns eine Reservierung anlegen. Bitte wähle Personen & Datum – dann Zeit.');
 
-    // Personen + Datum
     var card = el('div', { class: 'ppx-card ppx-appear' });
 
     // Personen
     var sel = el('select', { id: 'ppx-persons' });
-    var i; for (i=1;i<=12;i++){ sel.appendChild(el('option',{ value:String(i), text:String(i)+' Person'+(i>1?'en':'') })); }
+    for (var i=1;i<=12;i++){
+      sel.appendChild(el('option',{ value:String(i), text:String(i)+' Person'+(i>1?'en':'') }));
+    }
     if (RES.persons) sel.value = RES.persons;
 
     // Datum
@@ -493,11 +518,10 @@
     append(card);
     append(backRow());
 
-    // Wenn bereits Bucket gesetzt → Timeslots rendern
     if (RES.bucket) renderTimeslots();
   }
 
-  // Timeslots erzeugen (30-Minuten Raster, geschnitten mit OPEN & BUCKET)
+  // Timeslots (30-Minuten Raster, mit OPEN & BUCKET geschnitten)
   function renderTimeslots() {
     var host = document.getElementById('ppx-times');
     if (!host) return;
@@ -521,14 +545,9 @@
     }
 
     var start = cut[0], end = cut[1];
-    var nowLimit = 0;
     // Vergangene Zeiten am heutigen Tag ausblenden (+15 Min Puffer)
     var now = new Date();
-    var todayISO = todayStr();
-    if (d === todayISO) {
-      nowLimit = now.getHours()*60 + now.getMinutes() + 15;
-      start = Math.max(start, nowLimit);
-    }
+    if (d === todayStr()) start = Math.max(start, now.getHours()*60 + now.getMinutes() + 15);
 
     var row = miniRow();
     var any = false;
@@ -543,14 +562,13 @@
     } else {
       host.appendChild(el('div', { class:'ppx-note', text:'Wähle eine Uhrzeit:' }));
       host.appendChild(row);
-      // sanft scrollen
       try { host.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e){}
     }
   }
 
   // ---------- Click & Input Handling ----------
   if (view) {
-    // Intercept reserve/info + eigene Actions
+    // Capture: greift vor den Teil-1-Listenern
     view.addEventListener('click', function (e) {
       var t = e.target;
       while (t && t !== view && !t.dataset.action) t = t.parentElement;
@@ -559,7 +577,6 @@
 
       if (a === 'reserve') {
         e.preventDefault(); e.stopPropagation();
-        // Defaults
         if (!RES.date) RES.date = todayStr();
         if (!RES.persons) RES.persons = '2';
         renderReserve();
@@ -567,14 +584,28 @@
       }
       if (a === 'info') {
         e.preventDefault(); e.stopPropagation();
-        renderInfo();
+        renderInfo(); // beides
+        return;
+      }
+      if (a === 'hours') {
+        e.preventDefault(); e.stopPropagation();
+        renderInfo('hours'); // nur Öffnungszeiten
+        return;
+      }
+      if (a === 'contact') {
+        e.preventDefault(); e.stopPropagation();
+        renderInfo('contact'); // nur Kontakt
+        return;
+      }
+      if (a === 'faq') {
+        e.preventDefault(); e.stopPropagation();
+        renderFaq();
         return;
       }
       if (a === 'pick_bucket') {
         e.preventDefault();
         RES.bucket = t.dataset.bucket || '';
-        RES.time = ''; // reset time when bucket changes
-        // Visuelle Auswahl aktualisieren
+        RES.time = '';
         var sib = t.parentElement && t.parentElement.children ? t.parentElement.children : [];
         for (var i=0;i<sib.length;i++){ sib[i].classList.remove('ppx-selected'); }
         t.classList.add('ppx-selected');
@@ -612,17 +643,13 @@
 
   // ---------- EmailJS Submit ----------
   function submitReservation() {
-    // Basic Validation
     var missing = [];
     if (!RES.persons) missing.push('Personenzahl');
     if (!RES.date)    missing.push('Datum');
     if (!RES.time)    missing.push('Uhrzeit');
     if (!RES.name)    missing.push('Name');
     if (!RES.phone)   missing.push('Telefon');
-    if (missing.length) {
-      msgBot('Bitte ausfüllen: ' + missing.join(', ') + '.');
-      return;
-    }
+    if (missing.length) { msgBot('Bitte ausfüllen: ' + missing.join(', ') + '.'); return; }
 
     var params = {
       brand: CFG.brand || 'Pizza Papa Hamburg',
@@ -646,12 +673,8 @@
       return;
     }
 
-    // Senden an Restaurant
     window.emailjs.send(svc, tpl, params).then(function () {
-      // Auto-Reply an Gast (falls E-Mail vorhanden & Template gesetzt)
-      if (auto && params.email) {
-        window.emailjs.send(svc, auto, params).catch(function(){});
-      }
+      if (auto && params.email) { window.emailjs.send(svc, auto, params).catch(function(){}); }
       clearView();
       msgBot('Vielen Dank, ' + RES.name + '! Deine Anfrage ist bei uns eingegangen: '
         + RES.date + ' um ' + RES.time + ' für ' + RES.persons + ' Person' + (RES.persons>1?'en':'') + '.');
@@ -664,45 +687,70 @@
   }
 
   // ---------- Info / Kontakt ----------
-  function renderInfo() {
+  function renderInfo(mode) {
     clearView();
-    var brand = CFG.brand || 'Pizza Papa Hamburg';
     msgBot('Hier sind unsere Kontaktangaben & Öffnungszeiten.');
 
     var card = el('div', { class: 'ppx-card ppx-appear' });
 
-    // Kontaktzeilen
-    if (CFG.phone) card.appendChild(el('div', { class:'ppx-m' }, 'Telefon: ', el('a', { href:'tel:'+CFG.phone, class:'ppx-link' }, CFG.phone)));
-    if (CFG.email) card.appendChild(el('div', { class:'ppx-m' }, 'E-Mail: ', el('a', { href:'mailto:'+CFG.email, class:'ppx-link' }, CFG.email)));
-    if (CFG.address) card.appendChild(el('div', { class:'ppx-m', text:'Adresse: ' + CFG.address }));
-
-    // Öffnungszeiten
-    card.appendChild(el('div', { class:'ppx-note', text:'Öffnungszeiten:' }));
-    var hours = el('div', { class:'ppx-hours' });
-
-    if (Array.isArray(CFG.hoursLines) && CFG.hoursLines.length) {
-      CFG.hoursLines.forEach(function (line) {
-        hours.appendChild(el('div', { class:'ppx-m' , text: line[0] || '' }));
-        hours.appendChild(el('div', { class:'ppx-m' , text: line[1] || '' }));
-      });
-    } else if (OPEN) {
-      var days = ['So.','Mo.','Di.','Mi.','Do.','Fr.','Sa.'];
-      for (var i=0;i<7;i++){
-        var rng = OPEN[i];
-        var val = (rng && rng.length===2) ? (rng[0] + ' – ' + rng[1]) : 'geschlossen';
-        hours.appendChild(el('div', { class:'ppx-m', text: days[i] }));
-        hours.appendChild(el('div', { class:'ppx-m', text: val }));
-      }
+    // Kontakt (wenn nicht nur hours)
+    if (mode !== 'hours') {
+      if (CFG.phone) card.appendChild(el('div', { class:'ppx-m' }, 'Telefon: ', el('a', { href:'tel:'+CFG.phone, class:'ppx-link' }, CFG.phone)));
+      if (CFG.email) card.appendChild(el('div', { class:'ppx-m' }, 'E-Mail: ', el('a', { href:'mailto:'+CFG.email, class:'ppx-link' }, CFG.email)));
+      if (CFG.address) card.appendChild(el('div', { class:'ppx-m', text:'Adresse: ' + CFG.address }));
     }
-    card.appendChild(hours);
 
-    // kleine Aktion
+    // Öffnungszeiten (wenn nicht nur contact)
+    if (mode !== 'contact') {
+      card.appendChild(el('div', { class:'ppx-note', text:'Öffnungszeiten:' }));
+      var hours = el('div', { class:'ppx-hours' });
+
+      if (Array.isArray(CFG.hoursLines) && CFG.hoursLines.length) {
+        CFG.hoursLines.forEach(function (line) {
+          hours.appendChild(el('div', { class:'ppx-m' , text: line[0] || '' }));
+          hours.appendChild(el('div', { class:'ppx-m' , text: line[1] || '' }));
+        });
+      } else if (OPEN) {
+        var days = ['So.','Mo.','Di.','Mi.','Do.','Fr.','Sa.'];
+        for (var i=0;i<7;i++){
+          var rng = OPEN[i];
+          var val = (rng && rng.length===2) ? (rng[0] + ' – ' + rng[1]) : 'geschlossen';
+          hours.appendChild(el('div', { class:'ppx-m', text: days[i] }));
+          hours.appendChild(el('div', { class:'ppx-m', text: val }));
+        }
+      }
+      card.appendChild(hours);
+    }
+
     var row = miniRow();
     row.appendChild(el('div', { class:'ppx-mini', dataset:{ action:'reserve' } }, '🗓 Tisch reservieren'));
     card.appendChild(row);
 
     append(card);
     append(backRow());
+  }
+
+  // ---------- FAQ (einfacher Stub) ----------
+  function renderFaq() {
+    clearView();
+    msgBot('Häufige Fragen (kurz & knapp):');
+
+    var card = el('div', { class: 'ppx-card ppx-appear' });
+    card.appendChild(el('div', { class:'ppx-heading compact', text:'Kann ich telefonisch reservieren?' }));
+    card.appendChild(el('div', { class:'ppx-desc', text:'Ja – ruf uns gern an: ' + (CFG.phone || 'Telefonnummer im Kontaktbereich').toString() }));
+
+    card.appendChild(el('div', { class:'ppx-heading compact', text:'Gibt es vegetarische Optionen?' }));
+    card.appendChild(el('div', { class:'ppx-desc', text:'Klar! Schau in den Kategorien Pizza, Pasta und Salate.' }));
+
+    card.appendChild(el('div', { class:'ppx-heading compact', text:'Wie kurzfristig kann ich reservieren?' }));
+    card.appendChild(el('div', { class:'ppx-desc', text:'Sofern ein Slot frei ist, auch am selben Tag. Alternativ kurz anrufen.' }));
+
+    var row = miniRow();
+    row.appendChild(el('div', { class:'ppx-mini', dataset:{ action:'reserve' } }, '🗓 Jetzt reservieren'));
+    row.appendChild(el('div', { class:'ppx-mini', dataset:{ action:'home' } }, '← Zur Startseite'));
+    card.appendChild(row);
+
+    append(card);
   }
 
 })();
