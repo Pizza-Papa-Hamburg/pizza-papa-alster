@@ -343,7 +343,15 @@
     <div class="ppx-brandbar">Powered by <strong>AI Elements</strong> ✨</div>
   </div>
   <!-- Bot-Logik ausgelagert: -->
-  <script id="ppx-bot-loader" data-ppx-loader data-config="bot-data/bot.json" data-widget="bot/widget.js" src="bot/loader.js" defer></script>
+  <!-- EmailJS (muss vor widget.js geladen sein) -->
+<script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+<!-- Bot-Daten (lädt window.__PPX_DATA__) -->
+<script defer src="bot/loader.js"></script>
+
+<!-- Bot-Widget -->
+<script defer src="bot/widget.js"></script>
   <!-- Pizza Papa Lux Bot END -->
 </body>
 </html>
+
