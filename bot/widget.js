@@ -1,10 +1,9 @@
 /* ============================================================================
-   PPX Widget (FULL) — Append/Sticky Mode + Auto-Scroll
-   - Lässt frühere Auswahlen/Blöcke stehen und hängt neue unten an
-   - Behält alle Flows: Speisen → Kategorien → Items, Reservieren (EmailJS/Mailto),
-     Öffnungszeiten, Kontakt, Q&As
-   - Erwartet, dass /bot/loader.js window.__PPX_DATA__ gesetzt hat.
-   - Benötigte DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
+   PPX Widget (FULL, Sticky/Append) — Teil 1
+   - Behält frühere Auswahlen sichtbar (kein Clear)
+   - Hängt neue Blöcke unten an + Auto-Scroll
+   - Flows: Home, Speisen→Kategorie→Item, Reservieren, Öffnungszeiten, Kontakt, Q&A
+   - Erwartet DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
    ============================================================================ */
 (function () {
   'use strict';
@@ -17,6 +16,9 @@
   var CFG  = DATA.cfg    || {};
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs   || [];
+
+  // Sticky Mode: niemals automatisch leeren
+  var STICKY = true;
 
   // EmailJS optional initialisieren
   (function initEmailJS(){
@@ -35,7 +37,7 @@
   var $close  = document.getElementById('ppx-close');
   var $view   = document.getElementById('ppx-v');
   if (!$launch || !$panel || !$close || !$view) {
-    console.warn('[PPX] Fehlende DOM-IDs (#ppx-launch, #ppx-panel, #ppx-close, #ppx-v).');
+    console.warn('[PPX] Fehlende DOM-IDs.');
     return;
   }
 
@@ -47,7 +49,7 @@
   function el(tag, attrs){
     var n = document.createElement(tag);
     attrs = attrs || {};
-    Object.keys(attrs).forEach(function(k){
+    Object.keys(attrs).forEach(function (k) {
       if (k === 'style' && isObj(attrs[k])) {
         Object.assign(n.style, attrs[k]);
       } else if (k === 'text') {
@@ -82,25 +84,24 @@
     catch(e){ $view.scrollTop = $view.scrollHeight; }
   }
 
-  // Append-Mode: view NICHT automatisch leeren
+  // WICHTIG: NICHTS automatisch leeren
   function clearView(opts){
-    if (opts && opts.force === true) {
-      $view.innerHTML = '';
-    }
+    if (!STICKY) $view.innerHTML = '';
+    else if (opts && opts.force) $view.innerHTML = '';
   }
 
   function line(txt){ return el('div', { class:'ppx-m' }, txt); }
   function row(){ return el('div', { class:'ppx-row' }); }
+  function grid(){ return el('div', { class:'ppx-grid' }); }
 
   function btn(label, onClick, extraCls){
     return el('button', { class: 'ppx-b ' + (extraCls||''), onclick: onClick }, label);
   }
-
   function chip(label, onClick, extraCls){
     return el('button', { class: 'ppx-chip ' + (extraCls||''), onclick: onClick }, label);
   }
 
-  // Erzeugt einen neuen „Block/Abschnitt“ (Card) und hängt ihn unten an
+  // Erzeugt einen neuen Block (Card) und hängt ihn unten an
   function block(title, opts){
     opts = opts || {};
     var wrap = el('div', {
@@ -120,7 +121,7 @@
     return r;
   }
 
-  // Back-Button: scrollt zum anvisierten Block (oder zum Anfang)
+  // Back-Button: scrollt zum anvisierten Block (oder zum ersten Block)
   function backBtn(targetBlock){
     return btn('← Zurück', function () {
       if (targetBlock && targetBlock.scrollIntoView) scrollToEl(targetBlock);
@@ -138,16 +139,17 @@
     return btn('📅  Reservieren', function(){ stepReservieren(prev); });
   }
 
-  // einfaches Grid für Chips
-  function grid(){ return el('div', { class:'ppx-grid' }); }
-
   // ---------------------------------------------------------------------------
-  // 3) HOME (Startansicht)
+  // 3) HOME (Startansicht) — wird nur einmal erzeugt
   // ---------------------------------------------------------------------------
   function stepHome(){
-    clearView({ force:true });
+    // WICHTIG: NICHT löschen, nur initial rendern
+    if ($view.querySelector('[data-block="home"]')) return;
+
     var brand = (CFG.brand || 'Pizza Papa Hamburg');
     var B = block(brand.toUpperCase());
+    B.setAttribute('data-block','home');
+
     B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'! Schön, dass du da bist. Wie können wir dir heute helfen?'));
 
     var r1 = row();
@@ -175,7 +177,10 @@
   // 4) SPEISEN: Kategorien und Items (Append)
   // ---------------------------------------------------------------------------
   function stepSpeisen(prevBlock){
+    // KEIN clearView!
     var B = block('SPEISEN');
+    B.setAttribute('data-block','speisen-root');
+
     if (CFG.menuPdf) {
       var a = el('a', { href: CFG.menuPdf, target: '_blank', class:'ppx-link' }, '📄 Speisekarte als PDF');
       B.appendChild(el('div', { class:'ppx-m' }, a));
@@ -183,10 +188,15 @@
     B.appendChild(line('…oder wähle eine Kategorie:'));
 
     var cats = Object.keys(DISH);
-    if (!cats.length) cats = ['Pizza','Pasta','Salate']; // Fallback
+    if (!cats.length) {
+      // Fallback falls bot.json noch keine Kategorien hat
+      cats = ['Antipasti','Pizza','Pasta','Getränke','Salate','Desserts'];
+    }
     var G = grid();
     cats.forEach(function(cat){
-      G.appendChild(chip('▶️  '+pretty(cat), function(){ renderCategory(cat, B); }));
+      var list = Array.isArray(DISH[cat]) ? DISH[cat] : [];
+      var count = list.length ? ' ('+list.length+')' : '';
+      G.appendChild(chip('🍽️  '+pretty(cat)+count, function(){ renderCategory(cat, B); }));
     });
     B.appendChild(G);
 
@@ -196,10 +206,11 @@
   function renderCategory(catKey, parentBlock){
     var title = 'Gern! Hier ist die Auswahl für '+pretty(catKey)+':';
     var B = block(title);
-    var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
+    B.setAttribute('data-block','speisen-cat');
 
+    var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
     if (!list.length) {
-      // Fallback-Daten (falls in bot.json noch nichts drin steht)
+      // Fallback-Daten
       list = [
         { name: pretty(catKey)+' Classic', price:'9,50' },
         { name: pretty(catKey)+' Special', price:'12,90' }
@@ -217,16 +228,21 @@
   function renderItem(catKey, item, prevBlock){
     var title = item && item.name ? item.name : pretty(catKey);
     var B = block(title);
-    if (item && item.desc) B.appendChild(line(item.desc));
-    if (item && item.price) B.appendChild(line('Preis: '+item.price+' €'));
-    if (item && item.hinweis) B.appendChild(line('ℹ️ '+item.hinweis));
+    B.setAttribute('data-block','speisen-item');
+
+    if (item && item.desc)   B.appendChild(line(item.desc));
+    if (item && item.price)  B.appendChild(line('Preis: '+item.price+' €'));
+    if (item && item.hinweis)B.appendChild(line('ℹ️ '+item.hinweis));
+
     B.appendChild(nav([ backBtn(prevBlock), resBtn(B), doneBtn() ]));
   }
   // ---------------------------------------------------------------------------
-  // 5) RESERVIEREN
+  // 5) RESERVIEREN (Append)
   // ---------------------------------------------------------------------------
   function stepReservieren(prevBlock){
     var B = block('RESERVIEREN');
+    B.setAttribute('data-block','reservieren');
+
     B.appendChild(line('Schnell-Anfrage senden oder E-Mail öffnen:'));
 
     var r = row();
@@ -255,9 +271,9 @@
   }
 
   function quickEmail(){
-    var name = prompt('Dein Name:');     if (!name) return;
+    var name = prompt('Dein Name:');                       if (!name) return;
     var when = prompt('Datum & Uhrzeit (z. B. 24.09. 19:00):'); if (!when) return;
-    var ppl  = prompt('Personenanzahl:'); if (!ppl) return;
+    var ppl  = prompt('Personenanzahl:');                  if (!ppl) return;
     var tel  = prompt('Telefon (optional):') || '';
 
     var payload = {
@@ -285,10 +301,12 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 6) ÖFFNUNGSZEITEN
+  // 6) ÖFFNUNGSZEITEN (Append)
   // ---------------------------------------------------------------------------
   function stepHours(prevBlock){
     var B = block('ÖFFNUNGSZEITEN');
+    B.setAttribute('data-block','hours');
+
     var lines = CFG.hoursLines || [];
     if (!lines.length) {
       B.appendChild(line('Keine Zeiten hinterlegt.'));
@@ -302,10 +320,11 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 7) KONTAKT
+  // 7) KONTAKT (Append)
   // ---------------------------------------------------------------------------
   function stepKontakt(prevBlock){
     var B = block('KONTAKTDATEN');
+    B.setAttribute('data-block','kontakt');
 
     if (CFG.phone) {
       B.appendChild(line('📞 '+CFG.phone));
@@ -329,10 +348,12 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 8) Q&As
+  // 8) Q&As (Append)
   // ---------------------------------------------------------------------------
   function stepQAs(prevBlock){
     var B = block('Q&As');
+    B.setAttribute('data-block','faq');
+
     if (!Array.isArray(FAQ) || !FAQ.length) {
       B.appendChild(line('Häufige Fragen folgen in Kürze.'));
     } else {
@@ -347,13 +368,13 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 9) Öffnen/Schließen & Init
+  // 9) Öffnen/Schließen & Initialisierung (ohne Clear!)
   // ---------------------------------------------------------------------------
   $launch.addEventListener('click', function(){
     $panel.classList.add('ppx-open');
     if (!$panel.dataset.init) {
       $panel.dataset.init = '1';
-      stepHome();
+      stepHome(); // rendert Home einmalig; bleibt stehen
     }
   });
 
@@ -366,13 +387,12 @@
     if (e.key === 'Escape') $panel.classList.remove('ppx-open');
   });
 
-  // Optional: Klick auf Overlay (falls vorhanden) schließt – nur wenn außerhalb
+  // Overlay-Klick schließt nur, wenn direkt auf Panel (nicht auf Inhalt)
   $panel.addEventListener('click', function(ev){
-    var t = ev.target;
-    if (t === $panel) $panel.classList.remove('ppx-open');
+    if (ev.target === $panel) $panel.classList.remove('ppx-open');
   });
 
-  // safeguard: wenn Panel per CSS schon offen ist, initialisieren
+  // Falls durch CSS bereits offen, trotzdem einmal Home rendern (ohne Clear)
   if ($panel.classList.contains('ppx-open') && !$panel.dataset.init) {
     $panel.dataset.init = '1';
     stepHome();
