@@ -1,9 +1,13 @@
 /* ============================================================================
-   PPX Widget (FULL) — Sticky/Append + Style (100% Breite, Cormorant, nicht fett)
-   - Buttons/Chips: volle Zeilenbreite, zentriert, Icons via data-ic
-   - Behält frühere Blöcke, neue hängen sich unten an (Auto-Scroll)
-   - Flows: Home, Speisen→Kategorie→Item, Reservieren, Öffnungszeiten, Kontakt, Q&A
-   - Erwartete DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
+   PPX Widget (FULL) — Sticky/Append + Style Tweaks nach deinen Wünschen
+   Änderungen jetzt aktiv:
+   - Beim Klick auf „Speisen“: Erst Nachricht „Super Wahl 👍 …“, kurzer Delay,
+     danach Block mit „Speisekarte als PDF … oder wähle eine Kategorie:“
+   - Ab „Speisen“ NICHT mehr zentriert: Texte/Buttons linksbündig
+     (nur Start-Block bleibt zentriert)
+   - Buttons etwas kleiner (weniger „überladen“)
+   - Nav-Buttons „Zurück | Reservieren | Fertig“ stehen in einer Reihe
+   - Farben wie im Screenshot 2 beibehalten
    ============================================================================ */
 (function () {
   'use strict';
@@ -18,7 +22,10 @@
   var FAQ  = DATA.faqs   || [];
   var STICKY = true;
 
-  // (A) STYLE-PATCH injizieren: 100%-Breite, Cormorant Garamond, nicht fett
+  // ---------------------------------------------------------------------------
+  // STYLE: 100%-Breite, Farbschema, nur HOME zentriert, sonst linksbündig,
+  // kleinere Buttons, Nav-Row in EINER Zeile
+  // ---------------------------------------------------------------------------
   (function injectStyles(){
     if (document.getElementById('ppx-style-100w')) return;
     var css = `
@@ -36,7 +43,10 @@
   background:linear-gradient(180deg, rgba(9,39,33,.55), rgba(9,39,33,.35));
   border:1px solid var(--ppx-border); border-radius:16px;
   padding:18px; margin:16px auto; max-width:680px; box-shadow:var(--ppx-shadow);
-  text-align:center;
+  text-align:left; /* Standard: LINKS */
+}
+#ppx-panel #ppx-v .ppx-bot[data-block="home"]{
+  text-align:center; /* Nur Home zentriert */
 }
 #ppx-panel #ppx-v .ppx-h{
   background:var(--ppx-green-800); color:var(--ppx-ink);
@@ -54,19 +64,26 @@
 }
 @media (max-width:560px){ #ppx-panel #ppx-v .ppx-grid{ grid-template-columns:1fr; } }
 
-/* Buttons & Chips – 100% Breite */
+/* Buttons & Chips – standardmäßig LINKS ausgerichtet, etwas kleiner */
 #ppx-panel #ppx-v .ppx-b, #ppx-panel #ppx-v .ppx-chip{
   -webkit-appearance:none; appearance:none; cursor:pointer;
-  display:inline-flex; align-items:center; justify-content:center; gap:10px;
+  display:inline-flex; align-items:center; justify-content:flex-start; gap:10px; /* links! */
   width:100%; /* volle Zeile */
   color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:16px;
   padding:14px 18px;
   background:var(--ppx-green-600); box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 3px 12px rgba(0,0,0,.25);
   transition:transform .06s ease, filter .2s ease;
-  font-family:"Cormorant Garamond", serif; font-weight:400; font-size:20px; /* nicht fett */
+  font-family:"Cormorant Garamond", serif; font-weight:400; font-size:18px; /* kleiner */
 }
 #ppx-panel #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-500); }
 #ppx-panel #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
+
+/* Home-Block: Buttons zentriert & etwas größer */
+#ppx-panel #ppx-v .ppx-bot[data-block="home"] .ppx-b,
+#ppx-panel #ppx-v .ppx-bot[data-block="home"] .ppx-chip{
+  justify-content:center; font-size:20px;
+}
+
 #ppx-panel #ppx-v .ppx-b:hover, #ppx-panel #ppx-v .ppx-chip:hover{ filter:brightness(1.05); }
 #ppx-panel #ppx-v .ppx-b:active, #ppx-panel #ppx-v .ppx-chip:active{ transform:translateY(1px); }
 
@@ -77,6 +94,10 @@
   background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:16px; line-height:1;
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1.5px 0 rgba(255,255,255,.25) inset;
 }
+
+/* Nav-Reihe: drei Buttons nebeneinander */
+#ppx-panel #ppx-v .ppx-nav{ display:flex; gap:12px; width:100%; justify-content:flex-start; }
+#ppx-panel #ppx-v .ppx-nav .ppx-b{ width:auto; }
 #ppx-panel #ppx-v .ppx-link{ color:var(--ppx-ink); text-decoration:underline; text-underline-offset:2px; }
 `;
     var tag = document.createElement('style');
@@ -149,7 +170,6 @@
     catch(e){ $view.scrollTop = $view.scrollHeight; }
   }
 
-  // NIE auto-clearen (außer gezwungen)
   function clearView(opts){
     if (!STICKY) $view.innerHTML = '';
     else if (opts && opts.force) $view.innerHTML = '';
@@ -184,9 +204,9 @@
     return wrap;
   }
 
-  // horizontale Button-Gruppe
+  // horizontale Button-Gruppe (Nav-Row)
   function nav(btns){
-    var r = row();
+    var r = el('div', { class:'ppx-nav' });
     btns.forEach(function(b){ if (b) r.appendChild(b); });
     return r;
   }
@@ -206,7 +226,7 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 3) HOME (einmalig rendern)
+  // 3) HOME (einmalig rendern; bleibt zentriert)
   // ---------------------------------------------------------------------------
   function stepHome(){
     if ($view.querySelector('[data-block="home"]')) return;
@@ -226,29 +246,49 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 4) SPEISEN (Append)
+  // 4) SPEISEN (erst Nachricht, Delay, dann Block mit PDF+Kategorien)
   // ---------------------------------------------------------------------------
   function stepSpeisen(prevBlock){
+    // 4.1) Info-Meldung wie im Screenshot
+    var M = block(null);
+    M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
+
+    // 4.2) kurzer Delay, dann eigentlicher "SPEISEN"-Block
+    setTimeout(function(){ renderSpeisenRoot(prevBlock); }, 500);
+  }
+  // 4) SPEISEN (Fortsetzung)
+  function renderSpeisenRoot(prevBlock){
     var B = block('SPEISEN');
     B.setAttribute('data-block','speisen-root');
 
+    // PDF-Button wie im Screenshot (Pill), danach Hinweiszeile
     if (CFG.menuPdf) {
-      var a = el('a', { href: CFG.menuPdf, target: '_blank', class:'ppx-link' }, '📄 Speisekarte als PDF');
-      B.appendChild(el('div', { class:'ppx-m' }, a));
+      var r = row();
+      r.style.justifyContent = 'flex-start';
+      r.appendChild(
+        btn('Speisekarte als PDF', function(){
+          window.open(CFG.menuPdf, '_blank');
+        }, '', '📄')
+      );
+      B.appendChild(r);
     }
     B.appendChild(line('…oder wähle eine Kategorie:'));
 
+    // Kategorien: aus Daten oder Fallback exakt wie gewünscht
     var cats = Object.keys(DISH);
-    if (!cats.length) cats = ['Antipasti','Pizza','Pasta','Getränke','Salate','Desserts'];
+    if (!cats.length) cats = ['Antipasti','Salat','Pizza','Pasta','Drinks','Desserts'];
 
     var G = grid();
     cats.forEach(function(cat){
       var list  = Array.isArray(DISH[cat]) ? DISH[cat] : [];
       var count = list.length ? ' ('+list.length+')' : '';
-      G.appendChild(chip(pretty(cat)+count, function(){ renderCategory(cat, B); }, '', '🍽️'));
+      G.appendChild(
+        chip(pretty(cat)+count, function(){ renderCategory(cat, B); }, '', '▶️')
+      );
     });
     B.appendChild(G);
 
+    // Nav: Zurück | Reservieren | Fertig (eine Reihe)
     B.appendChild(nav([ backBtn(prevBlock), resBtn(B), doneBtn() ]));
   }
 
@@ -258,6 +298,8 @@
     B.setAttribute('data-block','speisen-cat');
 
     var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
+
+    // Fallback-Demos, falls keine Items hinterlegt sind
     if (!list.length) {
       list = [
         { name: pretty(catKey)+' Classic', price:'9,50' },
@@ -265,11 +307,15 @@
       ];
     }
 
+    // Items als Chips (links ausgerichtet, kompakter)
     list.forEach(function(it){
       var label = (it.name || 'Artikel') + (it.price ? (' – '+it.price+' €') : '');
-      B.appendChild(chip(label, function(){ renderItem(catKey, it, B); }, '', '▶️'));
+      B.appendChild(
+        chip(label, function(){ renderItem(catKey, it, B); }, '', '➜')
+      );
     });
 
+    // Nav
     B.appendChild(nav([ backBtn(parentBlock), resBtn(B), doneBtn() ]));
   }
 
@@ -294,6 +340,7 @@
     B.appendChild(line('Schnell-Anfrage senden oder E-Mail öffnen:'));
 
     var r = row();
+    r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Schnell senden', function(){ quickEmail(); }, 'ppx-cta', '⚡'));
 
     var addr = CFG.email ||
@@ -311,7 +358,7 @@
         '',
         'Liebe Grüße'
       ].join('%0A');
-      W.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
+      window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
     }, '', '✉️'));
     B.appendChild(r);
 
@@ -319,9 +366,9 @@
   }
 
   function quickEmail(){
-    var name = prompt('Dein Name:');                           if (!name) return;
+    var name = prompt('Dein Name:');                            if (!name) return;
     var when = prompt('Datum & Uhrzeit (z. B. 24.09. 19:00):'); if (!when) return;
-    var ppl  = prompt('Personenanzahl:');                      if (!ppl) return;
+    var ppl  = prompt('Personenanzahl:');                       if (!ppl) return;
     var tel  = prompt('Telefon (optional):') || '';
 
     var payload = {
@@ -330,7 +377,7 @@
     };
 
     // EmailJS vorhanden?
-    if (W.emailjs && CFG.EMAIL && CFG.EMAIL.serviceId && CFG.EMAIL.templateId) {
+    if (window.emailjs && CFG.EMAIL && CFG.EMAIL.serviceId && CFG.EMAIL.templateId) {
       emailjs.send(CFG.EMAIL.serviceId, CFG.EMAIL.templateId, payload).then(
         function(){ alert('Danke! Wir melden uns asap.'); },
         function(){ alert('Senden fehlgeschlagen. Bitte „E-Mail öffnen“ nutzen.'); }
@@ -345,7 +392,7 @@
     var body = encodeURIComponent(
       'Name: '+name+'\nZeit: '+when+'\nPersonen: '+ppl+'\nTelefon: '+tel+'\n——\nGesendet via Bot'
     );
-    W.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
+    window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
   }
 
   // ---------------------------------------------------------------------------
@@ -376,26 +423,26 @@
 
     if (CFG.phone) {
       B.appendChild(line('📞 '+CFG.phone));
-      B.appendChild(nav([
-        btn('Anrufen', function(){
-          W.location.href='tel:'+String(CFG.phone).replace(/\s+/g,'');
-        }, '', '📞')
-      ]));
+      var r1 = row(); r1.style.justifyContent = 'flex-start';
+      r1.appendChild(btn('Anrufen', function(){
+        window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,'');
+      }, '', '📞'));
+      B.appendChild(r1);
     }
     if (CFG.email) {
       B.appendChild(line('✉️  '+CFG.email));
-      B.appendChild(nav([
-        btn('E-Mail schreiben', function(){
-          W.location.href='mailto:'+CFG.email;
-        }, '', '✉️')
-      ]));
+      var r2 = row(); r2.style.justifyContent = 'flex-start';
+      r2.appendChild(btn('E-Mail schreiben', function(){
+        window.location.href='mailto:'+CFG.email;
+      }, '', '✉️'));
+      B.appendChild(r2);
     }
     if (CFG.address) {
       B.appendChild(line('📍 '+CFG.address));
       var maps = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(CFG.address);
-      B.appendChild(nav([
-        btn('Anfahrt öffnen', function(){ W.open(maps, '_blank'); }, '', '🗺️')
-      ]));
+      var r3 = row(); r3.style.justifyContent = 'flex-start';
+      r3.appendChild(btn('Anfahrt öffnen', function(){ window.open(maps, '_blank'); }, '', '🗺️'));
+      B.appendChild(r3);
     }
 
     B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
@@ -428,7 +475,7 @@
     $panel.classList.add('ppx-open');
     if (!$panel.dataset.init) {
       $panel.dataset.init = '1';
-      stepHome(); // rendert Home einmalig; bleibt stehen
+      stepHome(); // Home einmalig rendern; bleibt stehen
     }
   });
 
@@ -437,7 +484,7 @@
   });
 
   // ESC schließt Panel
-  W.addEventListener('keydown', function(e){
+  window.addEventListener('keydown', function(e){
     if (e.key === 'Escape') $panel.classList.remove('ppx-open');
   });
 
