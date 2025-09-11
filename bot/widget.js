@@ -153,15 +153,16 @@ function stepHome(isBack) {
   });
 
   function btn(action, icon, label) {
-    return el('div', {
-        class:'ppx-opt',
-        dataset:{ action: action },
-        style:{ width:'100%', maxWidth: MAXW }
-      },
-      el('div', { class:'ppx-ico' }, icon),
-      el('div', { class:'ppx-m'  }, label)
-    );
-  }
+  return el('div', {
+      class: 'ppx-opt',
+      dataset: { action: action },
+      // NEU: margin:'0 auto' sorgt fürs Zentrieren
+      style: { width:'100%', maxWidth: MAXW, margin:'0 auto' }
+    },
+    el('div', { class:'ppx-ico' }, icon),
+    el('div', { class:'ppx-m'  }, label)
+  );
+}
 
   col.appendChild(btn('menu',    '🍽', 'Speisen'));
   col.appendChild(btn('reserve', '🗓', 'Reservieren'));
@@ -748,5 +749,6 @@ function stepHome(isBack) {
   }
 
 })();
+
 
 
