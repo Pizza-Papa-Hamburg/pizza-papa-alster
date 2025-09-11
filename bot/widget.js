@@ -1,10 +1,9 @@
 /* ============================================================================
-   PPX Widget (FULL) — Sticky/Append + eingebautes Styling (grüne Pills)
+   PPX Widget (FULL) — Sticky/Append + Hard Style Patch (grüne Pills, Icons)
    - Behält vorherige Blöcke sichtbar, hängt neue unten an (Auto-Scroll)
-   - Buttons/Chips mit data-ic → goldene Icon-Badges via ::before
-   - Texte & Buttons zentriert wie „früher“
-   - Flows: Home, Speisen→Kategorie→Item, Reservieren, Öffnungszeiten, Kontakt, Q&A
-   - Erwartete DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
+   - Buttons/Chips zentriert, Icons via data-ic (goldene Badge)
+   - Starke CSS-Spezifität + !important, um fremde Styles zu überstimmen
+   - DOM-IDs erwartet: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
    ============================================================================ */
 (function () {
   'use strict';
@@ -17,11 +16,11 @@
   var CFG  = DATA.cfg    || {};
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs   || [];
-  var STICKY = true; // nix automatisch löschen
+  var STICKY = true; // nichts automatisch löschen
 
-  // (A) STYLE-PATCH INJIZIEREN (alter Look: grüne Pills, goldene Icons, zentriert)
+  // (A) STYLE-PATCH INJIZIEREN (starke Selektoren + !important)
   (function injectStyles(){
-    if (document.getElementById('ppx-style-patch')) return;
+    if (document.getElementById('ppx-style-hard')) return;
     var css = `
 :root{
   --ppx-green-900:#0e312a; --ppx-green-800:#114136; --ppx-green-700:#154a3e;
@@ -30,56 +29,57 @@
   --ppx-gold:#e6c48a; --ppx-gold-ink:#2a2a1f;
   --ppx-border:rgba(255,255,255,.08); --ppx-shadow:0 8px 22px rgba(0,0,0,.28);
 }
-#ppx-v{
-  overflow-y:auto; max-height:calc(100vh - 120px);
-  -webkit-overflow-scrolling:touch; padding:8px 8px 16px;
+#ppx-panel #ppx-v{
+  overflow-y:auto !important; max-height:calc(100vh - 120px) !important;
+  -webkit-overflow-scrolling:touch !important; padding:8px 8px 16px !important;
 }
-#ppx-v .ppx-bot{
-  background:linear-gradient(180deg, rgba(9,39,33,.55), rgba(9,39,33,.35));
-  border:1px solid var(--ppx-border); border-radius:16px;
-  padding:18px; margin:16px auto; max-width:680px; box-shadow:var(--ppx-shadow);
-  text-align:center;
+#ppx-panel #ppx-v .ppx-bot{
+  background:linear-gradient(180deg, rgba(9,39,33,.55), rgba(9,39,33,.35)) !important;
+  border:1px solid var(--ppx-border) !important; border-radius:16px !important;
+  padding:18px !important; margin:16px auto !important; max-width:680px !important;
+  box-shadow:var(--ppx-shadow) !important; text-align:center !important;
 }
-#ppx-v .ppx-h{
-  background:var(--ppx-green-800); color:var(--ppx-ink);
-  border:1px solid var(--ppx-border); border-radius:12px;
-  padding:14px 16px; font-weight:700; letter-spacing:.02em;
-  text-transform:uppercase; margin:-6px -6px 14px;
+#ppx-panel #ppx-v .ppx-h{
+  background:var(--ppx-green-800) !important; color:var(--ppx-ink) !important;
+  border:1px solid var(--ppx-border) !important; border-radius:12px !important;
+  padding:14px 16px !important; font-weight:700 !important; letter-spacing:.02em !important;
+  text-transform:uppercase !important; margin:-6px -6px 14px !important;
 }
-#ppx-v .ppx-m{ color:var(--ppx-ink); line-height:1.55; margin:8px 0 12px; }
-#ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:10px; }
-#ppx-v .ppx-grid{
-  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:14px; margin-top:10px; justify-items:stretch;
+#ppx-panel #ppx-v .ppx-m{ color:var(--ppx-ink) !important; line-height:1.55 !important; margin:8px 0 12px !important; }
+#ppx-panel #ppx-v .ppx-row{ display:flex !important; flex-wrap:wrap !important; gap:12px !important; justify-content:center !important; margin-top:10px !important; }
+#ppx-panel #ppx-v .ppx-grid{
+  display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:14px !important; margin-top:10px !important; justify-items:stretch !important;
 }
-@media (max-width:520px){ #ppx-v .ppx-grid{ grid-template-columns:1fr; } }
+@media (max-width:520px){ #ppx-panel #ppx-v .ppx-grid{ grid-template-columns:1fr !important; } }
 
-#ppx-v .ppx-b, #ppx-v .ppx-chip{
-  -webkit-appearance:none; appearance:none; cursor:pointer;
-  display:inline-flex; align-items:center; justify-content:center;
-  gap:10px; color:var(--ppx-ink); border:1px solid var(--ppx-border);
-  border-radius:14px; padding:11px 16px;
-  font:600 16px/1.1 system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;
-  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 3px 12px rgba(0,0,0,.25);
-  transition:transform .06s ease, background .2s ease, box-shadow .2s ease;
+#ppx-panel #ppx-v .ppx-b, #ppx-panel #ppx-v .ppx-chip{
+  -webkit-appearance:none !important; appearance:none !important;
+  background:var(--ppx-green-600) !important; color:var(--ppx-ink) !important;
+  border:1px solid var(--ppx-border) !important; border-radius:14px !important;
+  padding:11px 16px !important; cursor:pointer !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  gap:10px !important;
+  font:600 16px/1.1 system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif !important;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 3px 12px rgba(0,0,0,.25) !important;
+  transition:transform .06s ease, filter .2s ease !important;
 }
-#ppx-v .ppx-b{ background:var(--ppx-green-600); }
-#ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-500); }
-#ppx-v .ppx-chip{ background:var(--ppx-green-700); width:100%; }
-#ppx-v .ppx-b:hover, #ppx-v .ppx-chip:hover{ filter:brightness(1.05); }
-#ppx-v .ppx-b:active, #ppx-v .ppx-chip:active{ transform:translateY(1px); }
+#ppx-panel #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-500) !important; }
+#ppx-panel #ppx-v .ppx-chip{ background:var(--ppx-green-700) !important; width:100% !important; }
+#ppx-panel #ppx-v .ppx-b:hover, #ppx-panel #ppx-v .ppx-chip:hover{ filter:brightness(1.05) !important; }
+#ppx-panel #ppx-v .ppx-b:active, #ppx-panel #ppx-v .ppx-chip:active{ transform:translateY(1px) !important; }
 
 /* Goldene Icon-Badges über data-ic */
-#ppx-v .ppx-b[data-ic]::before, #ppx-v .ppx-chip[data-ic]::before{
-  content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center;
-  width:28px; height:28px; min-width:28px; border-radius:999px;
-  background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
-  box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1.5px 0 rgba(255,255,255,.25) inset;
+#ppx-panel #ppx-v .ppx-b[data-ic]::before, #ppx-panel #ppx-v .ppx-chip[data-ic]::before{
+  content:attr(data-ic) !important; display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  width:28px !important; height:28px !important; min-width:28px !important; border-radius:999px !important;
+  background:var(--ppx-gold) !important; color:var(--ppx-gold-ink) !important; font-size:15px !important; line-height:1 !important;
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1.5px 0 rgba(255,255,255,.25) inset !important;
 }
-#ppx-v .ppx-link{ color:var(--ppx-ink); text-decoration:underline; text-underline-offset:2px; }
+#ppx-panel #ppx-v .ppx-link{ color:var(--ppx-ink) !important; text-decoration:underline !important; text-underline-offset:2px !important; }
 `;
     var tag = document.createElement('style');
-    tag.id = 'ppx-style-patch';
+    tag.id = 'ppx-style-hard';
     tag.textContent = css;
     document.head.appendChild(tag);
   })();
@@ -160,12 +160,12 @@
 
   // Buttons/Chips mit data-ic (alter Look)
   function btn(label, onClick, extraCls, ic){
-    var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick };
+    var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick, type:'button' };
     if (ic) attrs['data-ic'] = ic;
     return el('button', attrs, label);
   }
   function chip(label, onClick, extraCls, ic){
-    var attrs = { class: 'ppx-chip ' + (extraCls||''), onclick: onClick };
+    var attrs = { class: 'ppx-chip ' + (extraCls||''), onclick: onClick, type:'button' };
     if (ic) attrs['data-ic'] = ic;
     return el('button', attrs, label);
   }
@@ -217,25 +217,11 @@
     B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
     B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
 
-    var r1 = row();
-    r1.appendChild(btn('Speisen',       function(){ stepSpeisen(B); }, 'ppx-cta', '🍽️'));
-    B.appendChild(r1);
-
-    var r2 = row();
-    r2.appendChild(btn('Reservieren',   function(){ stepReservieren(B); }, '', '📅'));
-    B.appendChild(r2);
-
-    var r3 = row();
-    r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(B); }, '', '⏰'));
-    B.appendChild(r3);
-
-    var r4 = row();
-    r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(B); }, '', '☎️'));
-    B.appendChild(r4);
-
-    var r5 = row();
-    r5.appendChild(btn('Q&As',          function(){ stepQAs(B); }, '', '❓'));
-    B.appendChild(r5);
+    var r1 = row(); r1.appendChild(btn('Speisen',       function(){ stepSpeisen(B); }, 'ppx-cta', '🍽️')); B.appendChild(r1);
+    var r2 = row(); r2.appendChild(btn('Reservieren',   function(){ stepReservieren(B); }, '', '📅'));     B.appendChild(r2);
+    var r3 = row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(B); }, '', '⏰'));          B.appendChild(r3);
+    var r4 = row(); r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(B); }, '', '☎️'));        B.appendChild(r4);
+    var r5 = row(); r5.appendChild(btn('Q&As',          function(){ stepQAs(B); }, '', '❓'));             B.appendChild(r5);
   }
 
   // ---------------------------------------------------------------------------
