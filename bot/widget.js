@@ -127,63 +127,71 @@
     // 'hours' / 'contact' / 'faq' werden in Teil 3 im Capture-Listener behandelt.
   });
 
-  // ------- Start/Home (NEU – wie früher: vertikale Liste, zentriert) -------
-  function stepHome(isBack) {
-    clearView();
-    var brand = (CFG.brand || 'Pizza Papa Hamburg');
+ function stepHome(isBack) {
+  clearView();
+  var brand = (CFG.brand || 'Pizza Papa Hamburg');
 
-    // Begrüßung
-    append(el('div', { class: 'ppx-bot ppx-appear' },
-      el('div', { class: 'ppx-m' },
-        '👋 WILLKOMMEN BEI ' + brand.toUpperCase() + '!\n' +
-        'Schön, dass du da bist. Wie können wir dir heute helfen?'
-      )
-    ));
+  // Begrüßung
+  append(el('div', { class: 'ppx-bot ppx-appear' },
+    el('div', { class: 'ppx-m' },
+      '👋 WILLKOMMEN BEI ' + brand.toUpperCase() + '!\n' +
+      'Schön, dass du da bist. Wie können wir dir heute helfen?'
+    )
+  ));
+
+  // Vertikale Liste der Hauptaktionen (Container wieder da!)
+  var col = el('div', {
+    class: 'ppx-appear',
+    style: { display:'flex', flexDirection:'column', gap:'12px', alignItems:'stretch' }
+  });
 
   // Speisen
-col.appendChild(
-  el('div', { class:'ppx-opt', dataset:{ action:'menu' },
-    style:{ width:'100%', justifyContent:'center' } },
-    el('div', { class:'ppx-ico' }, '🍽'),
-    el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Speisen')
-  )
-);
+  col.appendChild(
+    el('div', { class:'ppx-opt', dataset:{ action:'menu' },
+      style:{ width:'100%', justifyContent:'center' } },
+      el('div', { class:'ppx-ico' }, '🍽'),
+      el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Speisen')
+    )
+  );
 
-// Reservieren
-col.appendChild(
-  el('div', { class:'ppx-opt', dataset:{ action:'reserve' },
-    style:{ width:'100%', justifyContent:'center' } },
-    el('div', { class:'ppx-ico' }, '🗓'),
-    el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Reservieren')
-  )
-);
+  // Reservieren
+  col.appendChild(
+    el('div', { class:'ppx-opt', dataset:{ action:'reserve' },
+      style:{ width:'100%', justifyContent:'center' } },
+      el('div', { class:'ppx-ico' }, '🗓'),
+      el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Reservieren')
+    )
+  );
 
-// Öffnungszeiten
-col.appendChild(
-  el('div', { class:'ppx-opt', dataset:{ action:'hours' },
-    style:{ width:'100%', justifyContent:'center' } },
-    el('div', { class:'ppx-ico' }, '🕒'),
-    el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Öffnungszeiten')
-  )
-);
+  // Öffnungszeiten
+  col.appendChild(
+    el('div', { class:'ppx-opt', dataset:{ action:'hours' },
+      style:{ width:'100%', justifyContent:'center' } },
+      el('div', { class:'ppx-ico' }, '🕒'),
+      el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Öffnungszeiten')
+    )
+  );
 
-// Kontaktdaten
-col.appendChild(
-  el('div', { class:'ppx-opt', dataset:{ action:'contact' },
-    style:{ width:'100%', justifyContent:'center' } },
-    el('div', { class:'ppx-ico' }, '📞'),
-    el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Kontaktdaten')
-  )
-);
+  // Kontaktdaten
+  col.appendChild(
+    el('div', { class:'ppx-opt', dataset:{ action:'contact' },
+      style:{ width:'100%', justifyContent:'center' } },
+      el('div', { class:'ppx-ico' }, '📞'),
+      el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Kontaktdaten')
+    )
+  );
 
-// Q&As
-col.appendChild(
-  el('div', { class:'ppx-opt', dataset:{ action:'faq' },
-    style:{ width:'100%', justifyContent:'center' } },
-    el('div', { class:'ppx-ico' }, '❓'),
-    el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Q&As')
-  )
-);
+  // Q&As
+  col.appendChild(
+    el('div', { class:'ppx-opt', dataset:{ action:'faq' },
+      style:{ width:'100%', justifyContent:'center' } },
+      el('div', { class:'ppx-ico' }, '❓'),
+      el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Q&As')
+    )
+  );
+
+  append(col);
+}
 
 
   // ------- Platzhalter (werden in Teil 2/3 & 3/3 umgesetzt) -------
@@ -760,4 +768,5 @@ col.appendChild(
   }
 
 })();
+
 
