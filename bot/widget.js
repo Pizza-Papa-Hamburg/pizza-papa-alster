@@ -1,9 +1,9 @@
 /* ============================================================================
-   PPX Widget (FULL) — Sticky/Append + Hard Style Patch (grüne Pills, Icons)
-   - Behält vorherige Blöcke sichtbar, hängt neue unten an (Auto-Scroll)
-   - Buttons/Chips zentriert, Icons via data-ic (goldene Badge)
-   - Starke CSS-Spezifität + !important, um fremde Styles zu überstimmen
-   - DOM-IDs erwartet: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
+   PPX Widget (FULL) — Sticky/Append + Style (100% Breite, Cormorant, nicht fett)
+   - Buttons/Chips: volle Zeilenbreite, zentriert, Icons via data-ic
+   - Behält frühere Blöcke, neue hängen sich unten an (Auto-Scroll)
+   - Flows: Home, Speisen→Kategorie→Item, Reservieren, Öffnungszeiten, Kontakt, Q&A
+   - Erwartete DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
    ============================================================================ */
 (function () {
   'use strict';
@@ -16,70 +16,71 @@
   var CFG  = DATA.cfg    || {};
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs   || [];
-  var STICKY = true; // nichts automatisch löschen
+  var STICKY = true;
 
-  // (A) STYLE-PATCH INJIZIEREN (starke Selektoren + !important)
+  // (A) STYLE-PATCH injizieren: 100%-Breite, Cormorant Garamond, nicht fett
   (function injectStyles(){
-    if (document.getElementById('ppx-style-hard')) return;
+    if (document.getElementById('ppx-style-100w')) return;
     var css = `
 :root{
   --ppx-green-900:#0e312a; --ppx-green-800:#114136; --ppx-green-700:#154a3e;
   --ppx-green-600:#195446; --ppx-green-500:#1e5e4e;
-  --ppx-ink:#f1f7f4; --ppx-ink-dim:#d6e6df;
-  --ppx-gold:#e6c48a; --ppx-gold-ink:#2a2a1f;
+  --ppx-ink:#f1f7f4; --ppx-gold:#e6c48a; --ppx-gold-ink:#2a2a1f;
   --ppx-border:rgba(255,255,255,.08); --ppx-shadow:0 8px 22px rgba(0,0,0,.28);
 }
 #ppx-panel #ppx-v{
-  overflow-y:auto !important; max-height:calc(100vh - 120px) !important;
-  -webkit-overflow-scrolling:touch !important; padding:8px 8px 16px !important;
+  overflow-y:auto; max-height:calc(100vh - 120px); -webkit-overflow-scrolling:touch;
+  padding:8px 8px 16px;
 }
 #ppx-panel #ppx-v .ppx-bot{
-  background:linear-gradient(180deg, rgba(9,39,33,.55), rgba(9,39,33,.35)) !important;
-  border:1px solid var(--ppx-border) !important; border-radius:16px !important;
-  padding:18px !important; margin:16px auto !important; max-width:680px !important;
-  box-shadow:var(--ppx-shadow) !important; text-align:center !important;
+  background:linear-gradient(180deg, rgba(9,39,33,.55), rgba(9,39,33,.35));
+  border:1px solid var(--ppx-border); border-radius:16px;
+  padding:18px; margin:16px auto; max-width:680px; box-shadow:var(--ppx-shadow);
+  text-align:center;
 }
 #ppx-panel #ppx-v .ppx-h{
-  background:var(--ppx-green-800) !important; color:var(--ppx-ink) !important;
-  border:1px solid var(--ppx-border) !important; border-radius:12px !important;
-  padding:14px 16px !important; font-weight:700 !important; letter-spacing:.02em !important;
-  text-transform:uppercase !important; margin:-6px -6px 14px !important;
+  background:var(--ppx-green-800); color:var(--ppx-ink);
+  border:1px solid var(--ppx-border); border-radius:12px;
+  padding:14px 16px; margin:-6px -6px 14px;
+  font-family:"Cinzel", serif; font-weight:600; letter-spacing:.02em; text-transform:uppercase;
 }
-#ppx-panel #ppx-v .ppx-m{ color:var(--ppx-ink) !important; line-height:1.55 !important; margin:8px 0 12px !important; }
-#ppx-panel #ppx-v .ppx-row{ display:flex !important; flex-wrap:wrap !important; gap:12px !important; justify-content:center !important; margin-top:10px !important; }
+#ppx-panel #ppx-v .ppx-m{
+  color:var(--ppx-ink); line-height:1.55; margin:8px 0 12px;
+  font-family:"Cormorant Garamond", serif; font-weight:400; font-size:20px;
+}
+#ppx-panel #ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:10px; width:100%; }
 #ppx-panel #ppx-v .ppx-grid{
-  display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  gap:14px !important; margin-top:10px !important; justify-items:stretch !important;
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:10px; width:100%;
 }
-@media (max-width:520px){ #ppx-panel #ppx-v .ppx-grid{ grid-template-columns:1fr !important; } }
+@media (max-width:560px){ #ppx-panel #ppx-v .ppx-grid{ grid-template-columns:1fr; } }
 
+/* Buttons & Chips – 100% Breite */
 #ppx-panel #ppx-v .ppx-b, #ppx-panel #ppx-v .ppx-chip{
-  -webkit-appearance:none !important; appearance:none !important;
-  background:var(--ppx-green-600) !important; color:var(--ppx-ink) !important;
-  border:1px solid var(--ppx-border) !important; border-radius:14px !important;
-  padding:11px 16px !important; cursor:pointer !important;
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-  gap:10px !important;
-  font:600 16px/1.1 system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif !important;
-  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 3px 12px rgba(0,0,0,.25) !important;
-  transition:transform .06s ease, filter .2s ease !important;
+  -webkit-appearance:none; appearance:none; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:10px;
+  width:100%; /* volle Zeile */
+  color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:16px;
+  padding:14px 18px;
+  background:var(--ppx-green-600); box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 3px 12px rgba(0,0,0,.25);
+  transition:transform .06s ease, filter .2s ease;
+  font-family:"Cormorant Garamond", serif; font-weight:400; font-size:20px; /* nicht fett */
 }
-#ppx-panel #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-500) !important; }
-#ppx-panel #ppx-v .ppx-chip{ background:var(--ppx-green-700) !important; width:100% !important; }
-#ppx-panel #ppx-v .ppx-b:hover, #ppx-panel #ppx-v .ppx-chip:hover{ filter:brightness(1.05) !important; }
-#ppx-panel #ppx-v .ppx-b:active, #ppx-panel #ppx-v .ppx-chip:active{ transform:translateY(1px) !important; }
+#ppx-panel #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-500); }
+#ppx-panel #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
+#ppx-panel #ppx-v .ppx-b:hover, #ppx-panel #ppx-v .ppx-chip:hover{ filter:brightness(1.05); }
+#ppx-panel #ppx-v .ppx-b:active, #ppx-panel #ppx-v .ppx-chip:active{ transform:translateY(1px); }
 
-/* Goldene Icon-Badges über data-ic */
+/* Icon-Badges via data-ic */
 #ppx-panel #ppx-v .ppx-b[data-ic]::before, #ppx-panel #ppx-v .ppx-chip[data-ic]::before{
-  content:attr(data-ic) !important; display:inline-flex !important; align-items:center !important; justify-content:center !important;
-  width:28px !important; height:28px !important; min-width:28px !important; border-radius:999px !important;
-  background:var(--ppx-gold) !important; color:var(--ppx-gold-ink) !important; font-size:15px !important; line-height:1 !important;
-  box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1.5px 0 rgba(255,255,255,.25) inset !important;
+  content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center;
+  width:30px; height:30px; min-width:30px; border-radius:999px;
+  background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:16px; line-height:1;
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1.5px 0 rgba(255,255,255,.25) inset;
 }
-#ppx-panel #ppx-v .ppx-link{ color:var(--ppx-ink) !important; text-decoration:underline !important; text-underline-offset:2px !important; }
+#ppx-panel #ppx-v .ppx-link{ color:var(--ppx-ink); text-decoration:underline; text-underline-offset:2px; }
 `;
     var tag = document.createElement('style');
-    tag.id = 'ppx-style-hard';
+    tag.id = 'ppx-style-100w';
     tag.textContent = css;
     document.head.appendChild(tag);
   })();
@@ -158,7 +159,7 @@
   function row(){ return el('div', { class:'ppx-row' }); }
   function grid(){ return el('div', { class:'ppx-grid' }); }
 
-  // Buttons/Chips mit data-ic (alter Look)
+  // Buttons/Chips mit data-ic
   function btn(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick, type:'button' };
     if (ic) attrs['data-ic'] = ic;
@@ -190,7 +191,7 @@
     return r;
   }
 
-  // Nav-Shortcuts (mit Icons)
+  // Nav-Shortcuts
   function backBtn(to){
     return btn('Zurück', function(){
       if (to && to.scrollIntoView) scrollToEl(to);
