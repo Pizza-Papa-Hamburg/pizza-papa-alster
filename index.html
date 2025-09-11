@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pizza Papa Hamburg – Italienische Speisen & Pizza</title>
+  <meta name="description" content="Pizza Papa Hamburg: Italienische Klassiker, hausgemachter Teig, frische Saucen und schnelle Küche mit Herz.">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --parchment:#faf6eb; --ink:#2b2a29; --deep:#173b2d; --wine:#5b2734;
+      --gold:#b08d57; --shadow:0 6px 20px rgba(0,0,0,.10); --radius:0; --max:1080px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{color:var(--ink);font-family:"Cormorant Garamond", Georgia, serif;font-size:18px;line-height:1.7;background:#e7dbc0;min-height:100%;position:relative;}
+    body::before{content:"";position:fixed;inset:0;z-index:-2;background:url('images/brick.jpg') center/cover no-repeat;filter:brightness(.82) saturate(.95);}
+    body::after{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(1200px 600px at 50% 0%, rgba(0,0,0,.20), transparent 60%),linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.30));mix-blend-mode:multiply;}
+    .frame{border:2px solid var(--gold);border-radius:var(--radius);background:url('images/paper.jpg') repeat;background-size:auto;box-shadow:var(--shadow);}
+
+    header.hero{min-height:60vh;background:url('images/hero.jpg') center/cover no-repeat, linear-gradient(180deg,var(--deep),var(--wine));display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;position:relative;border-bottom:4px double var(--gold);}
+    header.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.5));}
+    .hero-inner{position:relative;z-index:1;padding:36px 18px;}
+    .brand{font-family:"Cinzel",serif;margin:0;font-size:44px;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+    .tagline{margin:.4rem 0 1rem;font-style:italic;opacity:.95}
+    .cta{display:inline-block;margin-top:8px;text-decoration:none;border:2px solid var(--gold);color:var(--parchment);background:var(--deep);padding:10px 18px;border-radius:999px;font-weight:600;transition:all .3s ease;}
+    .cta:hover{background:var(--wine);color:#fff;}
+
+    section{padding:56px 16px}
+    .container{max-width:var(--max);margin:0 auto}
+    h2.section-title{font-family:"Cinzel",serif;text-align:center;margin:0 0 6px;font-weight:700;letter-spacing:.5px;color:var(--deep);display:inline-block;padding:8px 16px;background:rgba(255,250,240,.92);border:1px solid var(--gold);box-shadow:0 4px 14px rgba(0,0,0,.12);}
+    .section-title{position:relative;left:50%;transform:translateX(-50%);}
+    .section-sub{color:#6b5f57;text-align:center;margin:6px 0 22px 0;font-style:italic}
+
+    .menu-section{margin:22px 0;padding:18px}
+    .menu-title{font-family:"Cinzel",serif;color:var(--wine);margin:0 0 8px;text-align:center;font-size:24px}
+    ul.menu-list{list-style:none;margin:0;padding:0}
+    ul.menu-list li{display:flex;gap:10px;align-items:center;padding:10px 6px;border-bottom:1px dotted #d6c9b3}
+    .name{font-weight:600}
+    .dots{flex:1;height:2px;opacity:.9;align-self:center;margin:0 6px;background-image:radial-gradient(#bda98a 1.2px, transparent 1.2px);background-size:8px 2px;background-repeat:repeat-x;background-position:center;}
+    .price{white-space:nowrap;font-weight:700}
+
+    #galerie .frame{padding-bottom:34px;}
+    .gallery{display:grid;gap:16px;grid-template-columns:repeat(auto-fit, minmax(220px,1fr));margin-bottom:8px;}
+    .gallery img{width:100%;height:220px;object-fit:cover;border:2px solid var(--gold);border-radius:12px;box-shadow:var(--shadow);margin-bottom:16px;}
+
+    .hours{list-style:none;margin:16px auto 6px;padding:0;max-width:520px;font-size:0.92rem;}
+    .hours li{display:flex;gap:10px;align-items:flex-end;padding:6px 0;border-bottom:1px dotted #d6c9b3}
+    .hours .day{min-width:130px;font-weight:600}
+    .hours .fill{flex:1;border-bottom:1px dotted #bda98a;transform:translateY(-4px)}
+    .hours .time{white-space:nowrap;font-weight:600}
+
+    footer{border-top:4px double var(--gold);background:url('images/paper.jpg') center/cover repeat;color:var(--ink);text-align:center;padding:26px 16px}
+    .social{display:flex;gap:16px;justify-content:center;margin-top:10px}
+    .social a{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:2px solid var(--gold);border-radius:999px;color:#0e1b16;text-decoration:none;transition:.25s}
+    .social a:hover{background:rgba(0,0,0,.05);transform:translateY(-2px)}
+    .social svg{width:20px;height:20px;fill:currentColor}
+    .small{opacity:.85;font-size:16px}
+    .center{text-align:center}
+    .legal-links{margin-top:12px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+    .legal-links a{color:inherit;text-decoration:underline dotted}
+
+    /* -------- OVERRIDES -------- */
+    #menu .section-title{color:#ffffff;background:none;border:none;box-shadow:none;padding:0;display:block;position:static;left:auto;transform:none;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,.35);}
+    #menu .section-sub{color:#ffffff;opacity:.9;text-shadow:0 1px 4px rgba(0,0,0,.35);}
+    #about .section-title,#galerie .section-title,#kontakt .section-title,#impressum .section-title,#datenschutz .section-title{background:none;border:none;box-shadow:none;padding:0;display:block;position:static;left:auto;transform:none;text-align:center;}
+    #about .section-sub{color:#2b2a29;opacity:.95;}
+
+    /* Cookie Banner */
+    .cookie-banner{position:fixed;z-index:9999;left:16px;right:16px;bottom:16px;display:none;align-items:flex-start;gap:14px;padding:14px 16px;border:2px solid var(--gold);border-radius:12px;background:url('images/paper.jpg') center/cover repeat;box-shadow:var(--shadow);}
+    .cookie-banner p{margin:0;font-size:0.95rem}
+    .cookie-actions{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
+    .btn{cursor:pointer;border:2px solid var(--gold);padding:8px 12px;border-radius:999px;background:#fff;}
+    .btn.primary{background:var(--deep);color:#fff;}
+    .btn.link{background:transparent;text-decoration:underline;}
+
+    /* -------- Bot Styles -------- */
+    :root{--green:#0f3a2f;--green2:#0a2a21;--gold:#c9a667}
+    .ppx-launch{position:fixed;right:22px;bottom:22px;z-index:99999;display:flex;align-items:center;gap:10px;background:#fff;color:#0e1b16;border-radius:999px;padding:10px 14px;border:1px solid #e7ebee;box-shadow:0 14px 36px rgba(0,0,0,.18);cursor:pointer;user-select:none}
+    .ppx-dot{width:38px;height:38px;border-radius:50%;background:var(--green);display:grid;place-items:center;color:#fff;font-size:18px}
+    .ppx-panel{position:fixed;right:22px;bottom:86px;width:480px;max-width:calc(100vw - 44px);display:none;z-index:100000;border-radius:18px;overflow:hidden;border:1px solid rgba(0,0,0,.08);box-shadow:0 28px 80px rgba(0,0,0,.35);background:var(--green2);flex-direction:column;max-height:78vh;}
+    .ppx-open{display:flex;}
+    .ppx-h{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--green);color:#fff;border-bottom:1px solid rgba(0,0,0,.25)}
+    .ppx-title{font-family:"Cinzel",serif;font-weight:700;letter-spacing:.3px}
+    .ppx-x{border:none;background:transparent;font-size:22px;color:#fff;cursor:pointer;opacity:.9}
+    .ppx-x:hover{opacity:1}
+    .ppx-v{padding:14px;flex:1;overflow:auto;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), var(--green2);color:#f7faf8;display:flex;flex-direction:column;gap:12px;min-height:520px}
+    .ppx-m{line-height:1.35;white-space:pre-wrap}
+    .ppx-link{color:#f3e9c9;text-decoration:underline;}
+    .ppx-bot{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);padding:12px;border-radius:12px}
+    .ppx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:2px}
+    .ppx-opt{display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);border-radius:14px;padding:12px;cursor:pointer;transition:transform .15s ease, box-shadow .15s ease}
+    .ppx-opt:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.18)}
+    .ppx-ico{width:26px;height:26px;border-radius:999px;display:grid;place-items:center;background:linear-gradient(135deg,var(--gold),#ead09b);color:#0c1f18;font-weight:700;font-size:14px}
+    .ppx-pill{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);cursor:pointer;user-select:none}
+    .ppx-pill:hover{transform:translateY(-1px)}
+    .ppx-card{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);border-radius:14px;padding:12px}
+    .ppx-card.compact{padding:8px 10px}
+    .ppx-heading{font-family:"Cinzel",serif;margin:0 0 6px;color:#efe6d6}
+    .ppx-heading.compact{font-size:17px;margin:0}
+    .ppx-price.compact{font-size:16px;font-weight:700;white-space:nowrap}
+    .ppx-headrow{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+    .ppx-desc{font-size:15px;line-height:1.45;margin-top:4px}
+    .ppx-actions{display:flex;gap:10px;margin-top:4px;flex-wrap:wrap}
+    .ppx-hours{display:grid;grid-template-columns:1fr auto;row-gap:6px;column-gap:12px}
+    .ppx-note{margin-top:8px;font-weight:600}
+    .ppx-iconrow{display:flex;gap:8px;margin-top:6px}
+    .ppx-iconbtn{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);font-size:12px;font-weight:700;letter-spacing:.2px}
+    .ppx-brandbar{padding:8px 12px;background:rgba(255,255,255,.92);color:#11231c;border-top:1px solid rgba(0,0,0,.08);font-size:12px;text-align:center}
+    .ppx-appear{animation:ppxFade .25s ease both;}
+    @keyframes ppxFade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+    @media (max-width:640px){.ppx-panel{width:auto;left:22px;right:22px;max-height:85vh}.ppx-v{min-height:60vh}}
+
+    .ppx-opt.ppx-selected, .ppx-pill.ppx-selected{
+      background:rgba(255,255,255,.18);
+      border-color:rgba(255,255,255,.45);
+      box-shadow:0 0 0 2px rgba(201,166,103,.35) inset;
+      transform:translateY(-1px);
+    }
+
+    /* Chat Inputs */
+    .ppx-input{display:flex;gap:8px;margin-top:8px}
+    .ppx-input input, .ppx-input select, .ppx-input textarea{
+      width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.28);
+      background:rgba(255,255,255,.1);color:#fff;font-size:15px;outline:none;
+    }
+    .ppx-input textarea{min-height:72px;resize:vertical}
+    .ppx-minirow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .ppx-mini{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);cursor:pointer;user-select:none}
+  </style>
+</head>
+<body>
+  <header class="hero" id="top">
+    <div class="hero-inner">
+      <h1 class="brand">Pizza Papa Hamburg</h1>
+      <p class="tagline">Italienische Klassiker – schnell, herzlich, mit Charakter.</p>
+      <a class="cta" href="#kontakt">Jetzt anrufen / reservieren</a>
+    </div>
+  </header>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container frame">
+      <h2 class="section-title">Unsere Philosophie</h2>
+      <p class="section-sub">Traditionelle Rezepte, ehrliche Zutaten, freundschaftliche Atmosphäre.</p>
+      <p class="center">Echte italienische Pizza – hausgemachter Teig, frische Saucen, schnelle Zubereitung im Steinofen.</p>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section id="menu">
+    <div class="container">
+      <h2 class="section-title">Speisekarte</h2>
+      <p class="section-sub">Alle Preise sind Platzhalter (XX/YY/ZZ).</p>
+
+      <div class="menu-section frame">
+        <h3 class="menu-title">Antipasti – Vorspeisen</h3>
+        <ul class="menu-list">
+          <li><span class="name">Bruschetta Classica</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Caprese</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Arancini</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Antipasto Misto</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Knoblauchbrot</span><span class="dots"></span><span class="price">XX €</span></li>
+        </ul>
+      </div>
+
+      <div class="menu-section frame">
+        <h3 class="menu-title">Pizza</h3>
+        <ul class="menu-list">
+          <li><span class="name">Margherita</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Prosciutto e Funghi</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Diavola (pikant)</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Quattro Formaggi</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Verdure (Gemüse)</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Tonno e Cipolla</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Parma (Rucola &amp; Grana)</span><span class="dots"></span><span class="price">ZZ €</span></li>
+          <li><span class="name">Calzone (gefüllt)</span><span class="dots"></span><span class="price">ZZ €</span></li>
+        </ul>
+      </div>
+
+      <div class="menu-section frame">
+        <h3 class="menu-title">Pasta</h3>
+        <p class="center small"><em>Nudelsorten:</em> Spaghetti, Tortellini, Linguine, Fusilli, Penne, Rigatoni, Tagliatelle, Gnocchi, Farfalle, Bucatini</p>
+        <ul class="menu-list">
+          <li><span class="name">Pomodoro</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Arrabbiata</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Carbonara</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Bolognese</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Pesto Genovese</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Funghi (Pilze)</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Gamberi (Garnelen)</span><span class="dots"></span><span class="price">ZZ €</span></li>
+          <li><span class="name">Frutti di Mare</span><span class="dots"></span><span class="price">ZZ €</span></li>
+          <li><span class="name">Alfredo</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Puttanesca</span><span class="dots"></span><span class="price">YY €</span></li>
+        </ul>
+      </div>
+
+      <div class="menu-section frame">
+        <h3 class="menu-title">Getränke</h3>
+        <ul class="menu-list">
+          <li><span class="name">Mineralwasser (still/prickelnd)</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Limonata / Aranciata</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Cola / Zero</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Espresso</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Cappuccino</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Hauswein Weiß (Glas/Fl.)</span><span class="dots"></span><span class="price">XX / YY €</span></li>
+          <li><span class="name">Hauswein Rot (Glas/Fl.)</span><span class="dots"></span><span class="price">XX / YY €</span></li>
+          <li><span class="name">Prosecco (Glas)</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Pils (0,3 / 0,5)</span><span class="dots"></span><span class="price">XX / YY €</span></li>
+          <li><span class="name">Helles / Lager (Fl.)</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Alkoholfreies Bier</span><span class="dots"></span><span class="price">XX €</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALERIE -->
+  <section id="galerie">
+    <div class="container frame">
+      <h2 class="section-title">Galerie</h2>
+      <div class="section-sub">Bilder können später jederzeit ersetzt werden.</div>
+      <div class="gallery">
+        <img src="images/gallery1.jpg" alt="Pizza">
+        <img src="images/gallery2.jpg" alt="Pasta">
+        <img src="images/gallery3.jpg" alt="Calzone">
+        <img src="images/gallery4.jpg" alt="Dessert">
+      </div>
+    </div>
+  </section>
+
+  <!-- KONTAKT -->
+  <section id="kontakt">
+    <div class="container frame">
+      <h2 class="section-title">Reservierung & Kontakt</h2>
+      <div class="section-sub">Beispieldaten – später ersetzen.</div>
+      <p class="center">
+        Telefon: <strong>+49 40 1234567</strong><br>
+        WhatsApp: <strong>+49 40 1234567</strong><br>
+        Adresse: <strong>Muster Str. XX, YYYYY Musterstadt</strong>
+      </p>
+      <ul class="hours">
+        <li><span class="day">Montag</span><span class="fill"></span><span class="time">11:00 – 22:00 Uhr</span></li>
+        <li><span class="day">Dienstag</span><span class="fill"></span><span class="time">11:00 – 22:00 Uhr</span></li>
+        <li><span class="day">Mittwoch</span><span class="fill"></span><span class="time">11:00 – 22:00 Uhr</span></li>
+        <li><span class="day">Donnerstag</span><span class="fill"></span><span class="time">11:00 – 22:00 Uhr</span></li>
+        <li><span class="day">Freitag</span><span class="fill"></span><span class="time">11:00 – 22:00 Uhr</span></li>
+        <li><span class="day">Samstag</span><span class="fill"></span><span class="time">13:00 – 24:00 Uhr</span></li>
+        <li><span class="day">Sonntag</span><span class="fill"></span><span class="time">15:00 – 21:00 Uhr</span></li>
+      </ul>
+      <p class="center" style="margin-top:18px">
+        <a class="cta" href="#top">Nach oben</a>
+      </p>
+    </div>
+  </section>
+  <!-- IMPRESSUM -->
+  <section id="impressum">
+    <div class="container frame">
+      <h2 class="section-title">Impressum</h2>
+      <p class="center small">
+        <strong>Pizza Papa Hamburg</strong><br>
+        Muster Str. XX, YYYYY Musterstadt<br>
+        Telefon: +49 123 456789 · E-Mail: info@pizzapapa.de<br>
+        Vertreten durch: Max Mustermann<br>
+        USt-IdNr.: DE123456789 · Aufsichtsbehörde: Musterbehörde
+      </p>
+      <p class="center small">Inhaltlich Verantwortlicher gem. § 18 Abs. 2 MStV: Max Mustermann (Anschrift wie oben)</p>
+      <p class="center small">Haftung für Inhalte/Links: Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für externe Links. Für den Inhalt verlinkter Seiten sind ausschließlich deren Betreiber verantwortlich.</p>
+    </div>
+  </section>
+
+  <!-- DATENSCHUTZ -->
+  <section id="datenschutz">
+    <div class="container frame">
+      <h2 class="section-title">Datenschutzerklärung</h2>
+      <p class="small">
+        Diese Website verarbeitet personenbezogene Daten nur, soweit dies zur Bereitstellung der Website erforderlich ist (Art. 6 Abs. 1 lit. f DSGVO). Beim Aufruf werden serverseitig technisch notwendige Daten (z.&nbsp;B. IP-Adresse, Zeitpunkt, angeforderte Ressource) in Logfiles verarbeitet und nach kurzer Zeit gelöscht.
+      </p>
+      <p class="small"><strong>Cookies/Tracking:</strong> Es werden keine Tracking-Cookies gesetzt. Es wird lediglich Ihre Auswahl zur Cookie-Einwilligung lokal auf Ihrem Gerät gespeichert (technisch notwendig, keine Übermittlung an Dritte).</p>
+      <p class="small"><strong>Schriften/Fonts:</strong> Zurzeit werden Google Fonts extern geladen. Dadurch kann Ihre IP-Adresse an Google übertragen werden. Für eine vollständig datenschutzfreundliche Lösung empfehlen wir die lokale Einbindung (Self-Hosting) der Schriftarten.</p>
+      <p class="small"><strong>Kontaktaufnahme:</strong> Wenn Sie uns kontaktieren, verarbeiten wir die angegebenen Daten zur Bearbeitung der Anfrage. Die Daten werden nicht ohne Ihre Einwilligung weitergegeben.</p>
+      <p class="small"><strong>Ihre Rechte:</strong> Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit sowie Beschwerderecht bei einer Aufsichtsbehörde. Kontakt: <em>privacy@pizzapapa.de</em>.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Pizza Papa Hamburg</p>
+    <div class="social" aria-label="Social Media">
+      <a href="#" aria-label="Instagram" title="Instagram">
+        <svg viewBox="0 0 24 24"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zm6.25-3a1.25 1.25 0 1 1-1.25 1.25A1.25 1.25 0 0 1 18.25 6.5z"/></svg>
+      </a>
+      <a href="#" aria-label="Facebook" title="Facebook">
+        <svg viewBox="0 0 24 24"><path d="M13.5 22v-8h2.7l.4-3h-3.1V8.3c0-.9.3-1.5 1.7-1.5H17V4.1c-.3 0-1.3-.1-2.5-.1-2.4 0-4 1.4-4 4v2.9H8v3h2.5v8h3z"/></svg>
+      </a>
+      <a href="#" aria-label="LinkedIn" title="LinkedIn">
+        <svg viewBox="0 0 24 24"><path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM0 8h5v13H0zM8 8h4.8v1.8h.1c.7-1.2 2.3-2.5 4.8-2.5 5.1 0 6 3.3 6 7.6V21H19v-5.8c0-1.4 0-3.3-2-3.3s-2.3 1.6-2.3 3.2V21H8V8z"/></svg>
+      </a>
+    </div>
+    <div class="legal-links">
+      <a href="#impressum">Impressum</a>
+      <a href="#datenschutz">Datenschutz</a>
+      <a href="#" onclick="resetConsent();return false;">Cookie-Einstellungen</a>
+    </div>
+  </footer>
+
+  <!-- Cookie Banner -->
+  <div class="cookie-banner" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie-Hinweis">
+    <p><strong>Cookie-Hinweis:</strong> Wir verwenden keine Tracking-Cookies. Wir speichern nur Ihre Auswahl lokal auf Ihrem Gerät, damit dieser Hinweis verschwindet.</p>
+    <div class="cookie-actions">
+      <button class="btn primary" onclick="acceptCookies()">Einverstanden</button>
+      <button class="btn" onclick="declineCookies()">Ablehnen</button>
+      <a class="btn link" href="#datenschutz">Mehr erfahren</a>
+    </div>
+  </div>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+  <script>
+    /* Cookie Consent */
+    (function(){
+      const KEY='pp-consent';
+      const banner=document.getElementById('cookieBanner');
+      try{ if(!localStorage.getItem(KEY)){ banner.style.display='flex'; } }catch(e){ banner.style.display='flex'; }
+      window.acceptCookies=function(){ try{ localStorage.setItem(KEY,'accepted'); }catch(e){} banner.remove(); };
+      window.declineCookies=function(){ try{ localStorage.setItem(KEY,'declined'); }catch(e){} banner.remove(); };
+      window.resetConsent=function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.hash='#datenschutz'; location.reload(); };
+    })();
+  </script>
+
+  <!-- Pizza Papa Lux Bot START -->
+  <!-- Launcher -->
+  <div class="ppx-launch" id="ppx-launch" role="button" aria-label="Schnellzugriff öffnen">
+    <div>Reservieren &amp; mehr ✨</div><div class="ppx-dot">💬</div>
+  </div>
+
+  <!-- Panel -->
+  <div class="ppx-panel" id="ppx-panel" aria-live="polite">
+    <div class="ppx-h">
+      <div class="ppx-title">Pizza Papa Hamburg</div>
+      <button class="ppx-x" id="ppx-close" aria-label="Chat schließen">×</button>
+    </div>
+    <div class="ppx-v" id="ppx-v"></div>
+    <div class="ppx-brandbar">Powered by <strong>AI Elements</strong> ✨</div>
+  </div>
+  <!-- Bot-Logik ausgelagert: -->
+  <script id="ppx-bot-loader" data-ppx-loader data-config="bot-data/bot.json" data-widget="bot/widget.js" src="bot/loader.js" defer></script>
+  <!-- Pizza Papa Lux Bot END -->
+</body>
+</html>
