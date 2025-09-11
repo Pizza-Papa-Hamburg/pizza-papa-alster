@@ -129,6 +129,8 @@
 
   // ------- Start/Home (NEU – wie früher: vertikale Liste, zentriert) -------
 function stepHome(isBack) {
+// ------- Start/Home (zentriert wie im 2. Bild) -------
+function stepHome(isBack) {
   clearView();
   var brand = (CFG.brand || 'Pizza Papa Hamburg');
   var MAXW = '560px'; // gewünschte Breite der Inhalte
@@ -169,6 +171,7 @@ function stepHome(isBack) {
 
   append(col);
 }
+
 
 
   // ------- Platzhalter (werden in Teil 2/3 & 3/3 umgesetzt) -------
@@ -745,4 +748,5 @@ function stepHome(isBack) {
   }
 
 })();
+
 
