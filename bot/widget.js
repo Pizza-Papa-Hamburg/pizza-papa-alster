@@ -1,26 +1,24 @@
 /* ============================================================================
-   PPX Widget (FULL, Sticky/Append) — Teil 1
-   - Behält frühere Auswahlen sichtbar (kein Clear)
-   - Hängt neue Blöcke unten an + Auto-Scroll
+   PPX Widget (FULL, Sticky + data-ic Icons) — Teil 1
+   - Behält frühere Blöcke sichtbar (Append-Mode)
+   - Buttons/Chips setzen Icons via data-ic (passt zu deinem alten CSS)
    - Flows: Home, Speisen→Kategorie→Item, Reservieren, Öffnungszeiten, Kontakt, Q&A
-   - Erwartet DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
+   - DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
    ============================================================================ */
 (function () {
   'use strict';
 
   // ---------------------------------------------------------------------------
-  // 0) Datenquellen & Konfiguration
+  // 0) Daten & Setup
   // ---------------------------------------------------------------------------
   var W    = window;
   var DATA = W.__PPX_DATA__ || {};
   var CFG  = DATA.cfg    || {};
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs   || [];
+  var STICKY = true; // nichts auto-clearen
 
-  // Sticky Mode: niemals automatisch leeren
-  var STICKY = true;
-
-  // EmailJS optional initialisieren
+  // EmailJS optional
   (function initEmailJS(){
     try {
       if (W.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
@@ -30,19 +28,19 @@
   })();
 
   // ---------------------------------------------------------------------------
-  // 1) DOM-Referenzen
+  // 1) DOM
   // ---------------------------------------------------------------------------
   var $launch = document.getElementById('ppx-launch');
   var $panel  = document.getElementById('ppx-panel');
   var $close  = document.getElementById('ppx-close');
   var $view   = document.getElementById('ppx-v');
   if (!$launch || !$panel || !$close || !$view) {
-    console.warn('[PPX] Fehlende DOM-IDs.');
+    console.warn('[PPX] DOM-IDs fehlen.');
     return;
   }
 
   // ---------------------------------------------------------------------------
-  // 2) Utilities
+  // 2) Utils
   // ---------------------------------------------------------------------------
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
 
@@ -84,7 +82,7 @@
     catch(e){ $view.scrollTop = $view.scrollHeight; }
   }
 
-  // WICHTIG: NICHTS automatisch leeren
+  // NIE auto-clearen (außer gezwungen)
   function clearView(opts){
     if (!STICKY) $view.innerHTML = '';
     else if (opts && opts.force) $view.innerHTML = '';
@@ -94,14 +92,19 @@
   function row(){ return el('div', { class:'ppx-row' }); }
   function grid(){ return el('div', { class:'ppx-grid' }); }
 
-  function btn(label, onClick, extraCls){
-    return el('button', { class: 'ppx-b ' + (extraCls||''), onclick: onClick }, label);
+  // Buttons/Chips mit data-ic (für dein altes CSS)
+  function btn(label, onClick, extraCls, ic){
+    var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick };
+    if (ic) attrs['data-ic'] = ic;
+    return el('button', attrs, label);
   }
-  function chip(label, onClick, extraCls){
-    return el('button', { class: 'ppx-chip ' + (extraCls||''), onclick: onClick }, label);
+  function chip(label, onClick, extraCls, ic){
+    var attrs = { class: 'ppx-chip ' + (extraCls||''), onclick: onClick };
+    if (ic) attrs['data-ic'] = ic;
+    return el('button', attrs, label);
   }
 
-  // Erzeugt einen neuen Block (Card) und hängt ihn unten an
+  // Neuer Block (Card) anhängen
   function block(title, opts){
     opts = opts || {};
     var wrap = el('div', {
@@ -121,63 +124,55 @@
     return r;
   }
 
-  // Back-Button: scrollt zum anvisierten Block (oder zum ersten Block)
-  function backBtn(targetBlock){
-    return btn('← Zurück', function () {
-      if (targetBlock && targetBlock.scrollIntoView) scrollToEl(targetBlock);
-      else scrollToEl($view.firstElementChild || $view);
-    });
+  // Nav-Shortcuts (mit Icons)
+  function backBtn(to){
+    return btn('Zurück', function(){ if (to) scrollToEl(to); else scrollToEl($view.firstElementChild||$view); }, '', '←');
   }
-
-  // „Fertig“-Button: an das Ende springen
   function doneBtn(){
-    return btn('Fertig ✓', function(){ scrollToEl($view.lastElementChild || $view); });
+    return btn('Fertig ✓', function(){ scrollToEl($view.lastElementChild||$view); }, '', '✓');
   }
-
-  // „Reservieren“-Shortcut
   function resBtn(prev){
-    return btn('📅  Reservieren', function(){ stepReservieren(prev); });
+    return btn('Reservieren', function(){ stepReservieren(prev); }, '', '📅');
   }
 
   // ---------------------------------------------------------------------------
-  // 3) HOME (Startansicht) — wird nur einmal erzeugt
+  // 3) HOME (einmalig rendern)
   // ---------------------------------------------------------------------------
   function stepHome(){
-    // WICHTIG: NICHT löschen, nur initial rendern
     if ($view.querySelector('[data-block="home"]')) return;
 
     var brand = (CFG.brand || 'Pizza Papa Hamburg');
     var B = block(brand.toUpperCase());
     B.setAttribute('data-block','home');
 
-    B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'! Schön, dass du da bist. Wie können wir dir heute helfen?'));
+    B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
+    B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
 
     var r1 = row();
-    r1.appendChild(btn('🍽️  Speisen', function(){ stepSpeisen(B); }, 'ppx-cta'));
+    r1.appendChild(btn('Speisen',      function(){ stepSpeisen(B); }, 'ppx-cta', '🍽️'));
     B.appendChild(r1);
 
     var r2 = row();
-    r2.appendChild(btn('📅  Reservieren', function(){ stepReservieren(B); }));
+    r2.appendChild(btn('Reservieren',  function(){ stepReservieren(B); }, '', '📅'));
     B.appendChild(r2);
 
     var r3 = row();
-    r3.appendChild(btn('⏰  Öffnungszeiten', function(){ stepHours(B); }));
+    r3.appendChild(btn('Öffnungszeiten', function(){ stepHours(B); }, '', '⏰'));
     B.appendChild(r3);
 
     var r4 = row();
-    r4.appendChild(btn('☎️  Kontaktdaten', function(){ stepKontakt(B); }));
+    r4.appendChild(btn('Kontaktdaten', function(){ stepKontakt(B); }, '', '☎️'));
     B.appendChild(r4);
 
     var r5 = row();
-    r5.appendChild(btn('❓ Q&As', function(){ stepQAs(B); }));
+    r5.appendChild(btn('Q&As', function(){ stepQAs(B); }, '', '❓'));
     B.appendChild(r5);
   }
 
   // ---------------------------------------------------------------------------
-  // 4) SPEISEN: Kategorien und Items (Append)
+  // 4) SPEISEN (Append)
   // ---------------------------------------------------------------------------
   function stepSpeisen(prevBlock){
-    // KEIN clearView!
     var B = block('SPEISEN');
     B.setAttribute('data-block','speisen-root');
 
@@ -188,15 +183,13 @@
     B.appendChild(line('…oder wähle eine Kategorie:'));
 
     var cats = Object.keys(DISH);
-    if (!cats.length) {
-      // Fallback falls bot.json noch keine Kategorien hat
-      cats = ['Antipasti','Pizza','Pasta','Getränke','Salate','Desserts'];
-    }
+    if (!cats.length) cats = ['Antipasti','Pizza','Pasta','Getränke','Salate','Desserts'];
+
     var G = grid();
     cats.forEach(function(cat){
       var list = Array.isArray(DISH[cat]) ? DISH[cat] : [];
       var count = list.length ? ' ('+list.length+')' : '';
-      G.appendChild(chip('🍽️  '+pretty(cat)+count, function(){ renderCategory(cat, B); }));
+      G.appendChild(chip(pretty(cat)+count, function(){ renderCategory(cat, B); }, '', '🍽️'));
     });
     B.appendChild(G);
 
@@ -210,7 +203,6 @@
 
     var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
     if (!list.length) {
-      // Fallback-Daten
       list = [
         { name: pretty(catKey)+' Classic', price:'9,50' },
         { name: pretty(catKey)+' Special', price:'12,90' }
@@ -218,8 +210,8 @@
     }
 
     list.forEach(function(it){
-      var label = '▶️  '+(it.name||'Artikel') + (it.price ? (' – '+it.price+' €') : '');
-      B.appendChild(chip(label, function(){ renderItem(catKey, it, B); }));
+      var label = (it.name || 'Artikel') + (it.price ? (' – '+it.price+' €') : '');
+      B.appendChild(chip(label, function(){ renderItem(catKey, it, B); }, '', '▶️'));
     });
 
     B.appendChild(nav([ backBtn(parentBlock), resBtn(B), doneBtn() ]));
@@ -230,9 +222,9 @@
     var B = block(title);
     B.setAttribute('data-block','speisen-item');
 
-    if (item && item.desc)   B.appendChild(line(item.desc));
-    if (item && item.price)  B.appendChild(line('Preis: '+item.price+' €'));
-    if (item && item.hinweis)B.appendChild(line('ℹ️ '+item.hinweis));
+    if (item && item.desc)    B.appendChild(line(item.desc));
+    if (item && item.price)   B.appendChild(line('Preis: '+item.price+' €'));
+    if (item && item.hinweis) B.appendChild(line('ℹ️ '+item.hinweis));
 
     B.appendChild(nav([ backBtn(prevBlock), resBtn(B), doneBtn() ]));
   }
@@ -246,13 +238,13 @@
     B.appendChild(line('Schnell-Anfrage senden oder E-Mail öffnen:'));
 
     var r = row();
-    r.appendChild(btn('⚡ Schnell senden', function(){ quickEmail(); }, 'ppx-cta'));
+    r.appendChild(btn('Schnell senden', function(){ quickEmail(); }, 'ppx-cta', '⚡'));
 
     var addr = CFG.email ||
                (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) ||
                'info@example.com';
 
-    r.appendChild(btn('✉️  E-Mail öffnen', function(){
+    r.appendChild(btn('E-Mail öffnen', function(){
       var body = [
         'Hallo '+(CFG.brand||'Restaurant')+',',
         '',
@@ -264,16 +256,16 @@
         'Liebe Grüße'
       ].join('%0A');
       W.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
-    }));
+    }, '', '✉️'));
     B.appendChild(r);
 
     B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
   }
 
   function quickEmail(){
-    var name = prompt('Dein Name:');                       if (!name) return;
+    var name = prompt('Dein Name:');                         if (!name) return;
     var when = prompt('Datum & Uhrzeit (z. B. 24.09. 19:00):'); if (!when) return;
-    var ppl  = prompt('Personenanzahl:');                  if (!ppl) return;
+    var ppl  = prompt('Personenanzahl:');                    if (!ppl) return;
     var tel  = prompt('Telefon (optional):') || '';
 
     var payload = {
@@ -328,20 +320,22 @@
 
     if (CFG.phone) {
       B.appendChild(line('📞 '+CFG.phone));
-      B.appendChild(
-        nav([ btn('Anrufen', function(){ W.location.href='tel:'+CFG.phone.replace(/\s+/g,''); }) ])
-      );
+      B.appendChild(nav([
+        btn('Anrufen', function(){ W.location.href='tel:'+String(CFG.phone).replace(/\s+/g,''); }, '', '📞')
+      ]));
     }
     if (CFG.email) {
       B.appendChild(line('✉️  '+CFG.email));
-      B.appendChild(
-        nav([ btn('E-Mail schreiben', function(){ W.location.href='mailto:'+CFG.email; }) ])
-      );
+      B.appendChild(nav([
+        btn('E-Mail schreiben', function(){ W.location.href='mailto:'+CFG.email; }, '', '✉️')
+      ]));
     }
     if (CFG.address) {
       B.appendChild(line('📍 '+CFG.address));
       var maps = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(CFG.address);
-      B.appendChild(nav([ btn('Anfahrt öffnen', function(){ W.open(maps, '_blank'); }) ]));
+      B.appendChild(nav([
+        btn('Anfahrt öffnen', function(){ W.open(maps, '_blank'); }, '', '🗺️')
+      ]));
     }
 
     B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
@@ -368,7 +362,7 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 9) Öffnen/Schließen & Initialisierung (ohne Clear!)
+  // 9) Öffnen/Schließen & Init (ohne Clear!)
   // ---------------------------------------------------------------------------
   $launch.addEventListener('click', function(){
     $panel.classList.add('ppx-open');
