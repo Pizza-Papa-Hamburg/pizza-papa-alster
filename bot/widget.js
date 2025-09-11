@@ -9,17 +9,10 @@
   var CFG    = DATA.cfg    || {};
   var DISHES = DATA.dishes || {};
 
- /* --------- INIT EMAILJS (robust) --------- */
-const PUBLIC_KEY = 'J1KTj7-7VJBsV-LHc';
-if (window.emailjs && typeof window.emailjs.init === 'function') {
-  try { window.emailjs.init({ publicKey: PUBLIC_KEY }); }
-  catch (e) { console.warn('[EmailJS] init failed:', e); }
-} else {
-  console.warn('[EmailJS] not loaded – bot läuft trotzdem, Versand wird später versucht.');
-  // Fallback, damit der Rest nicht crasht:
-  window.emailjs = window.emailjs || { send: () => Promise.reject(new Error('emailjs not loaded')) };
-}
-
+  // EmailJS init (Public Key aus cfg)
+  if (window.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
+    try { window.emailjs.init({ publicKey: CFG.EMAIL.publicKey }); } catch (e) {}
+  }
 
   // ------- DOM Refs (IDs/Klassen bleiben exakt wie bei dir) -------
   var launch = document.getElementById('ppx-launch');
@@ -135,52 +128,57 @@ if (window.emailjs && typeof window.emailjs.init === 'function') {
   });
 
   // ------- Start/Home (NEU – wie früher: vertikale Liste, zentriert) -------
-function stepHome(isBack) {
-// ------- Start/Home (zentriert wie im 2. Bild) -------
-function stepHome(isBack) {
-  clearView();
-  var brand = (CFG.brand || 'Pizza Papa Hamburg');
-  var MAXW = '560px'; // gewünschte Breite der Inhalte
+  function stepHome(isBack) {
+    clearView();
+    var brand = (CFG.brand || 'Pizza Papa Hamburg');
 
-  // Begrüßung – zentriert und begrenzt
-  append(el('div', {
-      class: 'ppx-bot ppx-appear',
-      style: { maxWidth: MAXW, margin: '0 auto' }
-    },
-    el('div', { class: 'ppx-m' },
-      '👋 WILLKOMMEN BEI ' + brand.toUpperCase() + '!\n' +
-      'Schön, dass du da bist. Wie können wir dir heute helfen?'
-    )
-  ));
+    // Begrüßung
+    append(el('div', { class: 'ppx-bot ppx-appear' },
+      el('div', { class: 'ppx-m' },
+        '👋 WILLKOMMEN BEI ' + brand.toUpperCase() + '!\n' +
+        'Schön, dass du da bist. Wie können wir dir heute helfen?'
+      )
+    ));
 
-  // Vertikale Liste – zentriert, konstante Breite
-  var col = el('div', {
-    class: 'ppx-appear',
-    style: { display:'flex', flexDirection:'column', gap:'18px', alignItems:'center', width:'100%' }
-  });
+    // Vertikale Liste der Hauptaktionen
+    var col = el('div', {
+      class: 'ppx-appear',
+      style: { display:'flex', flexDirection:'column', gap:'12px', alignItems:'stretch' }
+    });
 
-  function btn(action, icon, label) {
-  return el('div', {
-      class: 'ppx-opt',
-      dataset: { action: action },
-      // NEU: margin:'0 auto' sorgt fürs Zentrieren
-      style: { width:'100%', maxWidth: MAXW, margin:'0 auto' }
-    },
-    el('div', { class:'ppx-ico' }, icon),
-    el('div', { class:'ppx-m'  }, label)
-  );
-}
+    col.appendChild(
+      el('div', { class:'ppx-opt', dataset:{ action:'menu' }, style:{ width:'100%' } },
+        el('div', { class:'ppx-ico' }, '🍽'),
+        el('div', { class:'ppx-m'  }, 'Speisen')
+      )
+    );
+    col.appendChild(
+      el('div', { class:'ppx-opt', dataset:{ action:'reserve' }, style:{ width:'100%' } },
+        el('div', { class:'ppx-ico' }, '🗓'),
+        el('div', { class:'ppx-m'  }, 'Reservieren')
+      )
+    );
+    col.appendChild(
+      el('div', { class:'ppx-opt', dataset:{ action:'hours' }, style:{ width:'100%' } },
+        el('div', { class:'ppx-ico' }, '🕒'),
+        el('div', { class:'ppx-m'  }, 'Öffnungszeiten')
+      )
+    );
+    col.appendChild(
+      el('div', { class:'ppx-opt', dataset:{ action:'contact' }, style:{ width:'100%' } },
+        el('div', { class:'ppx-ico' }, '📞'),
+        el('div', { class:'ppx-m'  }, 'Kontaktdaten')
+      )
+    );
+    col.appendChild(
+      el('div', { class:'ppx-opt', dataset:{ action:'faq' }, style:{ width:'100%' } },
+        el('div', { class:'ppx-ico' }, '❓'),
+        el('div', { class:'ppx-m'  }, 'Q&As')
+      )
+    );
 
-  col.appendChild(btn('menu',    '🍽', 'Speisen'));
-  col.appendChild(btn('reserve', '🗓', 'Reservieren'));
-  col.appendChild(btn('hours',   '🕒', 'Öffnungszeiten'));
-  col.appendChild(btn('contact', '📞', 'Kontaktdaten'));
-  col.appendChild(btn('faq',     '❓', 'Q&As'));
-
-  append(col);
-}
-
-
+    append(col);
+  }
 
   // ------- Platzhalter (werden in Teil 2/3 & 3/3 umgesetzt) -------
   function stepMenuCategories() {
@@ -756,7 +754,3 @@ function stepHome(isBack) {
   }
 
 })();
-
-
-
-
