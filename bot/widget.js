@@ -1,13 +1,14 @@
 /* ============================================================================
-   PPX Widget (FINAL ROBUST) — Sticky/Append + robuste Init + Overrides
-   Wünsche umgesetzt + Fix:
-   - „Speisen“: Info „Super Wahl 👍 …“ + Delay (500 ms), danach PDF-Link + Kategorien
+   PPX Widget (v6 ULTRA-ROBUST) — Sticky/Append + robuste Init + Delegation
+   Wünsche umgesetzt:
+   - „Speisen“: Info „Super Wahl 👍 …“ + Delay (500 ms), dann PDF-Link + Kategorien
    - Ab „Speisen“: NICHT mehr zentriert (nur Start/Home zentriert)
-   - Buttons kompakter; Farben wie in Screenshot 2
+   - Buttons kompakter; Farben wie Screenshot 2
    - Nav („Zurück | Reservieren | Fertig“) in EINER Reihe (links)
-   - Robuster Style-Injector (entfernt alte Styles, höhere Spezifität, teils !important)
-   - ROBUSTE INIT: wartet auf DOM/IDs via DOMContentLoaded + MutationObserver
-   Erwartete DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
+   Robustheit:
+   - Entfernt alte Styles; injiziert eigene mit höherer Spezifität (.ppx-v5)
+   - Wartet auf DOM + nutzt MutationObserver
+   - Zusätzlich: Delegierter Click-Listener (falls Direktbindung nicht greift)
    ============================================================================ */
 (function () {
   'use strict';
@@ -29,7 +30,7 @@
   (function injectStyles(){
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
-      'ppx-style-v5','ppx-style-v5-override'
+      'ppx-style-v5','ppx-style-v5-override','ppx-style-v6'
     ].forEach(function(id){
       var old = document.getElementById(id);
       if (old && old.parentNode) old.parentNode.removeChild(old);
@@ -137,16 +138,17 @@
 }
 `;
     var tag = document.createElement('style');
-    tag.id = 'ppx-style-v5-override';
+    tag.id = 'ppx-style-v6';
     tag.textContent = css;
     document.head.appendChild(tag);
   })();
 
   // ---------------------------------------------------------------------------
-  // 1) Robuste Init (wartet auf DOM + IDs)
+  // 1) Robuste Init (wartet auf DOM + IDs) + Delegation
   // ---------------------------------------------------------------------------
   var $launch, $panel, $close, $view;
   var BOUND = false;
+
   function queryDom(){
     $launch = document.getElementById('ppx-launch');
     $panel  = document.getElementById('ppx-panel');
@@ -155,35 +157,42 @@
     return !!($launch && $panel && $close && $view);
   }
 
+  function openPanel(){
+    // frische Refs (falls DOM gewechselt hat)
+    if (!$panel || !$view) queryDom();
+    if (!$panel || !$view) return;
+    $panel.classList.add('ppx-open');
+    $panel.classList.add('ppx-v5'); // für Styles
+    if (!$panel.dataset.init) {
+      $panel.dataset.init = '1';
+      stepHome(); // Home einmalig rendern; bleibt stehen
+    }
+  }
+
+  function closePanel(){
+    if (!$panel) queryDom();
+    if ($panel) $panel.classList.remove('ppx-open');
+  }
+
   function bindOnce(){
     if (BOUND) return true;
     if (!queryDom()) return false;
 
-    // Panel-Klasse für Styles
+    // Panel-Klasse für CSS-Overrides
     $panel.classList.add('ppx-v5');
 
-    // Öffnen
-    $launch.addEventListener('click', function(){
-      $panel.classList.add('ppx-open');
-      if (!$panel.dataset.init) {
-        $panel.dataset.init = '1';
-        stepHome(); // Home einmalig rendern; bleibt stehen
-      }
-    });
+    // Öffnen/Schließen (direkte Listener)
+    $launch.addEventListener('click', openPanel);
+    $close.addEventListener('click', closePanel);
 
-    // Schließen
-    $close.addEventListener('click', function(){
-      $panel.classList.remove('ppx-open');
-    });
-
-    // ESC schließt Panel
+    // ESC schließt
     window.addEventListener('keydown', function(e){
-      if (e.key === 'Escape') $panel.classList.remove('ppx-open');
+      if (e.key === 'Escape') closePanel();
     });
 
     // Overlay-Klick schließt nur, wenn direkt auf Panel (nicht auf Inhalt)
     $panel.addEventListener('click', function(ev){
-      if (ev.target === $panel) $panel.classList.remove('ppx-open');
+      if (ev.target === $panel) closePanel();
     });
 
     // Falls durch CSS bereits offen, trotzdem einmal Home rendern (ohne Clear)
@@ -191,6 +200,12 @@
       $panel.dataset.init = '1';
       stepHome();
     }
+
+    // Delegierter Fallback-Listener: reagiert auch, wenn Direktbindung verpasst wurde
+    document.addEventListener('click', function(ev){
+      var t = ev.target && ev.target.closest ? ev.target.closest('#ppx-launch') : null;
+      if (t) openPanel();
+    });
 
     BOUND = true;
     return true;
@@ -200,8 +215,7 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindOnce, { once:true });
   } else {
-    // DOM schon da
-    bindOnce();
+    bindOnce(); // DOM ist schon da
   }
 
   // MutationObserver → falls Elemente nachträglich ins DOM kommen
@@ -210,7 +224,7 @@
       if (bindOnce()) mo.disconnect();
     });
     mo.observe(document.documentElement || document.body, { childList:true, subtree:true });
-    // Fallback: nach 5s aufgeben (damit kein ewiger Observer läuft)
+    // Fallback: nach 5s observer stoppen
     setTimeout(function(){ try{ mo.disconnect(); }catch(e){} }, 5000);
   }
 
@@ -333,236 +347,3 @@
     var r4 = row(); r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(B); }, '', '☎️'));        B.appendChild(r4);
     var r5 = row(); r5.appendChild(btn('Q&As',          function(){ stepQAs(B); }, '', '❓'));             B.appendChild(r5);
   }
-
-  // ---------------------------------------------------------------------------
-  // 4) SPEISEN (erst Info, Delay, dann Block mit PDF + Kategorien)
-  // ---------------------------------------------------------------------------
-  function stepSpeisen(prevBlock){
-    // 4.1) Info-Meldung wie gewünscht
-    var M = block(null);
-    M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
-
-    // 4.2) kurzer Delay, dann eigentlicher "SPEISEN"-Block
-    setTimeout(function(){ renderSpeisenRoot(prevBlock); }, 500);
-  }
-
-  function renderSpeisenRoot(prevBlock){
-    var B = block('SPEISEN');
-    B.setAttribute('data-block','speisen-root');
-
-    // PDF-Button (links ausgerichtet)
-    if (CFG.menuPdf) {
-      var r = row();
-      r.style.justifyContent = 'flex-start';
-      r.appendChild(
-        btn('Speisekarte als PDF', function(){
-          window.open(CFG.menuPdf, '_blank');
-        }, '', '📄')
-      );
-      B.appendChild(r);
-    }
-
-    // Hinweiszeile
-    B.appendChild(line('…oder wähle eine Kategorie:'));
-
-    // Kategorien: Daten oder Fallback exakt wie gewünscht
-    var cats = Object.keys(DISH);
-    if (!cats.length) cats = ['Antipasti','Salat','Pizza','Pasta','Drinks','Desserts'];
-
-    // Kategorien-Liste als EINSPALTIGE Liste (volle Zeile je Chip)
-    var G = grid();
-    G.style.gridTemplateColumns = '1fr'; // volle Zeile pro Button
-    cats.forEach(function(cat){
-      var list  = Array.isArray(DISH[cat]) ? DISH[cat] : [];
-      var count = list.length ? ' ('+list.length+')' : '';
-      G.appendChild(
-        chip(pretty(cat)+count, function(){ renderCategory(cat, B); }, '', '▶️')
-      );
-    });
-    B.appendChild(G);
-
-    // Nav: Zurück | Reservieren | Fertig (eine Reihe, linksbündig)
-    B.appendChild(nav([ backBtn(prevBlock), resBtn(B), doneBtn() ]));
-  }
-
-  function renderCategory(catKey, parentBlock){
-    var title = 'Gern! Hier ist die Auswahl für '+pretty(catKey)+':';
-    var B = block(title);
-    B.setAttribute('data-block','speisen-cat');
-
-    var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
-
-    // Fallback-Demos, falls keine Items hinterlegt sind
-    if (!list.length) {
-      list = [
-        { name: pretty(catKey)+' Classic', price:'9,50' },
-        { name: pretty(catKey)+' Special', price:'12,90' }
-      ];
-    }
-
-    // Items als Chips (links ausgerichtet, kompakter, 1 Spalte)
-    var L = grid();
-    L.style.gridTemplateColumns = '1fr'; // eine Spalte, volle Breite
-    list.forEach(function(it){
-      var label = (it.name || 'Artikel') + (it.price ? (' – '+it.price+' €') : '');
-      L.appendChild(
-        chip(label, function(){ renderItem(catKey, it, B); }, '', '➜')
-      );
-    });
-    B.appendChild(L);
-
-    // Nav
-    B.appendChild(nav([ backBtn(parentBlock), resBtn(B), doneBtn() ]));
-  }
-
-  function renderItem(catKey, item, prevBlock){
-    var title = item && item.name ? item.name : pretty(catKey);
-    var B = block(title);
-    B.setAttribute('data-block','speisen-item');
-
-    if (item && item.desc)    B.appendChild(line(item.desc));
-    if (item && item.price)   B.appendChild(line('Preis: '+item.price+' €'));
-    if (item && item.hinweis) B.appendChild(line('ℹ️ '+item.hinweis));
-
-    B.appendChild(nav([ backBtn(prevBlock), resBtn(B), doneBtn() ]));
-  }
-
-  // ---------------------------------------------------------------------------
-  // 5) RESERVIEREN (Append)
-  // ---------------------------------------------------------------------------
-  function stepReservieren(prevBlock){
-    var B = block('RESERVIEREN');
-    B.setAttribute('data-block','reservieren');
-
-    B.appendChild(line('Schnell-Anfrage senden oder E-Mail öffnen:'));
-
-    var r = row();
-    r.style.justifyContent = 'flex-start';
-    r.appendChild(btn('Schnell senden', function(){ quickEmail(); }, 'ppx-cta', '⚡'));
-
-    var addr = CFG.email ||
-               (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) ||
-               'info@example.com';
-
-    r.appendChild(btn('E-Mail öffnen', function(){
-      var body = [
-        'Hallo '+(CFG.brand||'Restaurant')+',',
-        '',
-        'ich möchte gern reservieren.',
-        'Datum & Uhrzeit: ________',
-        'Personenanzahl: ________',
-        'Telefon: ________',
-        '',
-        'Liebe Grüße'
-      ].join('%0A');
-      window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
-    }, '', '✉️'));
-    B.appendChild(r);
-
-    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
-  }
-
-  function quickEmail(){
-    var name = prompt('Dein Name:');                            if (!name) return;
-    var when = prompt('Datum & Uhrzeit (z. B. 24.09. 19:00):'); if (!when) return;
-    var ppl  = prompt('Personenanzahl:');                       if (!ppl) return;
-    var tel  = prompt('Telefon (optional):') || '';
-
-    var payload = {
-      name: name, when: when, persons: ppl, phone: tel,
-      brand: (CFG.brand || 'Restaurant')
-    };
-
-    // EmailJS vorhanden?
-    if (window.emailjs && CFG.EMAIL && CFG.EMAIL.serviceId && CFG.EMAIL.templateId) {
-      emailjs.send(CFG.EMAIL.serviceId, CFG.EMAIL.templateId, payload).then(
-        function(){ alert('Danke! Wir melden uns asap.'); },
-        function(){ alert('Senden fehlgeschlagen. Bitte „E-Mail öffnen“ nutzen.'); }
-      );
-      return;
-    }
-
-    // Fallback: mailto
-    var addr = CFG.email ||
-               (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) ||
-               'info@example.com';
-    var body = encodeURIComponent(
-      'Name: '+name+'\nZeit: '+when+'\nPersonen: '+ppl+'\nTelefon: '+tel+'\n——\nGesendet via Bot'
-    );
-    window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
-  }
-
-  // ---------------------------------------------------------------------------
-  // 6) ÖFFNUNGSZEITEN (Append)
-  // ---------------------------------------------------------------------------
-  function stepHours(prevBlock){
-    var B = block('ÖFFNUNGSZEITEN');
-    B.setAttribute('data-block','hours');
-
-    var lines = CFG.hoursLines || [];
-    if (!lines.length) {
-      B.appendChild(line('Keine Zeiten hinterlegt.'));
-    } else {
-      lines.forEach(function(rowArr){
-        var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr);
-        B.appendChild(line('• '+txt));
-      });
-    }
-    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
-  }
-
-  // ---------------------------------------------------------------------------
-  // 7) KONTAKT (Append)
-  // ---------------------------------------------------------------------------
-  function stepKontakt(prevBlock){
-    var B = block('KONTAKTDATEN');
-    B.setAttribute('data-block','kontakt');
-
-    if (CFG.phone) {
-      B.appendChild(line('📞 '+CFG.phone));
-      var r1 = row(); r1.style.justifyContent = 'flex-start';
-      r1.appendChild(btn('Anrufen', function(){
-        window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,'');
-      }, '', '📞'));
-      B.appendChild(r1);
-    }
-    if (CFG.email) {
-      B.appendChild(line('✉️  '+CFG.email));
-      var r2 = row(); r2.style.justifyContent = 'flex-start';
-      r2.appendChild(btn('E-Mail schreiben', function(){
-        window.location.href='mailto:'+CFG.email;
-      }, '', '✉️'));
-      B.appendChild(r2);
-    }
-    if (CFG.address) {
-      B.appendChild(line('📍 '+CFG.address));
-      var maps = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(CFG.address);
-      var r3 = row(); r3.style.justifyContent = 'flex-start';
-      r3.appendChild(btn('Anfahrt öffnen', function(){ window.open(maps, '_blank'); }, '', '🗺️'));
-      B.appendChild(r3);
-    }
-
-    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
-  }
-
-  // ---------------------------------------------------------------------------
-  // 8) Q&As (Append)
-  // ---------------------------------------------------------------------------
-  function stepQAs(prevBlock){
-    var B = block('Q&As');
-    B.setAttribute('data-block','faq');
-
-    if (!Array.isArray(FAQ) || !FAQ.length) {
-      B.appendChild(line('Häufige Fragen folgen in Kürze.'));
-    } else {
-      FAQ.forEach(function(f){
-        var q = (f && (f.q || f.question)) || '';
-        var a = (f && (f.a || f.answer)) || '';
-        if (q) B.appendChild(line('• '+q));
-        if (a) B.appendChild(line('↳ '+a));
-      });
-    }
-    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
-  }
-
-})(); // Ende IIFE
