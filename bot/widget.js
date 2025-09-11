@@ -9,10 +9,17 @@
   var CFG    = DATA.cfg    || {};
   var DISHES = DATA.dishes || {};
 
-  // EmailJS init (Public Key aus cfg)
-  if (window.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
-    try { window.emailjs.init({ publicKey: CFG.EMAIL.publicKey }); } catch (e) {}
-  }
+ /* --------- INIT EMAILJS (robust) --------- */
+const PUBLIC_KEY = 'J1KTj7-7VJBsV-LHc';
+if (window.emailjs && typeof window.emailjs.init === 'function') {
+  try { window.emailjs.init({ publicKey: PUBLIC_KEY }); }
+  catch (e) { console.warn('[EmailJS] init failed:', e); }
+} else {
+  console.warn('[EmailJS] not loaded – bot läuft trotzdem, Versand wird später versucht.');
+  // Fallback, damit der Rest nicht crasht:
+  window.emailjs = window.emailjs || { send: () => Promise.reject(new Error('emailjs not loaded')) };
+}
+
 
   // ------- DOM Refs (IDs/Klassen bleiben exakt wie bei dir) -------
   var launch = document.getElementById('ppx-launch');
@@ -749,6 +756,7 @@ function stepHome(isBack) {
   }
 
 })();
+
 
 
 
