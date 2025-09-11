@@ -128,57 +128,48 @@
   });
 
   // ------- Start/Home (NEU – wie früher: vertikale Liste, zentriert) -------
-  function stepHome(isBack) {
-    clearView();
-    var brand = (CFG.brand || 'Pizza Papa Hamburg');
+function stepHome(isBack) {
+  clearView();
+  var brand = (CFG.brand || 'Pizza Papa Hamburg');
+  var MAXW = '560px'; // gewünschte Breite der Inhalte
 
-    // Begrüßung
-    append(el('div', { class: 'ppx-bot ppx-appear' },
-      el('div', { class: 'ppx-m' },
-        '👋 WILLKOMMEN BEI ' + brand.toUpperCase() + '!\n' +
-        'Schön, dass du da bist. Wie können wir dir heute helfen?'
-      )
-    ));
+  // Begrüßung – zentriert und begrenzt
+  append(el('div', {
+      class: 'ppx-bot ppx-appear',
+      style: { maxWidth: MAXW, margin: '0 auto' }
+    },
+    el('div', { class: 'ppx-m' },
+      '👋 WILLKOMMEN BEI ' + brand.toUpperCase() + '!\n' +
+      'Schön, dass du da bist. Wie können wir dir heute helfen?'
+    )
+  ));
 
-    // Vertikale Liste der Hauptaktionen
-    var col = el('div', {
-      class: 'ppx-appear',
-      style: { display:'flex', flexDirection:'column', gap:'12px', alignItems:'stretch' }
-    });
+  // Vertikale Liste – zentriert, konstante Breite
+  var col = el('div', {
+    class: 'ppx-appear',
+    style: { display:'flex', flexDirection:'column', gap:'18px', alignItems:'center', width:'100%' }
+  });
 
-    col.appendChild(
-      el('div', { class:'ppx-opt', dataset:{ action:'menu' }, style:{ width:'100%' } },
-        el('div', { class:'ppx-ico' }, '🍽'),
-        el('div', { class:'ppx-m'  }, 'Speisen')
-      )
+  function btn(action, icon, label) {
+    return el('div', {
+        class:'ppx-opt',
+        dataset:{ action: action },
+        style:{ width:'100%', maxWidth: MAXW }
+      },
+      el('div', { class:'ppx-ico' }, icon),
+      el('div', { class:'ppx-m'  }, label)
     );
-    col.appendChild(
-      el('div', { class:'ppx-opt', dataset:{ action:'reserve' }, style:{ width:'100%' } },
-        el('div', { class:'ppx-ico' }, '🗓'),
-        el('div', { class:'ppx-m'  }, 'Reservieren')
-      )
-    );
-    col.appendChild(
-      el('div', { class:'ppx-opt', dataset:{ action:'hours' }, style:{ width:'100%' } },
-        el('div', { class:'ppx-ico' }, '🕒'),
-        el('div', { class:'ppx-m'  }, 'Öffnungszeiten')
-      )
-    );
-    col.appendChild(
-      el('div', { class:'ppx-opt', dataset:{ action:'contact' }, style:{ width:'100%' } },
-        el('div', { class:'ppx-ico' }, '📞'),
-        el('div', { class:'ppx-m'  }, 'Kontaktdaten')
-      )
-    );
-    col.appendChild(
-      el('div', { class:'ppx-opt', dataset:{ action:'faq' }, style:{ width:'100%' } },
-        el('div', { class:'ppx-ico' }, '❓'),
-        el('div', { class:'ppx-m'  }, 'Q&As')
-      )
-    );
-
-    append(col);
   }
+
+  col.appendChild(btn('menu',    '🍽', 'Speisen'));
+  col.appendChild(btn('reserve', '🗓', 'Reservieren'));
+  col.appendChild(btn('hours',   '🕒', 'Öffnungszeiten'));
+  col.appendChild(btn('contact', '📞', 'Kontaktdaten'));
+  col.appendChild(btn('faq',     '❓', 'Q&As'));
+
+  append(col);
+}
+
 
   // ------- Platzhalter (werden in Teil 2/3 & 3/3 umgesetzt) -------
   function stepMenuCategories() {
@@ -754,3 +745,4 @@
   }
 
 })();
+
