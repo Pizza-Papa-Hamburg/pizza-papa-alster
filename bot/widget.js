@@ -9,6 +9,7 @@
    - Entfernt alte Styles; injiziert eigene mit höherer Spezifität (.ppx-v5)
    - Wartet auf DOM + nutzt MutationObserver
    - Zusätzlich: Delegierter Click-Listener (falls Direktbindung nicht greift)
+   Erwartete DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
    ============================================================================ */
 (function () {
   'use strict';
@@ -22,6 +23,15 @@
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs   || [];
   var STICKY = true;
+
+  // Optional: EmailJS init (falls konfiguriert)
+  (function initEmailJS(){
+    try {
+      if (W.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
+        W.emailjs.init({ publicKey: CFG.EMAIL.publicKey });
+      }
+    } catch (e) {}
+  })();
 
   // ---------------------------------------------------------------------------
   // STYLE: Farben/Layout wie gewünscht, nur HOME zentriert, ab Speisen links
@@ -158,7 +168,6 @@
   }
 
   function openPanel(){
-    // frische Refs (falls DOM gewechselt hat)
     if (!$panel || !$view) queryDom();
     if (!$panel || !$view) return;
     $panel.classList.add('ppx-open');
@@ -347,3 +356,222 @@
     var r4 = row(); r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(B); }, '', '☎️'));        B.appendChild(r4);
     var r5 = row(); r5.appendChild(btn('Q&As',          function(){ stepQAs(B); }, '', '❓'));             B.appendChild(r5);
   }
+
+  // ---------------------------------------------------------------------------
+  // 4) SPEISEN (erst Info, Delay, dann Block mit PDF + Kategorien)
+  // ---------------------------------------------------------------------------
+  function stepSpeisen(prevBlock){
+    var M = block(null);
+    M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
+    setTimeout(function(){ renderSpeisenRoot(prevBlock); }, 500);
+  }
+
+  function renderSpeisenRoot(prevBlock){
+    var B = block('SPEISEN');
+    B.setAttribute('data-block','speisen-root');
+
+    if (CFG.menuPdf) {
+      var r = row();
+      r.style.justifyContent = 'flex-start';
+      r.appendChild(
+        btn('Speisekarte als PDF', function(){
+          window.open(CFG.menuPdf, '_blank');
+        }, '', '📄')
+      );
+      B.appendChild(r);
+    }
+
+    B.appendChild(line('…oder wähle eine Kategorie:'));
+
+    var cats = Object.keys(DISH);
+    if (!cats.length) cats = ['Antipasti','Salat','Pizza','Pasta','Drinks','Desserts'];
+
+    var G = grid();
+    G.style.gridTemplateColumns = '1fr'; // volle Zeile pro Button
+    cats.forEach(function(cat){
+      var list  = Array.isArray(DISH[cat]) ? DISH[cat] : [];
+      var count = list.length ? ' ('+list.length+')' : '';
+      G.appendChild(
+        chip(pretty(cat)+count, function(){ renderCategory(cat, B); }, '', '▶️')
+      );
+    });
+    B.appendChild(G);
+
+    B.appendChild(nav([ backBtn(prevBlock), resBtn(B), doneBtn() ]));
+  }
+
+  function renderCategory(catKey, parentBlock){
+    var title = 'Gern! Hier ist die Auswahl für '+pretty(catKey)+':';
+    var B = block(title);
+    B.setAttribute('data-block','speisen-cat');
+
+    var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
+    if (!list.length) {
+      list = [
+        { name: pretty(catKey)+' Classic', price:'9,50' },
+        { name: pretty(catKey)+' Special', price:'12,90' }
+      ];
+    }
+
+    var L = grid();
+    L.style.gridTemplateColumns = '1fr';
+    list.forEach(function(it){
+      var label = (it.name || 'Artikel') + (it.price ? (' – '+it.price+' €') : '');
+      L.appendChild(
+        chip(label, function(){ renderItem(catKey, it, B); }, '', '➜')
+      );
+    });
+    B.appendChild(L);
+
+    B.appendChild(nav([ backBtn(parentBlock), resBtn(B), doneBtn() ]));
+  }
+
+  function renderItem(catKey, item, prevBlock){
+    var title = item && item.name ? item.name : pretty(catKey);
+    var B = block(title);
+    B.setAttribute('data-block','speisen-item');
+
+    if (item && item.desc)    B.appendChild(line(item.desc));
+    if (item && item.price)   B.appendChild(line('Preis: '+item.price+' €'));
+    if (item && item.hinweis) B.appendChild(line('ℹ️ '+item.hinweis));
+
+    B.appendChild(nav([ backBtn(prevBlock), resBtn(B), doneBtn() ]));
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5) RESERVIEREN (Append)
+  // ---------------------------------------------------------------------------
+  function stepReservieren(prevBlock){
+    var B = block('RESERVIEREN');
+    B.setAttribute('data-block','reservieren');
+
+    B.appendChild(line('Schnell-Anfrage senden oder E-Mail öffnen:'));
+
+    var r = row();
+    r.style.justifyContent = 'flex-start';
+    r.appendChild(btn('Schnell senden', function(){ quickEmail(); }, 'ppx-cta', '⚡'));
+
+    var addr = CFG.email ||
+               (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) ||
+               'info@example.com';
+
+    r.appendChild(btn('E-Mail öffnen', function(){
+      var body = [
+        'Hallo '+(CFG.brand||'Restaurant')+',',
+        '',
+        'ich möchte gern reservieren.',
+        'Datum & Uhrzeit: ________',
+        'Personenanzahl: ________',
+        'Telefon: ________',
+        '',
+        'Liebe Grüße'
+      ].join('%0A');
+      window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
+    }, '', '✉️'));
+    B.appendChild(r);
+
+    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
+  }
+
+  function quickEmail(){
+    var name = prompt('Dein Name:');                            if (!name) return;
+    var when = prompt('Datum & Uhrzeit (z. B. 24.09. 19:00):'); if (!when) return;
+    var ppl  = prompt('Personenanzahl:');                       if (!ppl) return;
+    var tel  = prompt('Telefon (optional):') || '';
+
+    var payload = {
+      name: name, when: when, persons: ppl, phone: tel,
+      brand: (CFG.brand || 'Restaurant')
+    };
+
+    if (window.emailjs && CFG.EMAIL && CFG.EMAIL.serviceId && CFG.EMAIL.templateId) {
+      emailjs.send(CFG.EMAIL.serviceId, CFG.EMAIL.templateId, payload).then(
+        function(){ alert('Danke! Wir melden uns asap.'); },
+        function(){ alert('Senden fehlgeschlagen. Bitte „E-Mail öffnen“ nutzen.'); }
+      );
+      return;
+    }
+
+    var addr = CFG.email ||
+               (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) ||
+               'info@example.com';
+    var body = encodeURIComponent(
+      'Name: '+name+'\nZeit: '+when+'\nPersonen: '+ppl+'\nTelefon: '+tel+'\n——\nGesendet via Bot'
+    );
+    window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6) ÖFFNUNGSZEITEN (Append)
+  // ---------------------------------------------------------------------------
+  function stepHours(prevBlock){
+    var B = block('ÖFFNUNGSZEITEN');
+    B.setAttribute('data-block','hours');
+
+    var lines = CFG.hoursLines || [];
+    if (!lines.length) {
+      B.appendChild(line('Keine Zeiten hinterlegt.'));
+    } else {
+      lines.forEach(function(rowArr){
+        var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr);
+        B.appendChild(line('• '+txt));
+      });
+    }
+    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
+  }
+
+  // ---------------------------------------------------------------------------
+  // 7) KONTAKT (Append)
+  // ---------------------------------------------------------------------------
+  function stepKontakt(prevBlock){
+    var B = block('KONTAKTDATEN');
+    B.setAttribute('data-block','kontakt');
+
+    if (CFG.phone) {
+      B.appendChild(line('📞 '+CFG.phone));
+      var r1 = row(); r1.style.justifyContent = 'flex-start';
+      r1.appendChild(btn('Anrufen', function(){
+        window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,'');
+      }, '', '📞'));
+      B.appendChild(r1);
+    }
+    if (CFG.email) {
+      B.appendChild(line('✉️  '+CFG.email));
+      var r2 = row(); r2.style.justifyContent = 'flex-start';
+      r2.appendChild(btn('E-Mail schreiben', function(){
+        window.location.href='mailto:'+CFG.email;
+      }, '', '✉️'));
+      B.appendChild(r2);
+    }
+    if (CFG.address) {
+      B.appendChild(line('📍 '+CFG.address));
+      var maps = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(CFG.address);
+      var r3 = row(); r3.style.justifyContent = 'flex-start';
+      r3.appendChild(btn('Anfahrt öffnen', function(){ window.open(maps, '_blank'); }, '', '🗺️'));
+      B.appendChild(r3);
+    }
+
+    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
+  }
+
+  // ---------------------------------------------------------------------------
+  // 8) Q&As (Append)
+  // ---------------------------------------------------------------------------
+  function stepQAs(prevBlock){
+    var B = block('Q&As');
+    B.setAttribute('data-block','faq');
+
+    if (!Array.isArray(FAQ) || !FAQ.length) {
+      B.appendChild(line('Häufige Fragen folgen in Kürze.'));
+    } else {
+      FAQ.forEach(function(f){
+        var q = (f && (f.q || f.question)) || '';
+        var a = (f && (f.a || f.answer)) || '';
+        if (q) B.appendChild(line('• '+q));
+        if (a) B.appendChild(line('↳ '+a));
+      });
+    }
+    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
+  }
+
+})(); // Ende IIFE
