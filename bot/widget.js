@@ -1,7 +1,7 @@
 /* ============================================================================
-   PPX Widget (FULL, Sticky + data-ic Icons) — Teil 1
+   PPX Widget (FULL, Sticky + data-ic Icons)
    - Behält frühere Blöcke sichtbar (Append-Mode)
-   - Buttons/Chips setzen Icons via data-ic (passt zu deinem alten CSS)
+   - Buttons/Chips setzen Icons via data-ic (passt zum alten Look)
    - Flows: Home, Speisen→Kategorie→Item, Reservieren, Öffnungszeiten, Kontakt, Q&A
    - DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
    ============================================================================ */
@@ -92,7 +92,7 @@
   function row(){ return el('div', { class:'ppx-row' }); }
   function grid(){ return el('div', { class:'ppx-grid' }); }
 
-  // Buttons/Chips mit data-ic (für dein altes CSS)
+  // Buttons/Chips mit data-ic (für deinen alten CSS-Stil)
   function btn(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick };
     if (ic) attrs['data-ic'] = ic;
@@ -126,7 +126,10 @@
 
   // Nav-Shortcuts (mit Icons)
   function backBtn(to){
-    return btn('Zurück', function(){ if (to) scrollToEl(to); else scrollToEl($view.firstElementChild||$view); }, '', '←');
+    return btn('Zurück', function(){
+      if (to && to.scrollIntoView) scrollToEl(to);
+      else scrollToEl($view.firstElementChild||$view);
+    }, '', '←');
   }
   function doneBtn(){
     return btn('Fertig ✓', function(){ scrollToEl($view.lastElementChild||$view); }, '', '✓');
@@ -149,23 +152,23 @@
     B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
 
     var r1 = row();
-    r1.appendChild(btn('Speisen',      function(){ stepSpeisen(B); }, 'ppx-cta', '🍽️'));
+    r1.appendChild(btn('Speisen',       function(){ stepSpeisen(B); }, 'ppx-cta', '🍽️'));
     B.appendChild(r1);
 
     var r2 = row();
-    r2.appendChild(btn('Reservieren',  function(){ stepReservieren(B); }, '', '📅'));
+    r2.appendChild(btn('Reservieren',   function(){ stepReservieren(B); }, '', '📅'));
     B.appendChild(r2);
 
     var r3 = row();
-    r3.appendChild(btn('Öffnungszeiten', function(){ stepHours(B); }, '', '⏰'));
+    r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(B); }, '', '⏰'));
     B.appendChild(r3);
 
     var r4 = row();
-    r4.appendChild(btn('Kontaktdaten', function(){ stepKontakt(B); }, '', '☎️'));
+    r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(B); }, '', '☎️'));
     B.appendChild(r4);
 
     var r5 = row();
-    r5.appendChild(btn('Q&As', function(){ stepQAs(B); }, '', '❓'));
+    r5.appendChild(btn('Q&As',          function(){ stepQAs(B); }, '', '❓'));
     B.appendChild(r5);
   }
 
@@ -187,7 +190,7 @@
 
     var G = grid();
     cats.forEach(function(cat){
-      var list = Array.isArray(DISH[cat]) ? DISH[cat] : [];
+      var list  = Array.isArray(DISH[cat]) ? DISH[cat] : [];
       var count = list.length ? ' ('+list.length+')' : '';
       G.appendChild(chip(pretty(cat)+count, function(){ renderCategory(cat, B); }, '', '🍽️'));
     });
@@ -263,9 +266,9 @@
   }
 
   function quickEmail(){
-    var name = prompt('Dein Name:');                         if (!name) return;
+    var name = prompt('Dein Name:');                           if (!name) return;
     var when = prompt('Datum & Uhrzeit (z. B. 24.09. 19:00):'); if (!when) return;
-    var ppl  = prompt('Personenanzahl:');                    if (!ppl) return;
+    var ppl  = prompt('Personenanzahl:');                      if (!ppl) return;
     var tel  = prompt('Telefon (optional):') || '';
 
     var payload = {
@@ -321,13 +324,17 @@
     if (CFG.phone) {
       B.appendChild(line('📞 '+CFG.phone));
       B.appendChild(nav([
-        btn('Anrufen', function(){ W.location.href='tel:'+String(CFG.phone).replace(/\s+/g,''); }, '', '📞')
+        btn('Anrufen', function(){
+          W.location.href='tel:'+String(CFG.phone).replace(/\s+/g,'');
+        }, '', '📞')
       ]));
     }
     if (CFG.email) {
       B.appendChild(line('✉️  '+CFG.email));
       B.appendChild(nav([
-        btn('E-Mail schreiben', function(){ W.location.href='mailto:'+CFG.email; }, '', '✉️')
+        btn('E-Mail schreiben', function(){
+          W.location.href='mailto:'+CFG.email;
+        }, '', '✉️')
       ]));
     }
     if (CFG.address) {
