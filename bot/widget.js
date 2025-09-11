@@ -140,45 +140,51 @@
       )
     ));
 
-    // Vertikale Liste der Hauptaktionen
-    var col = el('div', {
-      class: 'ppx-appear',
-      style: { display:'flex', flexDirection:'column', gap:'12px', alignItems:'stretch' }
-    });
+  // Speisen
+col.appendChild(
+  el('div', { class:'ppx-opt', dataset:{ action:'menu' },
+    style:{ width:'100%', justifyContent:'center' } },
+    el('div', { class:'ppx-ico' }, '🍽'),
+    el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Speisen')
+  )
+);
 
-    col.appendChild(
-      el('div', { class:'ppx-opt', dataset:{ action:'menu' }, style:{ width:'100%' } },
-        el('div', { class:'ppx-ico' }, '🍽'),
-        el('div', { class:'ppx-m'  }, 'Speisen')
-      )
-    );
-    col.appendChild(
-      el('div', { class:'ppx-opt', dataset:{ action:'reserve' }, style:{ width:'100%' } },
-        el('div', { class:'ppx-ico' }, '🗓'),
-        el('div', { class:'ppx-m'  }, 'Reservieren')
-      )
-    );
-    col.appendChild(
-      el('div', { class:'ppx-opt', dataset:{ action:'hours' }, style:{ width:'100%' } },
-        el('div', { class:'ppx-ico' }, '🕒'),
-        el('div', { class:'ppx-m'  }, 'Öffnungszeiten')
-      )
-    );
-    col.appendChild(
-      el('div', { class:'ppx-opt', dataset:{ action:'contact' }, style:{ width:'100%' } },
-        el('div', { class:'ppx-ico' }, '📞'),
-        el('div', { class:'ppx-m'  }, 'Kontaktdaten')
-      )
-    );
-    col.appendChild(
-      el('div', { class:'ppx-opt', dataset:{ action:'faq' }, style:{ width:'100%' } },
-        el('div', { class:'ppx-ico' }, '❓'),
-        el('div', { class:'ppx-m'  }, 'Q&As')
-      )
-    );
+// Reservieren
+col.appendChild(
+  el('div', { class:'ppx-opt', dataset:{ action:'reserve' },
+    style:{ width:'100%', justifyContent:'center' } },
+    el('div', { class:'ppx-ico' }, '🗓'),
+    el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Reservieren')
+  )
+);
 
-    append(col);
-  }
+// Öffnungszeiten
+col.appendChild(
+  el('div', { class:'ppx-opt', dataset:{ action:'hours' },
+    style:{ width:'100%', justifyContent:'center' } },
+    el('div', { class:'ppx-ico' }, '🕒'),
+    el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Öffnungszeiten')
+  )
+);
+
+// Kontaktdaten
+col.appendChild(
+  el('div', { class:'ppx-opt', dataset:{ action:'contact' },
+    style:{ width:'100%', justifyContent:'center' } },
+    el('div', { class:'ppx-ico' }, '📞'),
+    el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Kontaktdaten')
+  )
+);
+
+// Q&As
+col.appendChild(
+  el('div', { class:'ppx-opt', dataset:{ action:'faq' },
+    style:{ width:'100%', justifyContent:'center' } },
+    el('div', { class:'ppx-ico' }, '❓'),
+    el('div', { class:'ppx-m', style:{ textAlign:'center' } }, 'Q&As')
+  )
+);
+
 
   // ------- Platzhalter (werden in Teil 2/3 & 3/3 umgesetzt) -------
   function stepMenuCategories() {
@@ -754,3 +760,4 @@
   }
 
 })();
+
