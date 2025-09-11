@@ -1,9 +1,10 @@
 /* ============================================================================
-   PPX Widget (FULL, Sticky + data-ic Icons)
-   - Behält frühere Blöcke sichtbar (Append-Mode)
-   - Buttons/Chips setzen Icons via data-ic (passt zum alten Look)
+   PPX Widget (FULL) — Sticky/Append + eingebautes Styling (grüne Pills)
+   - Behält vorherige Blöcke sichtbar, hängt neue unten an (Auto-Scroll)
+   - Buttons/Chips mit data-ic → goldene Icon-Badges via ::before
+   - Texte & Buttons zentriert wie „früher“
    - Flows: Home, Speisen→Kategorie→Item, Reservieren, Öffnungszeiten, Kontakt, Q&A
-   - DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
+   - Erwartete DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
    ============================================================================ */
 (function () {
   'use strict';
@@ -16,9 +17,74 @@
   var CFG  = DATA.cfg    || {};
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs   || [];
-  var STICKY = true; // nichts auto-clearen
+  var STICKY = true; // nix automatisch löschen
 
-  // EmailJS optional
+  // (A) STYLE-PATCH INJIZIEREN (alter Look: grüne Pills, goldene Icons, zentriert)
+  (function injectStyles(){
+    if (document.getElementById('ppx-style-patch')) return;
+    var css = `
+:root{
+  --ppx-green-900:#0e312a; --ppx-green-800:#114136; --ppx-green-700:#154a3e;
+  --ppx-green-600:#195446; --ppx-green-500:#1e5e4e;
+  --ppx-ink:#f1f7f4; --ppx-ink-dim:#d6e6df;
+  --ppx-gold:#e6c48a; --ppx-gold-ink:#2a2a1f;
+  --ppx-border:rgba(255,255,255,.08); --ppx-shadow:0 8px 22px rgba(0,0,0,.28);
+}
+#ppx-v{
+  overflow-y:auto; max-height:calc(100vh - 120px);
+  -webkit-overflow-scrolling:touch; padding:8px 8px 16px;
+}
+#ppx-v .ppx-bot{
+  background:linear-gradient(180deg, rgba(9,39,33,.55), rgba(9,39,33,.35));
+  border:1px solid var(--ppx-border); border-radius:16px;
+  padding:18px; margin:16px auto; max-width:680px; box-shadow:var(--ppx-shadow);
+  text-align:center;
+}
+#ppx-v .ppx-h{
+  background:var(--ppx-green-800); color:var(--ppx-ink);
+  border:1px solid var(--ppx-border); border-radius:12px;
+  padding:14px 16px; font-weight:700; letter-spacing:.02em;
+  text-transform:uppercase; margin:-6px -6px 14px;
+}
+#ppx-v .ppx-m{ color:var(--ppx-ink); line-height:1.55; margin:8px 0 12px; }
+#ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:10px; }
+#ppx-v .ppx-grid{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px; margin-top:10px; justify-items:stretch;
+}
+@media (max-width:520px){ #ppx-v .ppx-grid{ grid-template-columns:1fr; } }
+
+#ppx-v .ppx-b, #ppx-v .ppx-chip{
+  -webkit-appearance:none; appearance:none; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:10px; color:var(--ppx-ink); border:1px solid var(--ppx-border);
+  border-radius:14px; padding:11px 16px;
+  font:600 16px/1.1 system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 3px 12px rgba(0,0,0,.25);
+  transition:transform .06s ease, background .2s ease, box-shadow .2s ease;
+}
+#ppx-v .ppx-b{ background:var(--ppx-green-600); }
+#ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-500); }
+#ppx-v .ppx-chip{ background:var(--ppx-green-700); width:100%; }
+#ppx-v .ppx-b:hover, #ppx-v .ppx-chip:hover{ filter:brightness(1.05); }
+#ppx-v .ppx-b:active, #ppx-v .ppx-chip:active{ transform:translateY(1px); }
+
+/* Goldene Icon-Badges über data-ic */
+#ppx-v .ppx-b[data-ic]::before, #ppx-v .ppx-chip[data-ic]::before{
+  content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center;
+  width:28px; height:28px; min-width:28px; border-radius:999px;
+  background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1.5px 0 rgba(255,255,255,.25) inset;
+}
+#ppx-v .ppx-link{ color:var(--ppx-ink); text-decoration:underline; text-underline-offset:2px; }
+`;
+    var tag = document.createElement('style');
+    tag.id = 'ppx-style-patch';
+    tag.textContent = css;
+    document.head.appendChild(tag);
+  })();
+
+  // EmailJS optional initialisieren
   (function initEmailJS(){
     try {
       if (W.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
@@ -35,7 +101,7 @@
   var $close  = document.getElementById('ppx-close');
   var $view   = document.getElementById('ppx-v');
   if (!$launch || !$panel || !$close || !$view) {
-    console.warn('[PPX] DOM-IDs fehlen.');
+    console.warn('[PPX] DOM-IDs fehlen (#ppx-launch, #ppx-panel, #ppx-close, #ppx-v).');
     return;
   }
 
@@ -92,7 +158,7 @@
   function row(){ return el('div', { class:'ppx-row' }); }
   function grid(){ return el('div', { class:'ppx-grid' }); }
 
-  // Buttons/Chips mit data-ic (für deinen alten CSS-Stil)
+  // Buttons/Chips mit data-ic (alter Look)
   function btn(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick };
     if (ic) attrs['data-ic'] = ic;
@@ -109,7 +175,7 @@
     opts = opts || {};
     var wrap = el('div', {
       class: 'ppx-bot ppx-appear',
-      style: { maxWidth: (opts.maxWidth || '680px'), margin: '14px auto' }
+      style: { maxWidth: (opts.maxWidth || '680px'), margin: '16px auto' }
     });
     if (title) wrap.appendChild(el('div', { class:'ppx-h' }, title));
     $view.appendChild(wrap);
