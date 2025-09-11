@@ -1,14 +1,12 @@
 /* ============================================================================
-   PPX Widget (FINAL) — Sticky/Append + robuste Overrides
-   Wünsche umgesetzt:
-   - „Speisen“: Info „Super Wahl 👍 …“ + Delay (500 ms), dann Block mit
-     „Speisekarte als PDF … oder wähle eine Kategorie:“
-   - Ab „Speisen“: NICHT mehr zentriert (nur Start/Home bleibt zentriert)
-   - Buttons kompakter (kleinerer Font)
-   - Nav: „Zurück | Reservieren | Fertig“ in einer Reihe (links)
-   - Farben wie Screenshot 2
+   PPX Widget (FINAL ROBUST) — Sticky/Append + robuste Init + Overrides
+   Wünsche umgesetzt + Fix:
+   - „Speisen“: Info „Super Wahl 👍 …“ + Delay (500 ms), danach PDF-Link + Kategorien
+   - Ab „Speisen“: NICHT mehr zentriert (nur Start/Home zentriert)
+   - Buttons kompakter; Farben wie in Screenshot 2
+   - Nav („Zurück | Reservieren | Fertig“) in EINER Reihe (links)
    - Robuster Style-Injector (entfernt alte Styles, höhere Spezifität, teils !important)
-   - Panel erhält Zusatzklasse .ppx-v5 (nur für zuverlässige Overrides)
+   - ROBUSTE INIT: wartet auf DOM/IDs via DOMContentLoaded + MutationObserver
    Erwartete DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
    ============================================================================ */
 (function () {
@@ -144,28 +142,77 @@
     document.head.appendChild(tag);
   })();
 
-  // EmailJS optional initialisieren
-  (function initEmailJS(){
-    try {
-      if (W.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
-        W.emailjs.init({ publicKey: CFG.EMAIL.publicKey });
-      }
-    } catch (e) {}
-  })();
-
   // ---------------------------------------------------------------------------
-  // 1) DOM
+  // 1) Robuste Init (wartet auf DOM + IDs)
   // ---------------------------------------------------------------------------
-  var $launch = document.getElementById('ppx-launch');
-  var $panel  = document.getElementById('ppx-panel');
-  var $close  = document.getElementById('ppx-close');
-  var $view   = document.getElementById('ppx-v');
-  if (!$launch || !$panel || !$close || !$view) {
-    console.warn('[PPX] DOM-IDs fehlen (#ppx-launch, #ppx-panel, #ppx-close, #ppx-v).');
-    return;
+  var $launch, $panel, $close, $view;
+  var BOUND = false;
+  function queryDom(){
+    $launch = document.getElementById('ppx-launch');
+    $panel  = document.getElementById('ppx-panel');
+    $close  = document.getElementById('ppx-close');
+    $view   = document.getElementById('ppx-v');
+    return !!($launch && $panel && $close && $view);
   }
-  // WICHTIG: Panel für CSS-Overrides taggen
-  $panel.classList.add('ppx-v5');
+
+  function bindOnce(){
+    if (BOUND) return true;
+    if (!queryDom()) return false;
+
+    // Panel-Klasse für Styles
+    $panel.classList.add('ppx-v5');
+
+    // Öffnen
+    $launch.addEventListener('click', function(){
+      $panel.classList.add('ppx-open');
+      if (!$panel.dataset.init) {
+        $panel.dataset.init = '1';
+        stepHome(); // Home einmalig rendern; bleibt stehen
+      }
+    });
+
+    // Schließen
+    $close.addEventListener('click', function(){
+      $panel.classList.remove('ppx-open');
+    });
+
+    // ESC schließt Panel
+    window.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') $panel.classList.remove('ppx-open');
+    });
+
+    // Overlay-Klick schließt nur, wenn direkt auf Panel (nicht auf Inhalt)
+    $panel.addEventListener('click', function(ev){
+      if (ev.target === $panel) $panel.classList.remove('ppx-open');
+    });
+
+    // Falls durch CSS bereits offen, trotzdem einmal Home rendern (ohne Clear)
+    if ($panel.classList.contains('ppx-open') && !$panel.dataset.init) {
+      $panel.dataset.init = '1';
+      stepHome();
+    }
+
+    BOUND = true;
+    return true;
+  }
+
+  // DOMContentLoaded → erster Versuch
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindOnce, { once:true });
+  } else {
+    // DOM schon da
+    bindOnce();
+  }
+
+  // MutationObserver → falls Elemente nachträglich ins DOM kommen
+  if (!BOUND) {
+    var mo = new MutationObserver(function(){
+      if (bindOnce()) mo.disconnect();
+    });
+    mo.observe(document.documentElement || document.body, { childList:true, subtree:true });
+    // Fallback: nach 5s aufgeben (damit kein ewiger Observer läuft)
+    setTimeout(function(){ try{ mo.disconnect(); }catch(e){} }, 5000);
+  }
 
   // ---------------------------------------------------------------------------
   // 2) Utils
@@ -207,9 +254,10 @@
   function scrollToEl(node){
     if (!node) return;
     try { node.scrollIntoView({ behavior:'smooth', block:'start' }); }
-    catch(e){ $view.scrollTop = $view.scrollHeight; }
+    catch(e){ if ($view) $view.scrollTop = $view.scrollHeight; }
   }
 
+  // NIE auto-clearen (außer gezwungen)
   function clearView(opts){
     if (!STICKY) $view.innerHTML = '';
     else if (opts && opts.force) $view.innerHTML = '';
@@ -239,7 +287,7 @@
       style: { maxWidth: (opts.maxWidth || '680px'), margin: '16px auto' }
     });
     if (title) wrap.appendChild(el('div', { class:'ppx-h' }, title));
-    $view.appendChild(wrap);
+    if ($view) $view.appendChild(wrap);
     scrollToEl(wrap);
     return wrap;
   }
@@ -255,11 +303,11 @@
   function backBtn(to){
     return btn('Zurück', function(){
       if (to && to.scrollIntoView) scrollToEl(to);
-      else scrollToEl($view.firstElementChild||$view);
+      else scrollToEl($view && $view.firstElementChild || $view);
     }, '', '←');
   }
   function doneBtn(){
-    return btn('Fertig ✓', function(){ scrollToEl($view.lastElementChild||$view); }, '', '✓');
+    return btn('Fertig ✓', function(){ scrollToEl($view && $view.lastElementChild || $view); }, '', '✓');
   }
   function resBtn(prev){
     return btn('Reservieren', function(){ stepReservieren(prev); }, '', '📅');
@@ -269,6 +317,7 @@
   // 3) HOME (einmalig rendern; bleibt zentriert)
   // ---------------------------------------------------------------------------
   function stepHome(){
+    if (!$view) return;
     if ($view.querySelector('[data-block="home"]')) return;
 
     var brand = (CFG.brand || 'Pizza Papa Hamburg');
@@ -284,6 +333,7 @@
     var r4 = row(); r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(B); }, '', '☎️'));        B.appendChild(r4);
     var r5 = row(); r5.appendChild(btn('Q&As',          function(){ stepQAs(B); }, '', '❓'));             B.appendChild(r5);
   }
+
   // ---------------------------------------------------------------------------
   // 4) SPEISEN (erst Info, Delay, dann Block mit PDF + Kategorien)
   // ---------------------------------------------------------------------------
@@ -376,6 +426,7 @@
 
     B.appendChild(nav([ backBtn(prevBlock), resBtn(B), doneBtn() ]));
   }
+
   // ---------------------------------------------------------------------------
   // 5) RESERVIEREN (Append)
   // ---------------------------------------------------------------------------
@@ -512,37 +563,6 @@
       });
     }
     B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
-  }
-
-  // ---------------------------------------------------------------------------
-  // 9) Öffnen/Schließen & Init (ohne Clear!)
-  // ---------------------------------------------------------------------------
-  $launch.addEventListener('click', function(){
-    $panel.classList.add('ppx-open');
-    if (!$panel.dataset.init) {
-      $panel.dataset.init = '1';
-      stepHome(); // Home einmalig rendern; bleibt stehen (zentriert)
-    }
-  });
-
-  $close.addEventListener('click', function(){
-    $panel.classList.remove('ppx-open');
-  });
-
-  // ESC schließt Panel
-  window.addEventListener('keydown', function(e){
-    if (e.key === 'Escape') $panel.classList.remove('ppx-open');
-  });
-
-  // Overlay-Klick schließt nur, wenn direkt auf Panel (nicht auf Inhalt)
-  $panel.addEventListener('click', function(ev){
-    if (ev.target === $panel) $panel.classList.remove('ppx-open');
-  });
-
-  // Falls durch CSS bereits offen, trotzdem einmal Home rendern (ohne Clear)
-  if ($panel.classList.contains('ppx-open') && !$panel.dataset.init) {
-    $panel.dataset.init = '1';
-    stepHome();
   }
 
 })(); // Ende IIFE
