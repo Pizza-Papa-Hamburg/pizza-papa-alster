@@ -87,10 +87,9 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{
   -webkit-appearance:none; appearance:none; cursor:pointer;
   display:inline-flex; align-items:center; justify-content:flex-start !important; gap:10px;
-  width:100% !important;
   color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:14px;
-  padding:10px 14px !important;
-  background:var(--ppx-green-650);
+  padding:10px 14px !important; background:var(--ppx-green-650);
+  width:100% !important;
   box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 2px 8px rgba(0,0,0,.20);
   transition:transform .06s ease, filter .2s ease, box-shadow .2s ease, background .2s ease;
   font-family:"Cormorant Garamond", serif; font-weight:400 !important; font-size:17px !important;
@@ -111,7 +110,7 @@
   justify-content:center !important; font-size:18.5px !important; padding:12px 16px !important;
 }
 
-/* Icon-Badges */
+/* Icon-Badges (Standard für alle Buttons mit data-ic) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center;
@@ -119,6 +118,16 @@
   background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
 }
+
+/* --------- NUR Kategorie-Icons: gelber Kreis + SCHWARZER Pfeil --------- */
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before{
+  width:34px; height:34px; min-width:34px;
+  background:#E9D18B;           /* gelb */
+  color:#111;                   /* schwarzer Pfeil */
+  font-size:18px;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18);
+}
+/* ----------------------------------------------------------------------- */
 
 /* Nav */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{
@@ -139,7 +148,6 @@
   grid-template-columns:1fr !important;
 }
 @media (max-width:380px){
-  /* selbst sehr klein: 2 Spalten beibehalten */
   #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 }
 `;
@@ -199,7 +207,7 @@
         btn.classList.add('ppx-selected');
         jumpBottom();                 // sofort
         setTimeout(jumpBottom, 140);  // nach Rendering
-        setTimeout(jumpBottom, 700);  // für verzögerte Inhalte (z. B. Speisen-Delay)
+        setTimeout(jumpBottom, 700);  // für verzögerte Inhalte
       }
     });
 
@@ -303,12 +311,12 @@
   // Buttons/Chips
   function btn(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick, type:'button' };
-    if (ic) attrs['data-ic'] = ic;
+    if (ic) attrs['data-ic'] = ic;   // nur setzen, wenn wir einen runden Badge wollen
     return el('button', attrs, label);
   }
   function chip(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-chip ' + (extraCls||''), onclick: onClick, type:'button' };
-    if (ic) attrs['data-ic'] = ic;
+    if (ic) attrs['data-ic'] = ic;   // nur für Badge-Icons
     return el('button', attrs, label);
   }
 
@@ -318,19 +326,20 @@
     return r;
   }
 
+  // ---- Nav-Buttons (ohne Badge) ----
   function backBtnAt(scopeIdx){
-    return btn('Zurück', function(){ popToScope(scopeIdx); }, '', '←');
+    return btn('← Zurück', function(){ popToScope(scopeIdx); }); // KEIN ic -> kein Kreis
   }
-  function doneBtn(){  // <-- NEU: Danke + Close
+  function doneBtn(){  // Danke + Close
     return btn('Fertig ✓', function(){
       var B = block(null);
       B.appendChild(line('Danke dir bis zum nächsten Mal! 👋'));
       jumpBottom();
-      setTimeout(closePanel, 1100); // kurzer Delay, dann Chat schließen
-    }, '', '✓');
+      setTimeout(closePanel, 1100);
+    }); // KEIN ic
   }
   function resBtn(){
-    return btn('Reservieren', function(){ stepReservieren(); }, '', '📅');
+    return btn('📅 Reservieren', function(){ stepReservieren(); }); // KEIN ic
   }
 
   // ---------------------------------------------------------------------------
@@ -397,7 +406,8 @@
       var list  = Array.isArray(DISH[cat]) ? DISH[cat] : [];
       var count = list.length ? ' ('+list.length+')' : '';
       G.appendChild(
-        chip(pretty(cat)+count, function(){ renderCategory(cat); }, '', '▶️')
+        // spezielle Kategorie-Optik (schwarzer Pfeil im gelben Kreis)
+        chip(pretty(cat)+count, function(){ renderCategory(cat); }, 'ppx-cat', '►')
       );
     });
     B.appendChild(G);
