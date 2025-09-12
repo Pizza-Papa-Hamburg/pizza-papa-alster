@@ -1,6 +1,7 @@
 /* ============================================================================
-   PPX Widget (v6 COMPACT + ThankYou) — Global Back + Auto-Scroll + Selected
-   Änderungen: 2-Zeilen-Clamp für Kacheln, Delay 600ms, Item-Frage (Ja/Nein)
+   PPX Widget (v6 COMPACT + ThankYou)
+   Änderungen: Delay 600ms, 2-Zeilen-Clamp, „Zurück ins Hauptmenü“ global,
+               „Fertig ✓“ nur nach Reservierung, Item-Frage (Ja/Nein + Zurück)
    ============================================================================ */
 (function () {
   'use strict';
@@ -55,7 +56,7 @@
   text-align:left !important;
 }
 
-/* Home-Block: Rahmen weg + volle Breite (chat-hafter) */
+/* Home-Block: Rahmen weg + volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"]{
   background:transparent !important; border:none !important; box-shadow:none !important;
   padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important;
@@ -68,7 +69,7 @@
   padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important;
 }
 
-/* Headline (schlanker Rahmen & Padding) */
+/* Headline */
 #ppx-panel.ppx-v5 #ppx-v .ppx-h{
   background:var(--ppx-green-800); color:var(--ppx-ink);
   border:1px solid var(--ppx-border); border-radius:12px;
@@ -77,7 +78,7 @@
   font-size:18px;
 }
 
-/* Fließtext (kleiner) */
+/* Fließtext */
 #ppx-panel.ppx-v5 #ppx-v .ppx-m{
   color:var(--ppx-ink); line-height:1.5; margin:6px 0 10px;
   font-family:"Cormorant Garamond", serif; font-weight:400; font-size:18px;
@@ -102,14 +103,14 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-600); }
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
 
-/* Selected-State (dezent) */
+/* Selected-State */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{
   filter: brightness(1.10);
   box-shadow: 0 0 0 2px rgba(230,196,138,.55) inset, 0 2px 8px rgba(0,0,0,.26);
 }
 
-/* Home: Buttons minimal größer */
+/* Home größer */
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{
   justify-content:center !important; font-size:18.5px !important; padding:12px 16px !important;
@@ -124,17 +125,17 @@
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
 }
 
-/* Kategorie-Icons: gelber Kreis + SCHWARZER Pfeil */
+/* Kategorie-Icons */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before{
   width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px;
   box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18);
 }
 
-/* Speisen-Root-Grid / Items: 2 Spalten */
+/* Speisen-Root / Items: 2 Spalten */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 
-/* >>> Einheitliche Kachel-Höhe + 2-Zeilen-Clamp <<< */
+/* Einheitliche Kachel + 2-Zeilen-Clamp */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b .ppx-label,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip .ppx-label{
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
@@ -191,7 +192,7 @@
   // ---------------------------------------------------------------------------
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
   function jumpBottom(){ if(!$view) return; try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){} }
-  function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){ if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); } else if(k==='text'){ n.textContent=attrs[k]; } else if(k==='html'){ n.innerHTML=attrs[k]; } else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); } else { n.setAttribute(k,attrs[k]); } }); for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); } return n; }
+  function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){ if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); } else if(k==='text'){ n.textContent=attrs[k]; } else if(k==='html'){ n.innerHTML=attrs[k]; } else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); } else { n.setAttribute(k, attrs[k]); } }); for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); } return n; }
   function pretty(s){ return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g,function(c){ return c.toUpperCase(); }); }
   function block(title,opts){ opts=opts||{}; var wrap=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}}); if(title) wrap.appendChild(el('div',{class:'ppx-h'},title)); if($view) $view.appendChild(wrap); jumpBottom(); return wrap; }
   function line(txt){ return el('div',{class:'ppx-m'},txt); }
@@ -214,6 +215,7 @@
 
   function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
   function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }); }
+  function homeBtn(){ return btn('Zurück ins Hauptmenü', function(){ stepHome(); }, '', '🏠'); }
   function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
   function resBtn(){ return btn('📅 Reservieren', function(){ stepReservieren(); }); }
 
@@ -259,7 +261,7 @@
     var B = block('SPEISEN');
     B.setAttribute('data-block','speisen-root');
 
-    // --- PDF Button (immer anzeigen) ---
+    // --- PDF Button ---
     var pdfUrl = CFG.menuPdf ||
                  (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) ||
                  CFG.menuPDF ||
@@ -290,7 +292,7 @@
     });
     B.appendChild(G);
 
-    B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), homeBtn() ]));
     jumpBottom();
   }
 
@@ -318,9 +320,10 @@
     });
     B.appendChild(L);
 
-    B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), homeBtn() ]));
     jumpBottom();
   }
+
   function renderItem(catKey, item){
     var scopeIdx = getScopeIndex();
     var title = (item && item.name) ? item.name : pretty(catKey);
@@ -344,9 +347,7 @@
     }
 
     // KEIN Reservieren-Button hier. Stattdessen nach 600ms die Frage einblenden.
-    setTimeout(function(){
-      askReserveAfterItem(scopeIdx);
-    }, 600);
+    setTimeout(function(){ askReserveAfterItem(scopeIdx); }, 600);
 
     jumpBottom();
   }
@@ -359,14 +360,13 @@
     var r = row();
     r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '✅'));
-    r.appendChild(btn('Nein, zurück ins Menü', function(){ stepHome(); }, '', '↩️'));
+    r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ stepHome(); }, '', '↩️'));
     Q.appendChild(r);
 
-    // Zusätzlich „Zurück“ & „Fertig“ unter der Frage
-    Q.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
+    // Zusätzlich „← Zurück“ (kein „Fertig“ hier)
+    Q.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
-
   // ---------------------------------------------------------------------------
   // 5) RESERVIEREN
   // ---------------------------------------------------------------------------
@@ -386,22 +386,30 @@
                'info@example.com';
 
     r.appendChild(btn('E-Mail öffnen', function(){
-      var body = [
-        'Hallo '+(CFG.brand||'Restaurant')+',',
-        '',
-        'ich möchte gern reservieren.',
-        'Datum & Uhrzeit: ________',
-        'Personenanzahl: ________',
-        'Telefon: ________',
-        '',
-        'Liebe Grüße'
-      ].join('%0A');
-      window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
+      openEmailDraft(addr);
     }, '', '✉️'));
     B.appendChild(r);
 
-    B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
+    // Hier KEIN „Fertig“ – nur Back + Home
+    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
+  }
+
+  function openEmailDraft(addr){
+    var body = [
+      'Hallo '+(CFG.brand||'Restaurant')+',',
+      '',
+      'ich möchte gern reservieren.',
+      'Datum & Uhrzeit: ________',
+      'Personenanzahl: ________',
+      'Telefon: ________',
+      '',
+      'Liebe Grüße'
+    ].join('%0A');
+    window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
+
+    // Nach dem Öffnen des E-Mail-Clients zeigen wir eine Bestätigung mit „Fertig ✓“
+    showReservationSuccess('mailto');
   }
 
   function quickEmail(){
@@ -412,10 +420,13 @@
 
     var payload = { name:name, when:when, persons:ppl, phone:tel, brand:(CFG.brand||'Restaurant') };
 
-    // EmailJS (nur wenn korrekt konfiguriert)
-    if (window.emailjs && CFG.EMAIL && CFG.EMAIL.serviceId && CFG.EMAIL.templateId) {
-      emailjs.send(CFG.EMAIL.serviceId, CFG.EMAIL.templateId, payload).then(
-        function(){ alert('Danke! Wir melden uns asap.'); },
+    // EmailJS (Bezeichner tolerant: serviceId|service, templateId|toTemplate)
+    var svcId = CFG.EMAIL && (CFG.EMAIL.serviceId || CFG.EMAIL.service);
+    var tplId = CFG.EMAIL && (CFG.EMAIL.templateId || CFG.EMAIL.toTemplate);
+
+    if (window.emailjs && svcId && tplId) {
+      emailjs.send(svcId, tplId, payload).then(
+        function(){ showReservationSuccess('emailjs'); },
         function(){ alert('Senden fehlgeschlagen. Bitte „E-Mail öffnen“ nutzen.'); }
       );
       return;
@@ -429,6 +440,22 @@
       'Name: '+name+'\nZeit: '+when+'\nPersonen: '+ppl+'\nTelefon: '+tel+'\n——\nGesendet via Bot'
     );
     window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
+    showReservationSuccess('mailto');
+  }
+
+  function showReservationSuccess(kind){
+    var B = block('RESERVIERUNG');
+    B.setAttribute('data-block','reservieren-success');
+
+    if (kind === 'emailjs') {
+      B.appendChild(line('Danke! Deine Reservierungsanfrage wurde gesendet. Wir melden uns asap. ✅'));
+    } else {
+      B.appendChild(line('Hast du die E-Mail versendet? Falls ja, kannst du hier abschließen. ✉️'));
+    }
+
+    // Jetzt „Fertig ✓“ anbieten (Panel schließt sich danach)
+    B.appendChild(nav([ homeBtn(), doneBtn() ]));
+    jumpBottom();
   }
 
   // ---------------------------------------------------------------------------
@@ -448,7 +475,7 @@
         B.appendChild(line('• '+txt));
       });
     }
-    B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
 
@@ -484,7 +511,7 @@
       B.appendChild(r3);
     }
 
-    B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
 
@@ -506,7 +533,7 @@
         if (a) B.appendChild(line('↳ '+a));
       });
     }
-    B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
 
