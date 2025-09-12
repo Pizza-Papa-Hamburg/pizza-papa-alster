@@ -1,9 +1,7 @@
 /* ============================================================================
    PPX Widget (v6 COMPACT + UX-Update)
-   Änderungen: 600ms Delay, 2-Zeilen-Clamp, Links-Ausrichtung in Speisen,
-               „Reservieren“-Button aus Nav entfernt (Frage im Text),
-               „Zurück“/„Hauptmenü“ gleich breit,
-               Hauptmenü-Reset fix (echter Neustart)
+   Änderungen jetzt: Nav-Buttons „Zurück“ & „Hauptmenü“ als kleine, dezente
+   Secondary-Buttons; Hauptmenü-Icon = weißer Kreis (Outline).
    ============================================================================ */
 (function () {
   'use strict';
@@ -90,7 +88,7 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start !important; margin-top:8px; width:100%; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:8px; width:100%; }
 
-/* Buttons & Chips */
+/* Buttons & Chips (Default) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{
   -webkit-appearance:none; appearance:none; cursor:pointer;
@@ -105,6 +103,16 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-600); }
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
 
+/* >>> Secondary-Buttons (dezent & kleiner) – für Zurück/Hauptmenü <<< */
+#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary,
+#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.22);
+  padding:8px 12px !important;
+  font-size:15px !important;
+  box-shadow:none;
+}
+
 /* Selected-State */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{
@@ -118,7 +126,7 @@
   justify-content:center !important; font-size:18.5px !important; padding:12px 16px !important;
 }
 
-/* Kategorie-Icons */
+/* Kategorie-Icons Standard */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center;
@@ -126,9 +134,18 @@
   background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
 }
+/* Kategorie-Icons in Speisen-Root größer */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before{
   width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px;
   box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18);
+}
+
+/* >>> Weißer Kreis (Outline) für Hauptmenü (data-ic="ring") <<< */
+#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary[data-ic="ring"]::before,
+#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary[data-ic="ring"]::before{
+  content:""; width:22px; height:22px; min-width:22px; border-radius:999px;
+  background:transparent; color:transparent; border:2px solid rgba(255,255,255,.9);
+  box-shadow:none;
 }
 
 /* 2 Spalten in Speisen */
@@ -146,7 +163,7 @@
   min-height:64px; align-items:center;
 }
 
-/* >>> Links-Ausrichtung erzwingen in Speisen (Kat + Items) <<< */
+/* Links-Ausrichtung erzwingen in Speisen */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip,
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-b,
@@ -163,7 +180,7 @@
   #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 }
 
-/* Nav: gleich breite Buttons */
+/* Nav: gleich breite Buttons; Secondary wirkt kleiner */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
 
@@ -282,9 +299,9 @@
   }
 
   function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
-  function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }); }
+  function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary'); }
 
-  // Echter Home-Reset (fix für deinen Punkt 4)
+  // Echter Home-Reset
   function stepHome(force){
     if (!force && $view && $view.querySelector('[data-block="home"]')) return;
     var brand=(CFG.brand||'Pizza Papa Hamburg');
@@ -298,9 +315,9 @@
     var r5=row(); r5.appendChild(btn('Q&As',function(){ stepQAs(); },'','❓')); B.appendChild(r5);
   }
   function goHome(){ popToScope(0); stepHome(true); }
-  function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, '', '🏠'); }
+  function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', 'ring'); }
   function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
-  // resBtn entfernt aus Navs (Frage erfolgt im Text)
+  // (Kein resBtn – Reservieren nur via Frage)
   // ---------------------------------------------------------------------------
   // 4) SPEISEN
   // ---------------------------------------------------------------------------
@@ -329,7 +346,7 @@
     var B = block('SPEISEN');
     B.setAttribute('data-block','speisen-root');
 
-    // --- PDF Button (immer anzeigen) ---
+    // --- PDF Button ---
     var pdfUrl = CFG.menuPdf ||
                  (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) ||
                  CFG.menuPDF ||
@@ -360,7 +377,7 @@
     });
     B.appendChild(G);
 
-    // Nav: Zurück + Hauptmenü (kein Reservieren-Button)
+    // Nav: Zurück + Hauptmenü
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
@@ -379,7 +396,7 @@
       ];
     }
 
-    // --- 2-Spalten-Liste mit gleichmäßigen Kacheln (ohne Preis hier) ---
+    // --- 2-Spalten-Liste (ohne Preis hier) ---
     var L = grid();
     list.forEach(function(it){
       var label = (it && it.name) ? it.name : 'Artikel';
@@ -405,7 +422,7 @@
       B.appendChild(line(item.info || item.desc));
     }
 
-    // Preis (als String, kein doppeltes "€")
+    // Preis (als String)
     if (item && item.price){
       var p = String(item.price);
       B.appendChild(line('Preis: ' + p));
@@ -416,7 +433,7 @@
       B.appendChild(line('ℹ️ ' + item.hinweis));
     }
 
-    // KEIN Reservieren-Button hier. Stattdessen nach 600ms die Frage einblenden.
+    // Nach 600ms die Frage einblenden (statt Reservieren-Button in Nav)
     setTimeout(function(){ askReserveAfterItem(scopeIdx); }, 600);
 
     jumpBottom();
@@ -434,7 +451,7 @@
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, '', '↩️'));
     Q.appendChild(r);
 
-    // Zusätzlich „← Zurück“ (zur vorherigen Liste) + „Hauptmenü“ gleich breit
+    // Zusätzlich „← Zurück“ (zur vorherigen Liste) + „Hauptmenü“ (Secondary, kleiner)
     Q.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
@@ -459,7 +476,7 @@
     r.appendChild(btn('E-Mail öffnen', function(){ openEmailDraft(addr); }, '', '✉️'));
     B.appendChild(r);
 
-    // Nav: Zurück + Hauptmenü
+    // Nav: Zurück + Hauptmenü (Secondary)
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
@@ -476,8 +493,6 @@
       'Liebe Grüße'
     ].join('%0A');
     window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
-
-    // Nach dem Öffnen des E-Mail-Clients Bestätigung zeigen
     showReservationSuccess('mailto');
   }
 
@@ -489,7 +504,7 @@
 
     var payload = { name:name, when:when, persons:ppl, phone:tel, brand:(CFG.brand||'Restaurant') };
 
-    // EmailJS tolerant: serviceId|service, templateId|toTemplate
+    // EmailJS tolerant
     var svcId = CFG.EMAIL && (CFG.EMAIL.serviceId || CFG.EMAIL.service);
     var tplId = CFG.EMAIL && (CFG.EMAIL.templateId || CFG.EMAIL.toTemplate);
 
