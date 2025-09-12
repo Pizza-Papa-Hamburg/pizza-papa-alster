@@ -16,14 +16,14 @@
     ],
 
     "OPEN": {
-  "0": ["15:00","21:00"],
-  "1": ["11:00","22:00"],
-  "2": ["11:00","22:00"],
-  "3": ["11:00","22:00"],
-  "4": ["11:00","22:00"],
-  "5": ["11:00","22:00"],
-  "6": ["13:00","24:00"]
-},
+      "0": ["15:00","21:00"],
+      "1": ["11:00","22:00"],
+      "2": ["11:00","22:00"],
+      "3": ["11:00","22:00"],
+      "4": ["11:00","22:00"],
+      "5": ["11:00","22:00"],
+      "6": ["13:00","24:00"]
+    },
 
     "BUCKETS": {
       "mittag": ["12:00","17:30"],
@@ -38,7 +38,9 @@
       "autoReplyTemplate": "template_hnwo39i"
     },
 
-    "menuOrder": ["antipasti","pizza","pasta","drinks","salads","desserts"]
+    "menuOrder": ["antipasti","pizza","pasta","drinks","salads","desserts"],
+
+    "menuPdf": "/pdf/speisekarte_test.pdf"
   },
 
   "dishes": {
@@ -51,15 +53,14 @@
     ],
     "pizza": [
       { "id": "margherita",   "name": "Margherita",             "price": "XX €", "info": "Tomate, Mozzarella, Basilikum." },
-      { "id": "prosciutto",    "name": "Prosciutto e Funghi",    "price": "XX €", "info": "Kochschinken, Champignons." },
-      { "id": "diavola",       "name": "Diavola (pikant)",       "price": "YY €", "info": "Scharfe Salami, Chili." },
-      { "id": "quattro",       "name": "Quattro Formaggi",       "price": "YY €", "info": "Vier Käsesorten." },
-      { "id": "verdure",       "name": "Verdure (Gemüse)",       "price": "XX €", "info": "Gemüse der Saison." },
-      { "id": "tonno",         "name": "Tonno e Cipolla",        "price": "XX €", "info": "Thunfisch, Zwiebeln." },
-      { "id": "parma",         "name": "Parma (Rucola & Grana)", "price": "ZZ €", "info": "Parmaschinken, Rucola, Grana Padano." },
-      { "id": "calzone",       "name": "Calzone (gefüllt)",      "price": "ZZ €", "info": "Gefüllt, klassisch mit Tomate & Mozzarella." }
+      { "id": "prosciutto",   "name": "Prosciutto e Funghi",    "price": "XX €", "info": "Kochschinken, Champignons." },
+      { "id": "diavola",      "name": "Diavola (pikant)",       "price": "YY €", "info": "Scharfe Salami, Chili." },
+      { "id": "quattro",      "name": "Quattro Formaggi",       "price": "YY €", "info": "Vier Käsesorten." },
+      { "id": "verdure",      "name": "Verdure (Gemüse)",       "price": "XX €", "info": "Gemüse der Saison." },
+      { "id": "tonno",        "name": "Tonno e Cipolla",        "price": "XX €", "info": "Thunfisch, Zwiebeln." },
+      { "id": "parma",        "name": "Parma (Rucola & Grana)", "price": "ZZ €", "info": "Parmaschinken, Rucola, Grana Padano." },
+      { "id": "calzone",      "name": "Calzone (gefüllt)",      "price": "ZZ €", "info": "Gefüllt, klassisch mit Tomate & Mozzarella." }
     ],
-
     "pasta": [
       { "id": "pomodoro",   "name": "Pomodoro",          "price": "XX €", "info": "Tomatensauce, Basilikum." },
       { "id": "arrabbiata", "name": "Arrabbiata",        "price": "XX €", "info": "Tomate, Chili, Knoblauch." },
@@ -73,29 +74,27 @@
       { "id": "puttanesca", "name": "Puttanesca",        "price": "YY €", "info": "Oliven, Kapern, Sardellen, Tomate." }
     ],
     "salads": [
-      { "id": "caesar",  "name": "Caesar",             "price": "XX €",      "info": "Römersalat, Croûtons, Parmesan." },
-      { "id": "mista",   "name": "Insalata Mista",     "price": "XX €",      "info": "Gemischter Salat, Hausdressing." },
-      { "id": "rucola",  "name": "Rucola e Grana",     "price": "XX €",      "info": "Rucola, Grana Padano, Balsamico." }
+      { "id": "caesar",  "name": "Caesar",             "price": "XX €", "info": "Römersalat, Croûtons, Parmesan." },
+      { "id": "mista",   "name": "Insalata Mista",     "price": "XX €", "info": "Gemischter Salat, Hausdressing." },
+      { "id": "rucola",  "name": "Rucola e Grana",     "price": "XX €", "info": "Rucola, Grana Padano, Balsamico." }
     ],
-
     "drinks": [
-      { "id": "water",      "name": "Mineralwasser (still/prickelnd)", "price": "XX €",       "info": "0,25 / 0,75 l – Marke je nach Bestand." },
-      { "id": "limonata",   "name": "Limonata / Aranciata",             "price": "XX €",       "info": "Zitronen- oder Orangenlimo." },
-      { "id": "cola",       "name": "Cola / Zero",                      "price": "XX €",       "info": "0,33 l" },
-      { "id": "espresso",   "name": "Espresso",                         "price": "XX €",       "info": "Einfach oder doppio." },
-      { "id": "cappuccino", "name": "Cappuccino",                       "price": "XX €",       "info": "Mit Milchschaum." },
-      { "id": "whitewine",  "name": "Hauswein Weiß (Glas/Fl.)",         "price": "XX / YY €",  "info": "Trocken, fruchtig." },
-      { "id": "redwine",    "name": "Hauswein Rot (Glas/Fl.)",          "price": "XX / YY €",  "info": "Feinherb bis trocken." },
-      { "id": "prosecco",   "name": "Prosecco (Glas)",                  "price": "XX €",       "info": "Perlend." },
-      { "id": "pils",       "name": "Pils (0,3 / 0,5)",                 "price": "XX / YY €",  "info": "Vom Fass (sofern verfügbar)." },
-      { "id": "lager",      "name": "Helles / Lager (Fl.)",             "price": "XX €",       "info": "0,5 l" },
-      { "id": "nabeer",     "name": "Alkoholfreies Bier",               "price": "XX €",       "info": "Flasche 0,33 l" }
+      { "id": "water",      "name": "Mineralwasser (still/prickelnd)", "price": "XX €",      "info": "0,25 / 0,75 l – Marke je nach Bestand." },
+      { "id": "limonata",   "name": "Limonata / Aranciata",             "price": "XX €",      "info": "Zitronen- oder Orangenlimo." },
+      { "id": "cola",       "name": "Cola / Zero",                      "price": "XX €",      "info": "0,33 l" },
+      { "id": "espresso",   "name": "Espresso",                         "price": "XX €",      "info": "Einfach oder doppio." },
+      { "id": "cappuccino", "name": "Cappuccino",                       "price": "XX €",      "info": "Mit Milchschaum." },
+      { "id": "whitewine",  "name": "Hauswein Weiß (Glas/Fl.)",         "price": "XX / YY €", "info": "Trocken, fruchtig." },
+      { "id": "redwine",    "name": "Hauswein Rot (Glas/Fl.)",          "price": "XX / YY €", "info": "Feinherb bis trocken." },
+      { "id": "prosecco",   "name": "Prosecco (Glas)",                  "price": "XX €",      "info": "Perlend." },
+      { "id": "pils",       "name": "Pils (0,3 / 0,5)",                 "price": "XX / YY €", "info": "Vom Fass (sofern verfügbar)." },
+      { "id": "lager",      "name": "Helles / Lager (Fl.)",             "price": "XX €",      "info": "0,5 l" },
+      { "id": "nabeer",     "name": "Alkoholfreies Bier",               "price": "XX €",      "info": "Flasche 0,33 l" }
     ],
-
     "desserts": [
-      { "id": "tiramisu",   "name": "Tiramisu",      "price": "XX €", "info": "Klassisch, hausgemacht." },
-      { "id": "pannacotta", "name": "Panna Cotta",   "price": "XX €", "info": "Mit Beerensauce." },
-      { "id": "gelato",     "name": "Gelato",        "price": "XX €", "info": "2 Kugeln nach Wahl." }
+      { "id": "tiramisu",   "name": "Tiramisu",    "price": "XX €", "info": "Klassisch, hausgemacht." },
+      { "id": "pannacotta", "name": "Panna Cotta", "price": "XX €", "info": "Mit Beerensauce." },
+      { "id": "gelato",     "name": "Gelato",      "price": "XX €", "info": "2 Kugeln nach Wahl." }
     ]
   }
 }
