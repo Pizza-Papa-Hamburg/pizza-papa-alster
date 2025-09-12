@@ -140,13 +140,16 @@
   grid-template-columns:1fr 1fr !important;
 }
 
-/* Items (Artikel) später 1 Spalte */
+/* Items (Gerichte) – zwei Spalten, volle Zeile (NEU) */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-grid{
-  grid-template-columns:1fr !important;
+  grid-template-columns:1fr 1fr !important;
 }
 
 @media (max-width:380px){
   #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{
+    grid-template-columns:1fr 1fr !important;
+  }
+  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-grid{
     grid-template-columns:1fr 1fr !important;
   }
 }
@@ -216,9 +219,9 @@
       var btn = ev.target && ev.target.closest ? ev.target.closest('.ppx-b, .ppx-chip') : null;
       if (btn && $view && $view.contains(btn)) {
         btn.classList.add('ppx-selected');
-        jumpBottom();                 // sofort
-        setTimeout(jumpBottom, 140);  // nach Rendering
-        setTimeout(jumpBottom, 700);  // für verzögerte Inhalte
+        jumpBottom();
+        setTimeout(jumpBottom, 140);
+        setTimeout(jumpBottom, 700);
       }
     });
 
@@ -322,12 +325,12 @@
   // Buttons/Chips
   function btn(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick, type:'button' };
-    if (ic) attrs['data-ic'] = ic;   // nur setzen, wenn runder Badge gewünscht
+    if (ic) attrs['data-ic'] = ic;
     return el('button', attrs, label);
   }
   function chip(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-chip ' + (extraCls||''), onclick: onClick, type:'button' };
-    if (ic) attrs['data-ic'] = ic;   // nur für Badge-Icons
+    if (ic) attrs['data-ic'] = ic;
     return el('button', attrs, label);
   }
 
@@ -339,18 +342,18 @@
 
   // ---- Nav-Buttons (ohne Badge) ----
   function backBtnAt(scopeIdx){
-    return btn('← Zurück', function(){ popToScope(scopeIdx); }); // KEIN ic -> kein Kreis
+    return btn('← Zurück', function(){ popToScope(scopeIdx); });
   }
-  function doneBtn(){  // Danke + Close
+  function doneBtn(){
     return btn('Fertig ✓', function(){
       var B = block(null);
       B.appendChild(line('Danke dir bis zum nächsten Mal! 👋'));
       jumpBottom();
       setTimeout(closePanel, 1100);
-    }); // KEIN ic
+    });
   }
   function resBtn(){
-    return btn('📅 Reservieren', function(){ stepReservieren(); }); // KEIN ic
+    return btn('📅 Reservieren', function(){ stepReservieren(); });
   }
 
   // ---------------------------------------------------------------------------
@@ -400,12 +403,15 @@
     var B = block('SPEISEN');
     B.setAttribute('data-block','speisen-root');
 
-    if (CFG.menuPdf) {
-      var r = row();
-      r.style.justifyContent = 'flex-start';
-      r.appendChild(btn('Speisekarte als PDF', function(){ window.open(CFG.menuPdf, '_blank'); }, '', '📄'));
-      B.appendChild(r);
-    }
+    // --- PDF Button (immer anzeigen) ---
+    var pdfUrl = CFG.menuPdf ||
+                 (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) ||
+                 CFG.menuPDF ||
+                 'speisekarte.pdf';
+    var r = row();
+    r.style.justifyContent = 'flex-start';
+    r.appendChild(btn('Speisekarte als PDF', function(){ try{ window.open(pdfUrl, '_blank', 'noopener'); }catch(e){} }, '', '📄'));
+    B.appendChild(r);
 
     B.appendChild(line('…oder wähle eine Kategorie:'));
 
@@ -438,9 +444,10 @@
       ];
     }
 
-    var L = grid(); // Items = 1 Spalte
+    // --- 2-Spalten-Liste NUR mit Namen (ohne Preis/Beschreibung) ---
+    var L = grid();
     list.forEach(function(it){
-      var label = (it.name || 'Artikel') + (it.price ? (' – '+it.price+' €') : '');
+      var label = (it && it.name) ? it.name : 'Artikel';
       L.appendChild(
         chip(label, function(){ renderItem(catKey, it); }, '', '➜')
       );
