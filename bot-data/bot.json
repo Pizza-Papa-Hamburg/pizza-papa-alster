@@ -39,8 +39,7 @@
     },
 
     "menuOrder": ["antipasti","pizza","pasta","drinks","salads","desserts"],
-
-    "menuPdf": "/pdf/speisekarte_test.pdf"
+    "menuPdf": "pdf/speisekarte_test.pdf"
   },
 
   "dishes": {
@@ -61,6 +60,7 @@
       { "id": "parma",        "name": "Parma (Rucola & Grana)", "price": "ZZ €", "info": "Parmaschinken, Rucola, Grana Padano." },
       { "id": "calzone",      "name": "Calzone (gefüllt)",      "price": "ZZ €", "info": "Gefüllt, klassisch mit Tomate & Mozzarella." }
     ],
+
     "pasta": [
       { "id": "pomodoro",   "name": "Pomodoro",          "price": "XX €", "info": "Tomatensauce, Basilikum." },
       { "id": "arrabbiata", "name": "Arrabbiata",        "price": "XX €", "info": "Tomate, Chili, Knoblauch." },
@@ -78,6 +78,7 @@
       { "id": "mista",   "name": "Insalata Mista",     "price": "XX €", "info": "Gemischter Salat, Hausdressing." },
       { "id": "rucola",  "name": "Rucola e Grana",     "price": "XX €", "info": "Rucola, Grana Padano, Balsamico." }
     ],
+
     "drinks": [
       { "id": "water",      "name": "Mineralwasser (still/prickelnd)", "price": "XX €",      "info": "0,25 / 0,75 l – Marke je nach Bestand." },
       { "id": "limonata",   "name": "Limonata / Aranciata",             "price": "XX €",      "info": "Zitronen- oder Orangenlimo." },
@@ -91,10 +92,11 @@
       { "id": "lager",      "name": "Helles / Lager (Fl.)",             "price": "XX €",      "info": "0,5 l" },
       { "id": "nabeer",     "name": "Alkoholfreies Bier",               "price": "XX €",      "info": "Flasche 0,33 l" }
     ],
+
     "desserts": [
-      { "id": "tiramisu",   "name": "Tiramisu",    "price": "XX €", "info": "Klassisch, hausgemacht." },
-      { "id": "pannacotta", "name": "Panna Cotta", "price": "XX €", "info": "Mit Beerensauce." },
-      { "id": "gelato",     "name": "Gelato",      "price": "XX €", "info": "2 Kugeln nach Wahl." }
+      { "id": "tiramisu",   "name": "Tiramisu",      "price": "XX €", "info": "Klassisch, hausgemacht." },
+      { "id": "pannacotta", "name": "Panna Cotta",   "price": "XX €", "info": "Mit Beerensauce." },
+      { "id": "gelato",     "name": "Gelato",        "price": "XX €", "info": "2 Kugeln nach Wahl." }
     ]
   }
 }
