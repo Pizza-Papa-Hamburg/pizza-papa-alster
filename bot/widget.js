@@ -1,15 +1,7 @@
 /* ============================================================================
-   PPX Widget (v6 ULTRA-ROBUST) — Sticky/Append + robuste Init + Delegation
-   Wünsche umgesetzt:
-   - „Speisen“: Info „Super Wahl 👍 …“ + Delay (500 ms), dann PDF-Link + Kategorien
-   - Ab „Speisen“: NICHT mehr zentriert (nur Start/Home zentriert)
-   - Buttons kompakter; Farben wie Screenshot 2
-   - Nav („Zurück | Reservieren | Fertig“) in EINER Reihe (links)
-   Robustheit:
-   - Entfernt alte Styles; injiziert eigene mit höherer Spezifität (.ppx-v5)
-   - Wartet auf DOM + nutzt MutationObserver
-   - Zusätzlich: Delegierter Click-Listener (falls Direktbindung nicht greift)
-   Erwartete DOM-IDs: #ppx-launch, #ppx-panel, #ppx-close, #ppx-v
+   PPX Widget (v6 ULTRA-ROBUST) — Sticky/Append + globale Back-Logik
+   Änderung: "Zurück" entfernt immer alle seit der letzten Auswahl erzeugten
+   Blöcke (Scope-Pop). Gilt für ALLE Zurück-Buttons konsistent.
    ============================================================================ */
 (function () {
   'use strict';
@@ -238,7 +230,7 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 2) Utils
+  // 2) Utils + Globale Back-Logik
   // ---------------------------------------------------------------------------
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
 
@@ -290,6 +282,19 @@
   function row(){ return el('div', { class:'ppx-row' }); }
   function grid(){ return el('div', { class:'ppx-grid' }); }
 
+  // ---- Scope / Back-Stack ----
+  function getScopeIndex(){ return $view ? $view.children.length : 0; }
+  function popToScope(idx){
+    if (!$view) return;
+    while ($view.children.length > idx) {
+      var last = $view.lastElementChild;
+      if (!last) break;
+      last.remove();
+    }
+    var target = $view.lastElementChild || $view;
+    scrollToEl(target);
+  }
+
   // Buttons/Chips mit data-ic
   function btn(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick, type:'button' };
@@ -322,18 +327,15 @@
     return r;
   }
 
-  // Nav-Shortcuts
-  function backBtn(to){
-    return btn('Zurück', function(){
-      if (to && to.scrollIntoView) scrollToEl(to);
-      else scrollToEl($view && $view.firstElementChild || $view);
-    }, '', '←');
+  // ----- NEU: Back-Button mit Scope-Index -----
+  function backBtnAt(scopeIdx){
+    return btn('Zurück', function(){ popToScope(scopeIdx); }, '', '←');
   }
   function doneBtn(){
     return btn('Fertig ✓', function(){ scrollToEl($view && $view.lastElementChild || $view); }, '', '✓');
   }
-  function resBtn(prev){
-    return btn('Reservieren', function(){ stepReservieren(prev); }, '', '📅');
+  function resBtn(){ // prev ignoriert: Reservieren hat eigenen Scope
+    return btn('Reservieren', function(){ stepReservieren(); }, '', '📅');
   }
 
   // ---------------------------------------------------------------------------
@@ -359,14 +361,16 @@
 
   // ---------------------------------------------------------------------------
   // 4) SPEISEN (erst Info, Delay, dann Block mit PDF + Kategorien)
+  //     Back-Logik: Scope vor ALLEM starten → Back entfernt Info + Root zusammen
   // ---------------------------------------------------------------------------
-  function stepSpeisen(prevBlock){
+  function stepSpeisen(/*prevBlock*/){
+    var scopeIdx = getScopeIndex();     // ← Startzustand merken (vor Info!)
     var M = block(null);
     M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
-    setTimeout(function(){ renderSpeisenRoot(prevBlock); }, 500);
+    setTimeout(function(){ renderSpeisenRoot(scopeIdx); }, 500);
   }
 
-  function renderSpeisenRoot(prevBlock){
+  function renderSpeisenRoot(scopeIdx){
     var B = block('SPEISEN');
     B.setAttribute('data-block','speisen-root');
 
@@ -374,9 +378,7 @@
       var r = row();
       r.style.justifyContent = 'flex-start';
       r.appendChild(
-        btn('Speisekarte als PDF', function(){
-          window.open(CFG.menuPdf, '_blank');
-        }, '', '📄')
+        btn('Speisekarte als PDF', function(){ window.open(CFG.menuPdf, '_blank'); }, '', '📄')
       );
       B.appendChild(r);
     }
@@ -392,15 +394,16 @@
       var list  = Array.isArray(DISH[cat]) ? DISH[cat] : [];
       var count = list.length ? ' ('+list.length+')' : '';
       G.appendChild(
-        chip(pretty(cat)+count, function(){ renderCategory(cat, B); }, '', '▶️')
+        chip(pretty(cat)+count, function(){ renderCategory(cat); }, '', '▶️')
       );
     });
     B.appendChild(G);
 
-    B.appendChild(nav([ backBtn(prevBlock), resBtn(B), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
   }
 
-  function renderCategory(catKey, parentBlock){
+  function renderCategory(catKey){
+    var scopeIdx = getScopeIndex(); // ← Startzustand vor Kategorie
     var title = 'Gern! Hier ist die Auswahl für '+pretty(catKey)+':';
     var B = block(title);
     B.setAttribute('data-block','speisen-cat');
@@ -418,15 +421,16 @@
     list.forEach(function(it){
       var label = (it.name || 'Artikel') + (it.price ? (' – '+it.price+' €') : '');
       L.appendChild(
-        chip(label, function(){ renderItem(catKey, it, B); }, '', '➜')
+        chip(label, function(){ renderItem(catKey, it); }, '', '➜')
       );
     });
     B.appendChild(L);
 
-    B.appendChild(nav([ backBtn(parentBlock), resBtn(B), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
   }
 
-  function renderItem(catKey, item, prevBlock){
+  function renderItem(catKey, item){
+    var scopeIdx = getScopeIndex(); // ← Startzustand vor Item
     var title = item && item.name ? item.name : pretty(catKey);
     var B = block(title);
     B.setAttribute('data-block','speisen-item');
@@ -435,13 +439,14 @@
     if (item && item.price)   B.appendChild(line('Preis: '+item.price+' €'));
     if (item && item.hinweis) B.appendChild(line('ℹ️ '+item.hinweis));
 
-    B.appendChild(nav([ backBtn(prevBlock), resBtn(B), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
   }
 
   // ---------------------------------------------------------------------------
-  // 5) RESERVIEREN (Append)
+  // 5) RESERVIEREN (Append) – eigener Scope
   // ---------------------------------------------------------------------------
-  function stepReservieren(prevBlock){
+  function stepReservieren(/*prevBlock*/){
+    var scopeIdx = getScopeIndex();
     var B = block('RESERVIEREN');
     B.setAttribute('data-block','reservieren');
 
@@ -470,7 +475,7 @@
     }, '', '✉️'));
     B.appendChild(r);
 
-    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
   }
 
   function quickEmail(){
@@ -502,9 +507,10 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 6) ÖFFNUNGSZEITEN (Append)
+  // 6) ÖFFNUNGSZEITEN (Append) – eigener Scope
   // ---------------------------------------------------------------------------
-  function stepHours(prevBlock){
+  function stepHours(/*prevBlock*/){
+    var scopeIdx = getScopeIndex();
     var B = block('ÖFFNUNGSZEITEN');
     B.setAttribute('data-block','hours');
 
@@ -517,13 +523,14 @@
         B.appendChild(line('• '+txt));
       });
     }
-    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
   }
 
   // ---------------------------------------------------------------------------
-  // 7) KONTAKT (Append)
+  // 7) KONTAKT (Append) – eigener Scope
   // ---------------------------------------------------------------------------
-  function stepKontakt(prevBlock){
+  function stepKontakt(/*prevBlock*/){
+    var scopeIdx = getScopeIndex();
     var B = block('KONTAKTDATEN');
     B.setAttribute('data-block','kontakt');
 
@@ -551,13 +558,14 @@
       B.appendChild(r3);
     }
 
-    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
   }
 
   // ---------------------------------------------------------------------------
-  // 8) Q&As (Append)
+  // 8) Q&As (Append) – eigener Scope
   // ---------------------------------------------------------------------------
-  function stepQAs(prevBlock){
+  function stepQAs(/*prevBlock*/){
+    var scopeIdx = getScopeIndex();
     var B = block('Q&As');
     B.setAttribute('data-block','faq');
 
@@ -571,7 +579,7 @@
         if (a) B.appendChild(line('↳ '+a));
       });
     }
-    B.appendChild(nav([ backBtn(prevBlock), doneBtn() ]));
+    B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
   }
 
 })(); // Ende IIFE
