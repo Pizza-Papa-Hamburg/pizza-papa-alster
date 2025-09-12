@@ -39,7 +39,7 @@
     },
 
     "menuOrder": ["antipasti","pizza","pasta","drinks","salads","desserts"],
-    "menuPdf": "speisekarte_test.pdf"
+    "menuPdf": "/Split_Demo/speisekarte_test.pdf"
   },
 
   "dishes": {
@@ -101,3 +101,4 @@
     ]
   }
 }
+
