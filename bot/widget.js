@@ -1,7 +1,9 @@
 /* ============================================================================
-   PPX Widget (v6 COMPACT + ThankYou)
-   Änderungen: Delay 600ms, 2-Zeilen-Clamp, „Zurück ins Hauptmenü“ global,
-               „Fertig ✓“ nur nach Reservierung, Item-Frage (Ja/Nein + Zurück)
+   PPX Widget (v6 COMPACT + UX-Update)
+   Änderungen: 600ms Delay, 2-Zeilen-Clamp, Links-Ausrichtung in Speisen,
+               „Reservieren“-Button aus Nav entfernt (Frage im Text),
+               „Zurück“/„Hauptmenü“ gleich breit,
+               Hauptmenü-Reset fix (echter Neustart)
    ============================================================================ */
 (function () {
   'use strict';
@@ -48,7 +50,7 @@
   padding:10px 10px 16px;
 }
 
-/* Bot-Blocks (Card-Optik allgemein) */
+/* Bot-Blocks */
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot{
   background:linear-gradient(180deg, rgba(14,59,51,.45), rgba(14,59,51,.30));
   border:1px solid var(--ppx-border); border-radius:14px;
@@ -56,14 +58,14 @@
   text-align:left !important;
 }
 
-/* Home-Block: Rahmen weg + volle Breite */
+/* Home-Block: volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"]{
   background:transparent !important; border:none !important; box-shadow:none !important;
   padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important;
   text-align:center !important;
 }
 
-/* Speisen-Root: Rahmen weg + volle Breite */
+/* Speisen-Root: volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"]{
   background:transparent !important; border:none !important; box-shadow:none !important;
   padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important;
@@ -88,12 +90,12 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start !important; margin-top:8px; width:100%; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:8px; width:100%; }
 
-/* Buttons & Chips – kompakter */
+/* Buttons & Chips */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{
   -webkit-appearance:none; appearance:none; cursor:pointer;
   display:inline-flex; align-items:center; justify-content:flex-start !important; gap:10px;
-  width:100% !important;
+  width:100% !important; text-align:left;
   color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:14px;
   padding:10px 14px !important; background:var(--ppx-green-650);
   box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 2px 8px rgba(0,0,0,.20);
@@ -110,13 +112,13 @@
   box-shadow: 0 0 0 2px rgba(230,196,138,.55) inset, 0 2px 8px rgba(0,0,0,.26);
 }
 
-/* Home größer */
+/* Home größer (nur Home) */
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{
   justify-content:center !important; font-size:18.5px !important; padding:12px 16px !important;
 }
 
-/* Icon-Badges (Standard) */
+/* Kategorie-Icons */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center;
@@ -124,14 +126,12 @@
   background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
 }
-
-/* Kategorie-Icons */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before{
   width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px;
   box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18);
 }
 
-/* Speisen-Root / Items: 2 Spalten */
+/* 2 Spalten in Speisen */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 
@@ -139,11 +139,23 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-b .ppx-label,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip .ppx-label{
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-  overflow:hidden; text-overflow:ellipsis; line-height:1.25;
+  overflow:hidden; text-overflow:ellipsis; line-height:1.25; text-align:left;
 }
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip,
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-chip{
   min-height:64px; align-items:center;
+}
+
+/* >>> Links-Ausrichtung erzwingen in Speisen (Kat + Items) <<< */
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-b,
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip,
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-b,
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-chip{
+  justify-content:flex-start !important; text-align:left !important;
+}
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-label,
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-label{
+  text-align:left !important;
 }
 
 @media (max-width:380px){
@@ -151,9 +163,9 @@
   #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 }
 
-/* Nav */
+/* Nav: gleich breite Buttons */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ width:auto !important; }
+#ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
 
 /* Links */
 #ppx-panel.ppx-v5 #ppx-v .ppx-link{ color:var(--ppx-ink); text-decoration:underline; text-underline-offset:2px; }
@@ -167,8 +179,18 @@
   var $launch, $panel, $close, $view;
   var BOUND = false;
 
-  function queryDom(){ $launch=document.getElementById('ppx-launch'); $panel=document.getElementById('ppx-panel'); $close=document.getElementById('ppx-close'); $view=document.getElementById('ppx-v'); return !!($launch&&$panel&&$close&&$view); }
-  function openPanel(){ if(!queryDom())return; $panel.classList.add('ppx-open','ppx-v5'); if(!$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); } }
+  function queryDom(){
+    $launch=document.getElementById('ppx-launch');
+    $panel=document.getElementById('ppx-panel');
+    $close=document.getElementById('ppx-close');
+    $view=document.getElementById('ppx-v');
+    return !!($launch&&$panel&&$close&&$view);
+  }
+  function openPanel(){
+    if(!queryDom())return;
+    $panel.classList.add('ppx-open','ppx-v5');
+    if(!$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); }
+  }
   function closePanel(){ if(!queryDom())return; $panel.classList.remove('ppx-open'); }
 
   function bindOnce(){
@@ -178,30 +200,76 @@
     $launch.addEventListener('click', openPanel);
     $close.addEventListener('click', closePanel);
     window.addEventListener('keydown', function(e){ if(e.key==='Escape') closePanel(); });
-    $panel.addEventListener('click', function(ev){ var t=ev.target&&ev.target.closest?ev.target.closest('.ppx-b, .ppx-chip'):null; if(t&&$view&&$view.contains(t)){ t.classList.add('ppx-selected'); jumpBottom(); setTimeout(jumpBottom,140); setTimeout(jumpBottom,700);} });
-    document.addEventListener('click', function(ev){ var t=ev.target&&ev.target.closest?ev.target.closest('#ppx-launch'):null; if(t) openPanel(); });
-    if($panel.classList.contains('ppx-open') && !$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); }
+    $panel.addEventListener('click', function(ev){
+      var t=ev.target&&ev.target.closest?ev.target.closest('.ppx-b, .ppx-chip'):null;
+      if(t&&$view&&$view.contains(t)){
+        t.classList.add('ppx-selected'); jumpBottom();
+        setTimeout(jumpBottom,140); setTimeout(jumpBottom,700);
+      }
+    });
+    document.addEventListener('click', function(ev){
+      var t=ev.target&&ev.target.closest?ev.target.closest('#ppx-launch'):null;
+      if(t) openPanel();
+    });
+    if($panel.classList.contains('ppx-open') && !$panel.dataset.init){
+      $panel.dataset.init='1'; stepHome();
+    }
     BOUND=true; return true;
   }
 
-  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', bindOnce, {once:true}); } else { bindOnce(); }
-  if(!BOUND){ var mo=new MutationObserver(function(){ if(bindOnce()) mo.disconnect(); }); mo.observe(document.documentElement||document.body,{childList:true,subtree:true}); setTimeout(function(){ try{mo.disconnect();}catch(e){} },5000); }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', bindOnce, {once:true});
+  } else { bindOnce(); }
+  if(!BOUND){
+    var mo=new MutationObserver(function(){ if(bindOnce()) mo.disconnect(); });
+    mo.observe(document.documentElement||document.body,{childList:true,subtree:true});
+    setTimeout(function(){ try{mo.disconnect();}catch(e){} },5000);
+  }
 
   // ---------------------------------------------------------------------------
-  // 2) Utils + globale Back-Logik
+  // 2) Utils + globale Back/Home-Logik
   // ---------------------------------------------------------------------------
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
-  function jumpBottom(){ if(!$view) return; try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){} }
-  function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){ if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); } else if(k==='text'){ n.textContent=attrs[k]; } else if(k==='html'){ n.innerHTML=attrs[k]; } else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); } else { n.setAttribute(k, attrs[k]); } }); for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); } return n; }
-  function pretty(s){ return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g,function(c){ return c.toUpperCase(); }); }
-  function block(title,opts){ opts=opts||{}; var wrap=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}}); if(title) wrap.appendChild(el('div',{class:'ppx-h'},title)); if($view) $view.appendChild(wrap); jumpBottom(); return wrap; }
+  function jumpBottom(){
+    if(!$view) return;
+    try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){}
+  }
+  function el(tag, attrs){
+    var n=document.createElement(tag); attrs=attrs||{};
+    Object.keys(attrs).forEach(function(k){
+      if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); }
+      else if(k==='text'){ n.textContent=attrs[k]; }
+      else if(k==='html'){ n.innerHTML=attrs[k]; }
+      else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); }
+      else { n.setAttribute(k,attrs[k]); }
+    });
+    for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); }
+    return n;
+  }
+  function pretty(s){
+    return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim()
+      .replace(/\b\w/g,function(c){ return c.toUpperCase(); });
+  }
+  function block(title,opts){
+    opts=opts||{};
+    var wrap=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}});
+    if(title) wrap.appendChild(el('div',{class:'ppx-h'},title));
+    if($view) $view.appendChild(wrap);
+    jumpBottom(); return wrap;
+  }
   function line(txt){ return el('div',{class:'ppx-m'},txt); }
   function row(){ return el('div',{class:'ppx-row'}); }
   function grid(){ return el('div',{class:'ppx-grid'}); }
 
-  // ---- Scope-Back ----
+  // Scope-Back & Home-Reset
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
-  function popToScope(idx){ if(!$view) return; while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); } jumpBottom(); }
+  function popToScope(idx){
+    if(!$view) return;
+    while($view.children.length>idx){
+      var last=$view.lastElementChild; if(!last) break; last.remove();
+    }
+    jumpBottom();
+  }
 
   // Buttons/Chips (mit <span class="ppx-label"> für 2-Zeilen-Clamp)
   function btn(label, onClick, extraCls, ic){
@@ -215,16 +283,12 @@
 
   function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
   function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }); }
-  function homeBtn(){ return btn('Zurück ins Hauptmenü', function(){ stepHome(); }, '', '🏠'); }
-  function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
-  function resBtn(){ return btn('📅 Reservieren', function(){ stepReservieren(); }); }
 
-  // ---------------------------------------------------------------------------
-  // 3) HOME
-  // ---------------------------------------------------------------------------
-  function stepHome(){
-    if ($view && $view.querySelector('[data-block="home"]')) return;
-    var brand=(CFG.brand||'Pizza Papa Hamburg'); var B=block(brand.toUpperCase()); B.setAttribute('data-block','home');
+  // Echter Home-Reset (fix für deinen Punkt 4)
+  function stepHome(force){
+    if (!force && $view && $view.querySelector('[data-block="home"]')) return;
+    var brand=(CFG.brand||'Pizza Papa Hamburg');
+    var B=block(brand.toUpperCase()); B.setAttribute('data-block','home');
     B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
     B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
     var r1=row(); r1.appendChild(btn('Speisen',function(){ stepSpeisen(); },'ppx-cta','🍽️')); B.appendChild(r1);
@@ -233,6 +297,10 @@
     var r4=row(); r4.appendChild(btn('Kontaktdaten',function(){ stepKontakt(); },'','☎️')); B.appendChild(r4);
     var r5=row(); r5.appendChild(btn('Q&As',function(){ stepQAs(); },'','❓')); B.appendChild(r5);
   }
+  function goHome(){ popToScope(0); stepHome(true); }
+  function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, '', '🏠'); }
+  function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
+  // resBtn entfernt aus Navs (Frage erfolgt im Text)
   // ---------------------------------------------------------------------------
   // 4) SPEISEN
   // ---------------------------------------------------------------------------
@@ -261,7 +329,7 @@
     var B = block('SPEISEN');
     B.setAttribute('data-block','speisen-root');
 
-    // --- PDF Button ---
+    // --- PDF Button (immer anzeigen) ---
     var pdfUrl = CFG.menuPdf ||
                  (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) ||
                  CFG.menuPDF ||
@@ -292,7 +360,8 @@
     });
     B.appendChild(G);
 
-    B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), homeBtn() ]));
+    // Nav: Zurück + Hauptmenü (kein Reservieren-Button)
+    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
 
@@ -320,7 +389,8 @@
     });
     B.appendChild(L);
 
-    B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), homeBtn() ]));
+    // Nav: Zurück + Hauptmenü
+    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
 
@@ -357,13 +427,14 @@
     Q.setAttribute('data-block','speisen-item-ask');
     Q.appendChild(line('Na, Appetit bekommen? 😍 Soll ich dir gleich einen Tisch reservieren, damit du das bald probieren kannst?'));
 
+    // Primär/sekundär-CTAs
     var r = row();
     r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '✅'));
-    r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ stepHome(); }, '', '↩️'));
+    r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, '', '↩️'));
     Q.appendChild(r);
 
-    // Zusätzlich „← Zurück“ (kein „Fertig“ hier)
+    // Zusätzlich „← Zurück“ (zur vorherigen Liste) + „Hauptmenü“ gleich breit
     Q.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
@@ -385,12 +456,10 @@
                (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) ||
                'info@example.com';
 
-    r.appendChild(btn('E-Mail öffnen', function(){
-      openEmailDraft(addr);
-    }, '', '✉️'));
+    r.appendChild(btn('E-Mail öffnen', function(){ openEmailDraft(addr); }, '', '✉️'));
     B.appendChild(r);
 
-    // Hier KEIN „Fertig“ – nur Back + Home
+    // Nav: Zurück + Hauptmenü
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
@@ -408,7 +477,7 @@
     ].join('%0A');
     window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
 
-    // Nach dem Öffnen des E-Mail-Clients zeigen wir eine Bestätigung mit „Fertig ✓“
+    // Nach dem Öffnen des E-Mail-Clients Bestätigung zeigen
     showReservationSuccess('mailto');
   }
 
@@ -420,7 +489,7 @@
 
     var payload = { name:name, when:when, persons:ppl, phone:tel, brand:(CFG.brand||'Restaurant') };
 
-    // EmailJS (Bezeichner tolerant: serviceId|service, templateId|toTemplate)
+    // EmailJS tolerant: serviceId|service, templateId|toTemplate
     var svcId = CFG.EMAIL && (CFG.EMAIL.serviceId || CFG.EMAIL.service);
     var tplId = CFG.EMAIL && (CFG.EMAIL.templateId || CFG.EMAIL.toTemplate);
 
@@ -453,7 +522,7 @@
       B.appendChild(line('Hast du die E-Mail versendet? Falls ja, kannst du hier abschließen. ✉️'));
     }
 
-    // Jetzt „Fertig ✓“ anbieten (Panel schließt sich danach)
+    // Nur hier „Fertig ✓“ erlauben
     B.appendChild(nav([ homeBtn(), doneBtn() ]));
     jumpBottom();
   }
