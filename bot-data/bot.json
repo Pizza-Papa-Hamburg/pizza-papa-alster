@@ -39,7 +39,7 @@
     },
 
     "menuOrder": ["antipasti","pizza","pasta","drinks","salads","desserts"],
-    "menuPdf": "pdf/speisekarte_test.pdf"
+    { "cfg": { "menuPdf": "speisekarte_test.pdf" } }
   },
 
   "dishes": {
@@ -100,3 +100,4 @@
     ]
   }
 }
+
