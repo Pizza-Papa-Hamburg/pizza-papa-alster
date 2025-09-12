@@ -1,7 +1,5 @@
 /* ============================================================================
-   PPX Widget (v6 ULTRA-ROBUST) — Sticky/Append + globale Back-Logik
-   Änderung: "Zurück" entfernt immer alle seit der letzten Auswahl erzeugten
-   Blöcke (Scope-Pop). Gilt für ALLE Zurück-Buttons konsistent.
+   PPX Widget (v6 CLEAN) — Global Back + Auto-Scroll + Selected-State
    ============================================================================ */
 (function () {
   'use strict';
@@ -14,7 +12,7 @@
   var CFG  = DATA.cfg    || {};
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs   || [];
-  var STICKY = true;
+  var STICKY = true; // Append-Mode
 
   // Optional: EmailJS init (falls konfiguriert)
   (function initEmailJS(){
@@ -26,8 +24,7 @@
   })();
 
   // ---------------------------------------------------------------------------
-  // STYLE: Farben/Layout wie gewünscht, nur HOME zentriert, ab Speisen links
-  // Entfernt alte Bot-Styles & injiziert neu mit höherer Spezifität (.ppx-v5)
+  // STYLE
   // ---------------------------------------------------------------------------
   (function injectStyles(){
     [
@@ -52,18 +49,16 @@
   padding:8px 8px 16px;
 }
 
-/* Cards (Blocks) */
+/* Cards */
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot{
   background:linear-gradient(180deg, rgba(9,39,33,.55), rgba(9,39,33,.35));
   border:1px solid var(--ppx-border); border-radius:16px;
   padding:18px; margin:16px auto; max-width:680px; box-shadow:var(--ppx-shadow);
-  text-align:left !important; /* Standard: LINKS */
+  text-align:left !important;
 }
-#ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"]{
-  text-align:center !important; /* Nur Home zentriert */
-}
+#ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"]{ text-align:center !important; }
 
-/* Headline im Block */
+/* Headline */
 #ppx-panel.ppx-v5 #ppx-v .ppx-h{
   background:var(--ppx-green-800); color:var(--ppx-ink);
   border:1px solid var(--ppx-border); border-radius:12px;
@@ -71,49 +66,58 @@
   font-family:"Cinzel", serif; font-weight:600; letter-spacing:.02em; text-transform:uppercase;
 }
 
-/* Fließtext */
+/* Text */
 #ppx-panel.ppx-v5 #ppx-v .ppx-m{
   color:var(--ppx-ink); line-height:1.55; margin:8px 0 12px;
   font-family:"Cormorant Garamond", serif; font-weight:400; font-size:20px;
 }
 
-/* Reihen/Grids */
+/* Rows & Grid */
 #ppx-panel.ppx-v5 #ppx-v .ppx-row{
   display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-start !important;
   margin-top:10px; width:100%;
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"] .ppx-row{
-  justify-content:center !important; /* Home-Reihen zentriert */
+  justify-content:center !important;
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-grid{
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:10px; width:100%;
 }
-@media (max-width:560px){
-  #ppx-panel.ppx-v5 #ppx-v .ppx-grid{ grid-template-columns:1fr; }
+@media (max-width:420px){
+  /* selbst auf sehr kleinen Screens bleiben 2 Spalten erhalten – auf Wunsch */
+  #ppx-panel.ppx-v5 #ppx-v .ppx-grid{ grid-template-columns:1fr 1fr; }
 }
 
-/* Buttons & Chips – standardmäßig LINKS ausgerichtet, kompakter */
+/* Buttons & Chips */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{
   -webkit-appearance:none; appearance:none; cursor:pointer;
   display:inline-flex; align-items:center; justify-content:flex-start !important; gap:10px;
-  width:100% !important; /* volle Zeile */
+  width:100% !important;
   color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:16px;
-  padding:12px 16px !important; /* kompakter */
-  background:var(--ppx-green-600); box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 3px 12px rgba(0,0,0,.25);
-  transition:transform .06s ease, filter .2s ease;
-  font-family:"Cormorant Garamond", serif; font-weight:400 !important; font-size:18px !important; /* kleiner */
+  padding:12px 16px !important;
+  background:var(--ppx-green-600);
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 3px 12px rgba(0,0,0,.25);
+  transition:transform .06s ease, filter .2s ease, box-shadow .2s ease, background .2s ease;
+  font-family:"Cormorant Garamond", serif; font-weight:400 !important; font-size:18px !important;
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-500); }
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
 
-/* Home-Block: Buttons zentriert & etwas größer */
+/* Selected-State (persistiert) */
+#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected,
+#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{
+  filter: brightness(1.12);
+  box-shadow: 0 0 0 2px rgba(230,196,138,.65) inset, 0 3px 12px rgba(0,0,0,.35);
+}
+
+/* Home: größer & zentriert */
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"] .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"] .ppx-chip{
   justify-content:center !important; font-size:20px !important; padding:14px 18px !important;
 }
 
-/* Icon-Badges via data-ic */
+/* Icon-Badges */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center;
@@ -122,7 +126,7 @@
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1.5px 0 rgba(255,255,255,.25) inset;
 }
 
-/* Nav-Reihe: drei Buttons nebeneinander, links ausgerichtet */
+/* Nav */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{
   display:flex; gap:12px; width:100%; justify-content:flex-start !important; margin-top:12px;
 }
@@ -133,9 +137,11 @@
   color:var(--ppx-ink); text-decoration:underline; text-underline-offset:2px;
 }
 
-/* Speisen: explizit einspaltig für Kategorien & Items */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{
+/* Speisen: Root immer 2 Spalten; Items 1 Spalte */
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{
+  grid-template-columns:1fr 1fr !important;
+}
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-grid{
   grid-template-columns:1fr !important;
 }
 `;
@@ -146,7 +152,7 @@
   })();
 
   // ---------------------------------------------------------------------------
-  // 1) Robuste Init (wartet auf DOM + IDs) + Delegation
+  // 1) Robuste Init
   // ---------------------------------------------------------------------------
   var $launch, $panel, $close, $view;
   var BOUND = false;
@@ -160,49 +166,46 @@
   }
 
   function openPanel(){
-    if (!$panel || !$view) queryDom();
-    if (!$panel || !$view) return;
-    $panel.classList.add('ppx-open');
-    $panel.classList.add('ppx-v5'); // für Styles
+    if (!queryDom()) return;
+    $panel.classList.add('ppx-open','ppx-v5');
     if (!$panel.dataset.init) {
       $panel.dataset.init = '1';
-      stepHome(); // Home einmalig rendern; bleibt stehen
+      stepHome();
     }
   }
 
   function closePanel(){
-    if (!$panel) queryDom();
-    if ($panel) $panel.classList.remove('ppx-open');
+    if (!queryDom()) return;
+    $panel.classList.remove('ppx-open');
   }
 
   function bindOnce(){
     if (BOUND) return true;
     if (!queryDom()) return false;
 
-    // Panel-Klasse für CSS-Overrides
     $panel.classList.add('ppx-v5');
-
-    // Öffnen/Schließen (direkte Listener)
     $launch.addEventListener('click', openPanel);
     $close.addEventListener('click', closePanel);
+    window.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePanel(); });
+    $panel.addEventListener('click', function(ev){ if (ev.target === $panel) closePanel(); });
 
-    // ESC schließt
-    window.addEventListener('keydown', function(e){
-      if (e.key === 'Escape') closePanel();
-    });
-
-    // Overlay-Klick schließt nur, wenn direkt auf Panel (nicht auf Inhalt)
-    $panel.addEventListener('click', function(ev){
-      if (ev.target === $panel) closePanel();
-    });
-
-    // Falls durch CSS bereits offen, trotzdem einmal Home rendern (ohne Clear)
     if ($panel.classList.contains('ppx-open') && !$panel.dataset.init) {
       $panel.dataset.init = '1';
       stepHome();
     }
 
-    // Delegierter Fallback-Listener: reagiert auch, wenn Direktbindung verpasst wurde
+    // Delegiert: Jeder Bot-Button → Selected-State + Auto-Scroll
+    $panel.addEventListener('click', function(ev){
+      var btn = ev.target && ev.target.closest ? ev.target.closest('.ppx-b, .ppx-chip') : null;
+      if (btn && $view && $view.contains(btn)) {
+        btn.classList.add('ppx-selected');
+        jumpBottom();                  // sofort
+        setTimeout(jumpBottom, 140);   // nach Rendering
+        setTimeout(jumpBottom, 700);   // für verzögerte Inhalte (Speisen)
+      }
+    });
+
+    // Fallback zum Öffnen via Delegation
     document.addEventListener('click', function(ev){
       var t = ev.target && ev.target.closest ? ev.target.closest('#ppx-launch') : null;
       if (t) openPanel();
@@ -212,27 +215,32 @@
     return true;
   }
 
-  // DOMContentLoaded → erster Versuch
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindOnce, { once:true });
   } else {
-    bindOnce(); // DOM ist schon da
+    bindOnce();
   }
 
-  // MutationObserver → falls Elemente nachträglich ins DOM kommen
   if (!BOUND) {
     var mo = new MutationObserver(function(){
       if (bindOnce()) mo.disconnect();
     });
     mo.observe(document.documentElement || document.body, { childList:true, subtree:true });
-    // Fallback: nach 5s observer stoppen
     setTimeout(function(){ try{ mo.disconnect(); }catch(e){} }, 5000);
   }
 
   // ---------------------------------------------------------------------------
-  // 2) Utils + Globale Back-Logik
+  // 2) Utils + globale Back-Logik
   // ---------------------------------------------------------------------------
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
+
+  function jumpBottom(){
+    if (!$view) return;
+    try {
+      $view.scrollTop = $view.scrollHeight;
+      requestAnimationFrame(function(){ $view.scrollTop = $view.scrollHeight; });
+    } catch(e){}
+  }
 
   function el(tag, attrs){
     var n = document.createElement(tag);
@@ -266,23 +274,23 @@
       .replace(/\b\w/g, function(c){ return c.toUpperCase(); });
   }
 
-  function scrollToEl(node){
-    if (!node) return;
-    try { node.scrollIntoView({ behavior:'smooth', block:'start' }); }
-    catch(e){ if ($view) $view.scrollTop = $view.scrollHeight; }
-  }
-
-  // NIE auto-clearen (außer gezwungen)
-  function clearView(opts){
-    if (!STICKY) $view.innerHTML = '';
-    else if (opts && opts.force) $view.innerHTML = '';
+  function block(title, opts){
+    opts = opts || {};
+    var wrap = el('div', {
+      class: 'ppx-bot ppx-appear',
+      style: { maxWidth: (opts.maxWidth || '680px'), margin: '16px auto' }
+    });
+    if (title) wrap.appendChild(el('div', { class:'ppx-h' }, title));
+    if ($view) $view.appendChild(wrap);
+    jumpBottom();
+    return wrap;
   }
 
   function line(txt){ return el('div', { class:'ppx-m' }, txt); }
   function row(){ return el('div', { class:'ppx-row' }); }
   function grid(){ return el('div', { class:'ppx-grid' }); }
 
-  // ---- Scope / Back-Stack ----
+  // ---- Scope-Back ----
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
   function popToScope(idx){
     if (!$view) return;
@@ -291,11 +299,10 @@
       if (!last) break;
       last.remove();
     }
-    var target = $view.lastElementChild || $view;
-    scrollToEl(target);
+    jumpBottom();
   }
 
-  // Buttons/Chips mit data-ic
+  // Buttons/Chips
   function btn(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick, type:'button' };
     if (ic) attrs['data-ic'] = ic;
@@ -307,43 +314,27 @@
     return el('button', attrs, label);
   }
 
-  // Neuer Block (Card) anhängen
-  function block(title, opts){
-    opts = opts || {};
-    var wrap = el('div', {
-      class: 'ppx-bot ppx-appear',
-      style: { maxWidth: (opts.maxWidth || '680px'), margin: '16px auto' }
-    });
-    if (title) wrap.appendChild(el('div', { class:'ppx-h' }, title));
-    if ($view) $view.appendChild(wrap);
-    scrollToEl(wrap);
-    return wrap;
-  }
-
-  // horizontale Button-Gruppe (Nav-Row, links)
   function nav(btns){
     var r = el('div', { class:'ppx-nav' });
     btns.forEach(function(b){ if (b) r.appendChild(b); });
     return r;
   }
 
-  // ----- NEU: Back-Button mit Scope-Index -----
   function backBtnAt(scopeIdx){
     return btn('Zurück', function(){ popToScope(scopeIdx); }, '', '←');
   }
   function doneBtn(){
-    return btn('Fertig ✓', function(){ scrollToEl($view && $view.lastElementChild || $view); }, '', '✓');
+    return btn('Fertig ✓', function(){ jumpBottom(); }, '', '✓');
   }
-  function resBtn(){ // prev ignoriert: Reservieren hat eigenen Scope
+  function resBtn(){
     return btn('Reservieren', function(){ stepReservieren(); }, '', '📅');
   }
 
   // ---------------------------------------------------------------------------
-  // 3) HOME (einmalig rendern; bleibt zentriert)
+  // 3) HOME
   // ---------------------------------------------------------------------------
   function stepHome(){
-    if (!$view) return;
-    if ($view.querySelector('[data-block="home"]')) return;
+    if ($view && $view.querySelector('[data-block="home"]')) return;
 
     var brand = (CFG.brand || 'Pizza Papa Hamburg');
     var B = block(brand.toUpperCase());
@@ -352,22 +343,22 @@
     B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
     B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
 
-    var r1 = row(); r1.appendChild(btn('Speisen',       function(){ stepSpeisen(B); }, 'ppx-cta', '🍽️')); B.appendChild(r1);
-    var r2 = row(); r2.appendChild(btn('Reservieren',   function(){ stepReservieren(B); }, '', '📅'));     B.appendChild(r2);
-    var r3 = row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(B); }, '', '⏰'));          B.appendChild(r3);
-    var r4 = row(); r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(B); }, '', '☎️'));        B.appendChild(r4);
-    var r5 = row(); r5.appendChild(btn('Q&As',          function(){ stepQAs(B); }, '', '❓'));             B.appendChild(r5);
+    var r1 = row(); r1.appendChild(btn('Speisen',       function(){ stepSpeisen(); }, 'ppx-cta', '🍽️')); B.appendChild(r1);
+    var r2 = row(); r2.appendChild(btn('Reservieren',   function(){ stepReservieren(); }, '', '📅'));     B.appendChild(r2);
+    var r3 = row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(); }, '', '⏰'));          B.appendChild(r3);
+    var r4 = row(); r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(); }, '', '☎️'));        B.appendChild(r4);
+    var r5 = row(); r5.appendChild(btn('Q&As',          function(){ stepQAs(); }, '', '❓'));             B.appendChild(r5);
   }
 
   // ---------------------------------------------------------------------------
-  // 4) SPEISEN (erst Info, Delay, dann Block mit PDF + Kategorien)
-  //     Back-Logik: Scope vor ALLEM starten → Back entfernt Info + Root zusammen
+  // 4) SPEISEN
   // ---------------------------------------------------------------------------
-  function stepSpeisen(/*prevBlock*/){
-    var scopeIdx = getScopeIndex();     // ← Startzustand merken (vor Info!)
+  function stepSpeisen(){
+    var scopeIdx = getScopeIndex(); // Zustand VOR Info
     var M = block(null);
     M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
-    setTimeout(function(){ renderSpeisenRoot(scopeIdx); }, 500);
+    jumpBottom();
+    setTimeout(function(){ renderSpeisenRoot(scopeIdx); jumpBottom(); }, 500);
   }
 
   function renderSpeisenRoot(scopeIdx){
@@ -377,19 +368,17 @@
     if (CFG.menuPdf) {
       var r = row();
       r.style.justifyContent = 'flex-start';
-      r.appendChild(
-        btn('Speisekarte als PDF', function(){ window.open(CFG.menuPdf, '_blank'); }, '', '📄')
-      );
+      r.appendChild(btn('Speisekarte als PDF', function(){ window.open(CFG.menuPdf, '_blank'); }, '', '📄'));
       B.appendChild(r);
     }
 
     B.appendChild(line('…oder wähle eine Kategorie:'));
 
+    // Kategorien: gewünschte Reihenfolge, Fallback wenn DISH leer
     var cats = Object.keys(DISH);
-    if (!cats.length) cats = ['Antipasti','Salat','Pizza','Pasta','Drinks','Desserts'];
+    if (!cats.length) cats = ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
 
-    var G = grid();
-    G.style.gridTemplateColumns = '1fr'; // volle Zeile pro Button
+    var G = grid(); // Root = 2 Spalten (CSS erzwingt das)
     cats.forEach(function(cat){
       var list  = Array.isArray(DISH[cat]) ? DISH[cat] : [];
       var count = list.length ? ' ('+list.length+')' : '';
@@ -400,10 +389,11 @@
     B.appendChild(G);
 
     B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
+    jumpBottom();
   }
 
   function renderCategory(catKey){
-    var scopeIdx = getScopeIndex(); // ← Startzustand vor Kategorie
+    var scopeIdx = getScopeIndex();
     var title = 'Gern! Hier ist die Auswahl für '+pretty(catKey)+':';
     var B = block(title);
     B.setAttribute('data-block','speisen-cat');
@@ -416,8 +406,7 @@
       ];
     }
 
-    var L = grid();
-    L.style.gridTemplateColumns = '1fr';
+    var L = grid(); // Items = 1 Spalte (CSS)
     list.forEach(function(it){
       var label = (it.name || 'Artikel') + (it.price ? (' – '+it.price+' €') : '');
       L.appendChild(
@@ -427,10 +416,11 @@
     B.appendChild(L);
 
     B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
+    jumpBottom();
   }
 
   function renderItem(catKey, item){
-    var scopeIdx = getScopeIndex(); // ← Startzustand vor Item
+    var scopeIdx = getScopeIndex();
     var title = item && item.name ? item.name : pretty(catKey);
     var B = block(title);
     B.setAttribute('data-block','speisen-item');
@@ -440,12 +430,13 @@
     if (item && item.hinweis) B.appendChild(line('ℹ️ '+item.hinweis));
 
     B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
+    jumpBottom();
   }
 
   // ---------------------------------------------------------------------------
-  // 5) RESERVIEREN (Append) – eigener Scope
+  // 5) RESERVIEREN
   // ---------------------------------------------------------------------------
-  function stepReservieren(/*prevBlock*/){
+  function stepReservieren(){
     var scopeIdx = getScopeIndex();
     var B = block('RESERVIEREN');
     B.setAttribute('data-block','reservieren');
@@ -476,6 +467,7 @@
     B.appendChild(r);
 
     B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
+    jumpBottom();
   }
 
   function quickEmail(){
@@ -507,9 +499,9 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 6) ÖFFNUNGSZEITEN (Append) – eigener Scope
+  // 6) ÖFFNUNGSZEITEN
   // ---------------------------------------------------------------------------
-  function stepHours(/*prevBlock*/){
+  function stepHours(){
     var scopeIdx = getScopeIndex();
     var B = block('ÖFFNUNGSZEITEN');
     B.setAttribute('data-block','hours');
@@ -524,12 +516,13 @@
       });
     }
     B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
+    jumpBottom();
   }
 
   // ---------------------------------------------------------------------------
-  // 7) KONTAKT (Append) – eigener Scope
+  // 7) KONTAKT
   // ---------------------------------------------------------------------------
-  function stepKontakt(/*prevBlock*/){
+  function stepKontakt(){
     var scopeIdx = getScopeIndex();
     var B = block('KONTAKTDATEN');
     B.setAttribute('data-block','kontakt');
@@ -559,12 +552,13 @@
     }
 
     B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
+    jumpBottom();
   }
 
   // ---------------------------------------------------------------------------
-  // 8) Q&As (Append) – eigener Scope
+  // 8) Q&As
   // ---------------------------------------------------------------------------
-  function stepQAs(/*prevBlock*/){
+  function stepQAs(){
     var scopeIdx = getScopeIndex();
     var B = block('Q&As');
     B.setAttribute('data-block','faq');
@@ -580,6 +574,7 @@
       });
     }
     B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
+    jumpBottom();
   }
 
 })(); // Ende IIFE
