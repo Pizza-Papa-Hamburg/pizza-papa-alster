@@ -1,5 +1,6 @@
 /* ============================================================================
    PPX Widget (v6 COMPACT + ThankYou) — Global Back + Auto-Scroll + Selected
+   Änderungen: 2-Zeilen-Clamp für Kacheln, Delay 600ms, Item-Frage (Ja/Nein)
    ============================================================================ */
 (function () {
   'use strict';
@@ -7,26 +8,26 @@
   // ---------------------------------------------------------------------------
   // 0) Daten & Setup
   // ---------------------------------------------------------------------------
-  var W    = window;
+  var W = window;
   var DATA = W.__PPX_DATA__ || {};
-  var CFG  = DATA.cfg    || {};
+  var CFG = DATA.cfg || {};
   var DISH = DATA.dishes || {};
-  var FAQ  = DATA.faqs   || [];
+  var FAQ = DATA.faqs || [];
   var STICKY = true; // Append-Mode
 
   // Optional: EmailJS init
-  (function(){
+  (function () {
     try {
       if (W.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
         W.emailjs.init({ publicKey: CFG.EMAIL.publicKey });
       }
-    } catch(e){}
+    } catch (e) {}
   })();
 
   // ---------------------------------------------------------------------------
   // STYLE – kompakter Look + spezielle Anpassungen
   // ---------------------------------------------------------------------------
-  (function(){
+  (function () {
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
       'ppx-style-v5','ppx-style-v5-override','ppx-style-v6'
@@ -83,13 +84,8 @@
 }
 
 /* Reihen/Grids */
-#ppx-panel.ppx-v5 #ppx-v .ppx-row{
-  display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start !important;
-  margin-top:8px; width:100%;
-}
-#ppx-panel.ppx-v5 #ppx-v .ppx-grid{
-  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:8px; width:100%;
-}
+#ppx-panel.ppx-v5 #ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start !important; margin-top:8px; width:100%; }
+#ppx-panel.ppx-v5 #ppx-v .ppx-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:8px; width:100%; }
 
 /* Buttons & Chips – kompakter */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b,
@@ -128,47 +124,40 @@
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
 }
 
-/* --------- NUR Kategorie-Icons: gelber Kreis + SCHWARZER Pfeil --------- */
+/* Kategorie-Icons: gelber Kreis + SCHWARZER Pfeil */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before{
-  width:34px; height:34px; min-width:34px;
-  background:#E9D18B; color:#111; font-size:18px;
+  width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px;
   box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18);
 }
 
-/* Speisen-Root-Grid: zwei Spalten, volle Zeile */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{
-  grid-template-columns:1fr 1fr !important;
-}
+/* Speisen-Root-Grid / Items: 2 Spalten */
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 
-/* Items (Gerichte) – zwei Spalten, volle Zeile (NEU) */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-grid{
-  grid-template-columns:1fr 1fr !important;
+/* >>> Einheitliche Kachel-Höhe + 2-Zeilen-Clamp <<< */
+#ppx-panel.ppx-v5 #ppx-v .ppx-b .ppx-label,
+#ppx-panel.ppx-v5 #ppx-v .ppx-chip .ppx-label{
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; text-overflow:ellipsis; line-height:1.25;
+}
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip,
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-chip{
+  min-height:64px; align-items:center;
 }
 
 @media (max-width:380px){
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{
-    grid-template-columns:1fr 1fr !important;
-  }
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-grid{
-    grid-template-columns:1fr 1fr !important;
-  }
+  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
+  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 }
 
 /* Nav */
-#ppx-panel.ppx-v5 #ppx-v .ppx-nav{
-  display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px;
-}
+#ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ width:auto !important; }
 
 /* Links */
-#ppx-panel.ppx-v5 #ppx-v .ppx-link{
-  color:var(--ppx-ink); text-decoration:underline; text-underline-offset:2px;
-}
+#ppx-panel.ppx-v5 #ppx-v .ppx-link{ color:var(--ppx-ink); text-decoration:underline; text-underline-offset:2px; }
 `;
-    var tag = document.createElement('style');
-    tag.id = 'ppx-style-v6';
-    tag.textContent = css;
-    document.head.appendChild(tag);
+    var tag = document.createElement('style'); tag.id = 'ppx-style-v6'; tag.textContent = css; document.head.appendChild(tag);
   })();
 
   // ---------------------------------------------------------------------------
@@ -177,205 +166,71 @@
   var $launch, $panel, $close, $view;
   var BOUND = false;
 
-  function queryDom(){
-    $launch = document.getElementById('ppx-launch');
-    $panel  = document.getElementById('ppx-panel');
-    $close  = document.getElementById('ppx-close');
-    $view   = document.getElementById('ppx-v');
-    return !!($launch && $panel && $close && $view);
-  }
-
-  function openPanel(){
-    if (!queryDom()) return;
-    $panel.classList.add('ppx-open','ppx-v5');
-    if (!$panel.dataset.init) {
-      $panel.dataset.init = '1';
-      stepHome();
-    }
-  }
-
-  function closePanel(){
-    if (!queryDom()) return;
-    $panel.classList.remove('ppx-open');
-  }
+  function queryDom(){ $launch=document.getElementById('ppx-launch'); $panel=document.getElementById('ppx-panel'); $close=document.getElementById('ppx-close'); $view=document.getElementById('ppx-v'); return !!($launch&&$panel&&$close&&$view); }
+  function openPanel(){ if(!queryDom())return; $panel.classList.add('ppx-open','ppx-v5'); if(!$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); } }
+  function closePanel(){ if(!queryDom())return; $panel.classList.remove('ppx-open'); }
 
   function bindOnce(){
-    if (BOUND) return true;
-    if (!queryDom()) return false;
-
+    if(BOUND) return true;
+    if(!queryDom()) return false;
     $panel.classList.add('ppx-v5');
     $launch.addEventListener('click', openPanel);
     $close.addEventListener('click', closePanel);
-    window.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePanel(); });
-    $panel.addEventListener('click', function(ev){ if (ev.target === $panel) closePanel(); });
-
-    if ($panel.classList.contains('ppx-open') && !$panel.dataset.init) {
-      $panel.dataset.init = '1';
-      stepHome();
-    }
-
-    // Delegiert: Jeder Bot-Button → Selected-State + Auto-Scroll
-    $panel.addEventListener('click', function(ev){
-      var btn = ev.target && ev.target.closest ? ev.target.closest('.ppx-b, .ppx-chip') : null;
-      if (btn && $view && $view.contains(btn)) {
-        btn.classList.add('ppx-selected');
-        jumpBottom();
-        setTimeout(jumpBottom, 140);
-        setTimeout(jumpBottom, 700);
-      }
-    });
-
-    // Fallback zum Öffnen via Delegation
-    document.addEventListener('click', function(ev){
-      var t = ev.target && ev.target.closest ? ev.target.closest('#ppx-launch') : null;
-      if (t) openPanel();
-    });
-
-    BOUND = true;
-    return true;
+    window.addEventListener('keydown', function(e){ if(e.key==='Escape') closePanel(); });
+    $panel.addEventListener('click', function(ev){ var t=ev.target&&ev.target.closest?ev.target.closest('.ppx-b, .ppx-chip'):null; if(t&&$view&&$view.contains(t)){ t.classList.add('ppx-selected'); jumpBottom(); setTimeout(jumpBottom,140); setTimeout(jumpBottom,700);} });
+    document.addEventListener('click', function(ev){ var t=ev.target&&ev.target.closest?ev.target.closest('#ppx-launch'):null; if(t) openPanel(); });
+    if($panel.classList.contains('ppx-open') && !$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); }
+    BOUND=true; return true;
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindOnce, { once:true });
-  } else {
-    bindOnce();
-  }
-
-  if (!BOUND) {
-    var mo = new MutationObserver(function(){
-      if (bindOnce()) mo.disconnect();
-    });
-    mo.observe(document.documentElement || document.body, { childList:true, subtree:true });
-    setTimeout(function(){ try{ mo.disconnect(); }catch(e){} }, 5000);
-  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', bindOnce, {once:true}); } else { bindOnce(); }
+  if(!BOUND){ var mo=new MutationObserver(function(){ if(bindOnce()) mo.disconnect(); }); mo.observe(document.documentElement||document.body,{childList:true,subtree:true}); setTimeout(function(){ try{mo.disconnect();}catch(e){} },5000); }
 
   // ---------------------------------------------------------------------------
   // 2) Utils + globale Back-Logik
   // ---------------------------------------------------------------------------
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
-
-  function jumpBottom(){
-    if (!$view) return;
-    try {
-      $view.scrollTop = $view.scrollHeight;
-      requestAnimationFrame(function(){ $view.scrollTop = $view.scrollHeight; });
-    } catch(e){}
-  }
-
-  function el(tag, attrs){
-    var n = document.createElement(tag);
-    attrs = attrs || {};
-    Object.keys(attrs).forEach(function (k) {
-      if (k === 'style' && isObj(attrs[k])) {
-        Object.assign(n.style, attrs[k]);
-      } else if (k === 'text') {
-        n.textContent = attrs[k];
-      } else if (k === 'html') {
-        n.innerHTML = attrs[k];
-      } else if (k.slice(0,2) === 'on' && typeof attrs[k] === 'function') {
-        n.addEventListener(k.slice(2), attrs[k]);
-      } else {
-        n.setAttribute(k, attrs[k]);
-      }
-    });
-    for (var i = 2; i < arguments.length; i++) {
-      var c = arguments[i];
-      if (c == null) continue;
-      n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
-    }
-    return n;
-  }
-
-  function pretty(s){
-    return String(s||'')
-      .replace(/[_-]+/g,' ')
-      .replace(/\s+/g,' ')
-      .trim()
-      .replace(/\b\w/g, function(c){ return c.toUpperCase(); });
-  }
-
-  function block(title, opts){
-    opts = opts || {};
-    var wrap = el('div', {
-      class: 'ppx-bot ppx-appear',
-      style: { maxWidth: (opts.maxWidth || '640px'), margin: '12px auto' }
-    });
-    if (title) wrap.appendChild(el('div', { class:'ppx-h' }, title));
-    if ($view) $view.appendChild(wrap);
-    jumpBottom();
-    return wrap;
-  }
-
-  function line(txt){ return el('div', { class:'ppx-m' }, txt); }
-  function row(){ return el('div', { class:'ppx-row' }); }
-  function grid(){ return el('div', { class:'ppx-grid' }); }
+  function jumpBottom(){ if(!$view) return; try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){} }
+  function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){ if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); } else if(k==='text'){ n.textContent=attrs[k]; } else if(k==='html'){ n.innerHTML=attrs[k]; } else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); } else { n.setAttribute(k,attrs[k]); } }); for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); } return n; }
+  function pretty(s){ return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g,function(c){ return c.toUpperCase(); }); }
+  function block(title,opts){ opts=opts||{}; var wrap=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}}); if(title) wrap.appendChild(el('div',{class:'ppx-h'},title)); if($view) $view.appendChild(wrap); jumpBottom(); return wrap; }
+  function line(txt){ return el('div',{class:'ppx-m'},txt); }
+  function row(){ return el('div',{class:'ppx-row'}); }
+  function grid(){ return el('div',{class:'ppx-grid'}); }
 
   // ---- Scope-Back ----
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
-  function popToScope(idx){
-    if (!$view) return;
-    while ($view.children.length > idx) {
-      var last = $view.lastElementChild;
-      if (!last) break;
-      last.remove();
-    }
-    jumpBottom();
-  }
+  function popToScope(idx){ if(!$view) return; while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); } jumpBottom(); }
 
-  // Buttons/Chips
+  // Buttons/Chips (mit <span class="ppx-label"> für 2-Zeilen-Clamp)
   function btn(label, onClick, extraCls, ic){
-    var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick, type:'button' };
-    if (ic) attrs['data-ic'] = ic;
-    return el('button', attrs, label);
+    var attrs={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) attrs['data-ic']=ic;
+    var n=el('button',attrs); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
   }
   function chip(label, onClick, extraCls, ic){
-    var attrs = { class: 'ppx-chip ' + (extraCls||''), onclick: onClick, type:'button' };
-    if (ic) attrs['data-ic'] = ic;
-    return el('button', attrs, label);
+    var attrs={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) attrs['data-ic']=ic;
+    var n=el('button',attrs); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
   }
 
-  function nav(btns){
-    var r = el('div', { class:'ppx-nav' });
-    btns.forEach(function(b){ if (b) r.appendChild(b); });
-    return r;
-  }
-
-  // ---- Nav-Buttons (ohne Badge) ----
-  function backBtnAt(scopeIdx){
-    return btn('← Zurück', function(){ popToScope(scopeIdx); });
-  }
-  function doneBtn(){
-    return btn('Fertig ✓', function(){
-      var B = block(null);
-      B.appendChild(line('Danke dir bis zum nächsten Mal! 👋'));
-      jumpBottom();
-      setTimeout(closePanel, 1100);
-    });
-  }
-  function resBtn(){
-    return btn('📅 Reservieren', function(){ stepReservieren(); });
-  }
+  function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
+  function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }); }
+  function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
+  function resBtn(){ return btn('📅 Reservieren', function(){ stepReservieren(); }); }
 
   // ---------------------------------------------------------------------------
   // 3) HOME
   // ---------------------------------------------------------------------------
   function stepHome(){
     if ($view && $view.querySelector('[data-block="home"]')) return;
-
-    var brand = (CFG.brand || 'Pizza Papa Hamburg');
-    var B = block(brand.toUpperCase());
-    B.setAttribute('data-block','home');
-
+    var brand=(CFG.brand||'Pizza Papa Hamburg'); var B=block(brand.toUpperCase()); B.setAttribute('data-block','home');
     B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
     B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
-
-    var r1 = row(); r1.appendChild(btn('Speisen',       function(){ stepSpeisen(); }, 'ppx-cta', '🍽️')); B.appendChild(r1);
-    var r2 = row(); r2.appendChild(btn('Reservieren',   function(){ stepReservieren(); }, '', '📅'));     B.appendChild(r2);
-    var r3 = row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(); }, '', '⏰'));          B.appendChild(r3);
-    var r4 = row(); r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(); }, '', '☎️'));        B.appendChild(r4);
-    var r5 = row(); r5.appendChild(btn('Q&As',          function(){ stepQAs(); }, '', '❓'));             B.appendChild(r5);
+    var r1=row(); r1.appendChild(btn('Speisen',function(){ stepSpeisen(); },'ppx-cta','🍽️')); B.appendChild(r1);
+    var r2=row(); r2.appendChild(btn('Reservieren',function(){ stepReservieren(); },'','📅')); B.appendChild(r2);
+    var r3=row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(); },'','⏰')); B.appendChild(r3);
+    var r4=row(); r4.appendChild(btn('Kontaktdaten',function(){ stepKontakt(); },'','☎️')); B.appendChild(r4);
+    var r5=row(); r5.appendChild(btn('Q&As',function(){ stepQAs(); },'','❓')); B.appendChild(r5);
   }
-
   // ---------------------------------------------------------------------------
   // 4) SPEISEN
   // ---------------------------------------------------------------------------
@@ -385,7 +240,8 @@
     M.setAttribute('data-block','speisen-info');
     M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
     jumpBottom();
-    setTimeout(function(){ renderSpeisenRoot(scopeIdx); jumpBottom(); }, 500);
+    // Delay bis die Kategorien erscheinen (600 ms)
+    setTimeout(function(){ renderSpeisenRoot(scopeIdx); jumpBottom(); }, 600);
   }
 
   function orderCats(keys){
@@ -410,18 +266,26 @@
                  'speisekarte.pdf';
     var r = row();
     r.style.justifyContent = 'flex-start';
-    r.appendChild(btn('Speisekarte als PDF', function(){ try{ window.open(pdfUrl, '_blank', 'noopener'); }catch(e){} }, '', '📄'));
+    r.appendChild(btn('Speisekarte als PDF', function(){
+      try{ window.open(pdfUrl, '_blank', 'noopener'); }catch(e){}
+    }, '', '📄'));
     B.appendChild(r);
 
     B.appendChild(line('…oder wähle eine Kategorie:'));
 
     var cats = Object.keys(DISH);
-    cats = cats.length ? orderCats(cats) : ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
+    cats = cats.length ? orderCats(cats.map(function(k){ return pretty(k); })) :
+                         ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
 
-    var G = grid(); // 2 Spalten, je Spalte volle Breite
-    cats.forEach(function(cat){
+    // Map zurück auf Original-Keys (lowercase) falls nötig
+    var map = {};
+    Object.keys(DISH).forEach(function(k){ map[pretty(k)] = k; });
+
+    var G = grid(); // 2 Spalten
+    cats.forEach(function(catPretty){
+      var rawKey = map[catPretty] || catPretty.toLowerCase();
       G.appendChild(
-        chip(pretty(cat), function(){ renderCategory(cat); }, 'ppx-cat', '►')
+        chip(catPretty, function(){ renderCategory(rawKey); }, 'ppx-cat', '►')
       );
     });
     B.appendChild(G);
@@ -439,12 +303,12 @@
     var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
     if (!list.length) {
       list = [
-        { name: pretty(catKey)+' Classic', price:'9,50' },
-        { name: pretty(catKey)+' Special', price:'12,90' }
+        { name: pretty(catKey)+' Classic', price:'9,50 €' },
+        { name: pretty(catKey)+' Special', price:'12,90 €' }
       ];
     }
 
-    // --- 2-Spalten-Liste NUR mit Namen (ohne Preis/Beschreibung) ---
+    // --- 2-Spalten-Liste mit gleichmäßigen Kacheln (ohne Preis hier) ---
     var L = grid();
     list.forEach(function(it){
       var label = (it && it.name) ? it.name : 'Artikel';
@@ -457,18 +321,49 @@
     B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
     jumpBottom();
   }
-
   function renderItem(catKey, item){
     var scopeIdx = getScopeIndex();
-    var title = item && item.name ? item.name : pretty(catKey);
+    var title = (item && item.name) ? item.name : pretty(catKey);
     var B = block(title);
     B.setAttribute('data-block','speisen-item');
 
-    if (item && item.desc)    B.appendChild(line(item.desc));
-    if (item && item.price)   B.appendChild(line('Preis: '+item.price+' €'));
-    if (item && item.hinweis) B.appendChild(line('ℹ️ '+item.hinweis));
+    // Beschreibung
+    if (item && (item.info || item.desc)) {
+      B.appendChild(line(item.info || item.desc));
+    }
 
-    B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
+    // Preis (als String, kein doppeltes "€")
+    if (item && item.price){
+      var p = String(item.price);
+      B.appendChild(line('Preis: ' + p));
+    }
+
+    // Hinweis
+    if (item && item.hinweis){
+      B.appendChild(line('ℹ️ ' + item.hinweis));
+    }
+
+    // KEIN Reservieren-Button hier. Stattdessen nach 600ms die Frage einblenden.
+    setTimeout(function(){
+      askReserveAfterItem(scopeIdx);
+    }, 600);
+
+    jumpBottom();
+  }
+
+  function askReserveAfterItem(scopeIdx){
+    var Q = block(null);
+    Q.setAttribute('data-block','speisen-item-ask');
+    Q.appendChild(line('Na, Appetit bekommen? 😍 Soll ich dir gleich einen Tisch reservieren, damit du das bald probieren kannst?'));
+
+    var r = row();
+    r.style.justifyContent = 'flex-start';
+    r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '✅'));
+    r.appendChild(btn('Nein, zurück ins Menü', function(){ stepHome(); }, '', '↩️'));
+    Q.appendChild(r);
+
+    // Zusätzlich „Zurück“ & „Fertig“ unter der Frage
+    Q.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
     jumpBottom();
   }
 
@@ -517,6 +412,7 @@
 
     var payload = { name:name, when:when, persons:ppl, phone:tel, brand:(CFG.brand||'Restaurant') };
 
+    // EmailJS (nur wenn korrekt konfiguriert)
     if (window.emailjs && CFG.EMAIL && CFG.EMAIL.serviceId && CFG.EMAIL.templateId) {
       emailjs.send(CFG.EMAIL.serviceId, CFG.EMAIL.templateId, payload).then(
         function(){ alert('Danke! Wir melden uns asap.'); },
@@ -525,6 +421,7 @@
       return;
     }
 
+    // Fallback: mailto
     var addr = CFG.email ||
                (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) ||
                'info@example.com';
