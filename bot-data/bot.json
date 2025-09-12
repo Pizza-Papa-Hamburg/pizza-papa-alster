@@ -4,17 +4,15 @@
     "phone": "+49 40 1234567",
     "email": "info@pizzapapa.de",
     "address": "Muster Str. XX, YYYYY Musterstadt",
-
     "hoursLines": [
-      ["Montag",    "11:00 – 22:00"],
-      ["Dienstag",  "11:00 – 22:00"],
-      ["Mittwoch",  "11:00 – 22:00"],
-      ["Donnerstag","11:00 – 22:00"],
-      ["Freitag",   "11:00 – 22:00"],
-      ["Samstag",   "13:00 – 24:00"],
-      ["Sonntag",   "15:00 – 21:00"]
+      ["Montag", "11:00 – 22:00"],
+      ["Dienstag", "11:00 – 22:00"],
+      ["Mittwoch", "11:00 – 22:00"],
+      ["Donnerstag", "11:00 – 22:00"],
+      ["Freitag", "11:00 – 22:00"],
+      ["Samstag", "13:00 – 24:00"],
+      ["Sonntag", "15:00 – 21:00"]
     ],
-
     "OPEN": {
       "0": ["15:00", "21:00"],
       "1": ["11:00", "22:00"],
@@ -24,82 +22,72 @@
       "5": ["11:00", "22:00"],
       "6": ["13:00", "24:00"]
     },
-
     "BUCKETS": {
-      "mittag": ["12:00","17:30"],
-      "frueh":  ["18:00","20:30"],
-      "spaet":  ["21:00","23:59"]
+      "mittag": ["12:00", "17:30"],
+      "frueh": ["18:00", "20:30"],
+      "spaet": ["21:00", "23:59"]
     },
-
     "EMAIL": {
       "publicKey": "YOUR_PUBLIC_KEY_HERE",
       "service": "service_ais7v5f",
       "toTemplate": "template_m5baprd",
       "autoReplyTemplate": "template_hnwo39i"
     },
-
-    "menuOrder": ["antipasti","pizza","pasta","drinks","salads","desserts"],
-
+    "menuOrder": ["antipasti", "pizza", "pasta", "drinks", "salads", "desserts"],
     "menuPdf": "speisekarte_test.pdf"
   },
-
   "dishes": {
     "antipasti": [
-      { "id": "bruschetta",   "name": "Bruschetta Classica", "price": "XX €", "info": "Knuspriges Brot, Tomaten, Basilikum, Knoblauch." },
-      { "id": "caprese",      "name": "Caprese",             "price": "XX €", "info": "Tomate, Mozzarella, Basilikum, Olivenöl." },
-      { "id": "arancini",     "name": "Arancini",            "price": "XX €", "info": "Gefüllte, frittierte Reisbällchen – hausgemacht." },
-      { "id": "misto",        "name": "Antipasto Misto",     "price": "YY €", "info": "Gemischte Vorspeisenplatte zum Teilen." },
-      { "id": "garlicbread",  "name": "Knoblauchbrot",       "price": "XX €", "info": "Warmer Ofenklassiker mit Knoblauch & Kräutern." }
+      { "id": "bruschetta",  "name": "Bruschetta Classica", "price": "6,90 €",  "info": "Knuspriges Brot, Tomaten, Basilikum, Knoblauch." },
+      { "id": "caprese",     "name": "Caprese",             "price": "8,90 €",  "info": "Tomate, Mozzarella, Basilikum, Olivenöl." },
+      { "id": "arancini",    "name": "Arancini",            "price": "7,50 €",  "info": "Gefüllte, frittierte Reisbällchen – hausgemacht." },
+      { "id": "misto",       "name": "Antipasto Misto",     "price": "13,90 €", "info": "Gemischte Vorspeisenplatte zum Teilen." },
+      { "id": "garlicbread", "name": "Knoblauchbrot",       "price": "5,50 €",  "info": "Warmer Ofenklassiker mit Knoblauch & Kräutern." }
     ],
-
     "pizza": [
-      { "id": "margherita", "name": "Margherita",             "price": "XX €", "info": "Tomate, Mozzarella, Basilikum." },
-      { "id": "prosciutto", "name": "Prosciutto e Funghi",    "price": "XX €", "info": "Kochschinken, Champignons." },
-      { "id": "diavola",    "name": "Diavola (pikant)",       "price": "YY €", "info": "Scharfe Salami, Chili." },
-      { "id": "quattro",    "name": "Quattro Formaggi",       "price": "YY €", "info": "Vier Käsesorten." },
-      { "id": "verdure",    "name": "Verdure (Gemüse)",       "price": "XX €", "info": "Gemüse der Saison." },
-      { "id": "tonno",      "name": "Tonno e Cipolla",        "price": "XX €", "info": "Thunfisch, Zwiebeln." },
-      { "id": "parma",      "name": "Parma (Rucola & Grana)", "price": "ZZ €", "info": "Parmaschinken, Rucola, Grana Padano." },
-      { "id": "calzone",    "name": "Calzone (gefüllt)",      "price": "ZZ €", "info": "Gefüllt, klassisch mit Tomate & Mozzarella." }
+      { "id": "margherita", "name": "Margherita",              "price": "9,50 €",  "info": "Tomate, Mozzarella, Basilikum." },
+      { "id": "prosciutto", "name": "Prosciutto e Funghi",     "price": "12,50 €", "info": "Kochschinken, Champignons." },
+      { "id": "diavola",    "name": "Diavola (pikant)",        "price": "12,90 €", "info": "Scharfe Salami, Chili." },
+      { "id": "quattro",    "name": "Quattro Formaggi",        "price": "13,90 €", "info": "Vier Käsesorten." },
+      { "id": "verdure",    "name": "Verdure (Gemüse)",        "price": "11,90 €", "info": "Gemüse der Saison." },
+      { "id": "tonno",      "name": "Tonno e Cipolla",         "price": "12,50 €", "info": "Thunfisch, Zwiebeln." },
+      { "id": "parma",      "name": "Parma (Rucola & Grana)",  "price": "14,90 €", "info": "Parmaschinken, Rucola, Grana Padano." },
+      { "id": "calzone",    "name": "Calzone (gefüllt)",       "price": "13,90 €", "info": "Gefüllt, klassisch mit Tomate & Mozzarella." }
     ],
-
     "pasta": [
-      { "id": "pomodoro",   "name": "Pomodoro",          "price": "XX €", "info": "Tomatensauce, Basilikum." },
-      { "id": "arrabbiata", "name": "Arrabbiata",        "price": "XX €", "info": "Tomate, Chili, Knoblauch." },
-      { "id": "carbonara",  "name": "Carbonara",         "price": "YY €", "info": "Ei, Speck/Guanciale, Pecorino." },
-      { "id": "bolognese",  "name": "Bolognese",         "price": "YY €,", "info": "Ragù alla Bolognese." },
-      { "id": "pesto",      "name": "Pesto Genovese",    "price": "XX €", "info": "Basilikum-Pesto, Pinienkerne." },
-      { "id": "funghi",     "name": "Funghi (Pilze)",    "price": "XX €", "info": "Pilze, Kräuter (rahmig oder olio – je nach Hausart)." },
-      { "id": "gamberi",    "name": "Gamberi (Garnelen)","price": "ZZ €", "info": "Garnelen, Knoblauch, Olivenöl." },
-      { "id": "frutti",     "name": "Frutti di Mare",    "price": "ZZ €", "info": "Meeresfrüchte, Knoblauch, Petersilie." },
-      { "id": "alfredo",    "name": "Alfredo",           "price": "YY €", "info": "Butter, Parmesan, Sahne." },
-      { "id": "puttanesca", "name": "Puttanesca",        "price": "YY €", "info": "Oliven, Kapern, Sardellen, Tomate." }
+      { "id": "pomodoro",   "name": "Pomodoro",            "price": "9,90 €",  "info": "Tomatensauce, Basilikum." },
+      { "id": "arrabbiata", "name": "Arrabbiata",          "price": "10,50 €", "info": "Tomate, Chili, Knoblauch." },
+      { "id": "carbonara",  "name": "Carbonara",           "price": "12,90 €", "info": "Ei, Speck/Guanciale, Pecorino." },
+      { "id": "bolognese",  "name": "Bolognese",           "price": "12,90 €", "info": "Ragù alla Bolognese." },
+      { "id": "pesto",      "name": "Pesto Genovese",      "price": "11,50 €", "info": "Basilikum-Pesto, Pinienkerne." },
+      { "id": "funghi",     "name": "Funghi (Pilze)",      "price": "11,90 €", "info": "Pilze, Kräuter (rahmig oder olio – je nach Hausart)." },
+      { "id": "gamberi",    "name": "Gamberi (Garnelen)",  "price": "15,90 €", "info": "Garnelen, Knoblauch, Olivenöl." },
+      { "id": "frutti",     "name": "Frutti di Mare",      "price": "16,90 €", "info": "Meeresfrüchte, Knoblauch, Petersilie." },
+      { "id": "alfredo",    "name": "Alfredo",             "price": "12,50 €", "info": "Butter, Parmesan, Sahne." },
+      { "id": "puttanesca", "name": "Puttanesca",          "price": "12,90 €", "info": "Oliven, Kapern, Sardellen, Tomate." }
     ],
-
     "salads": [
-      { "id": "caesar", "name": "Caesar",         "price": "XX €", "info": "Römersalat, Croûtons, Parmesan." },
-      { "id": "mista",  "name": "Insalata Mista", "price": "XX €", "info": "Gemischter Salat, Hausdressing." },
-      { "id": "rucola", "name": "Rucola e Grana", "price": "XX €", "info": "Rucola, Grana Padano, Balsamico." }
+      { "id": "caesar", "name": "Caesar",          "price": "10,50 €", "info": "Römersalat, Croûtons, Parmesan." },
+      { "id": "mista",  "name": "Insalata Mista",  "price": "7,90 €",  "info": "Gemischter Salat, Hausdressing." },
+      { "id": "rucola", "name": "Rucola e Grana",  "price": "9,50 €",  "info": "Rucola, Grana Padano, Balsamico." }
     ],
-
     "drinks": [
-      { "id": "water",    "name": "Mineralwasser (still/prickelnd)", "price": "XX €",      "info": "0,25 / 0,75 l – Marke je nach Bestand." },
-      { "id": "limonata", "name": "Limonata / Aranciata",             "price": "XX €",      "info": "Zitronen- oder Orangenlimo." },
-      { "id": "cola",     "name": "Cola / Zero",                      "price": "XX €",      "info": "0,33 l" },
-      { "id": "espresso", "name": "Espresso",                         "price": "XX €",      "info": "Einfach oder doppio." },
-      { "id": "cappuccino","name":"Cappuccino",                       "price": "XX €",      "info": "Mit Milchschaum." },
-      { "id": "whitewine","name": "Hauswein Weiß (Glas/Fl.)",         "price": "XX / YY €", "info": "Trocken, fruchtig." },
-      { "id": "redwine",  "name": "Hauswein Rot (Glas/Fl.)",          "price": "XX / YY €", "info": "Feinherb bis trocken." },
-      { "id": "prosecco", "name": "Prosecco (Glas)",                  "price": "XX €",      "info": "Perlend." },
-      { "id": "pils",     "name": "Pils (0,3 / 0,5)",                 "price": "XX / YY €", "info": "Vom Fass (sofern verfügbar)." },
-      { "id": "lager",    "name": "Helles / Lager (Fl.)",             "price": "XX €",      "info": "0,5 l" },
-      { "id": "nabeer",   "name": "Alkoholfreies Bier",               "price": "XX €",      "info": "Flasche 0,33 l" }
+      { "id": "water",     "name": "Mineralwasser (still/prickelnd)", "price": "2,90 € / 6,50 €", "info": "0,25 / 0,75 l – Marke je nach Bestand." },
+      { "id": "limonata",  "name": "Limonata / Aranciata",             "price": "3,50 €",         "info": "Zitronen- oder Orangenlimo." },
+      { "id": "cola",      "name": "Cola / Zero",                      "price": "3,20 €",         "info": "0,33 l" },
+      { "id": "espresso",  "name": "Espresso",                         "price": "2,40 €",         "info": "Einfach oder doppio." },
+      { "id": "cappuccino","name": "Cappuccino",                       "price": "3,20 €",         "info": "Mit Milchschaum." },
+      { "id": "whitewine", "name": "Hauswein Weiß (Glas/Fl.)",         "price": "6,90 € / 26,00 €","info": "Trocken, fruchtig." },
+      { "id": "redwine",   "name": "Hauswein Rot (Glas/Fl.)",          "price": "6,90 € / 26,00 €","info": "Feinherb bis trocken." },
+      { "id": "prosecco",  "name": "Prosecco (Glas)",                  "price": "6,50 €",         "info": "Perlend." },
+      { "id": "pils",      "name": "Pils (0,3 / 0,5)",                 "price": "3,90 € / 5,20 €","info": "Vom Fass (sofern verfügbar)." },
+      { "id": "lager",     "name": "Helles / Lager (Fl.)",             "price": "4,80 €",         "info": "0,5 l" },
+      { "id": "nabeer",    "name": "Alkoholfreies Bier",               "price": "3,50 €",         "info": "Flasche 0,33 l" }
     ],
-
     "desserts": [
-      { "id": "tiramisu",   "name": "Tiramisu",    "price": "XX €", "info": "Klassisch, hausgemacht." },
-      { "id": "pannacotta", "name": "Panna Cotta", "price": "XX €", "info": "Mit Beerensauce." },
-      { "id": "gelato",     "name": "Gelato",      "price": "XX €", "info": "2 Kugeln nach Wahl." }
+      { "id": "tiramisu",   "name": "Tiramisu",    "price": "6,50 €", "info": "Klassisch, hausgemacht." },
+      { "id": "pannacotta", "name": "Panna Cotta", "price": "5,90 €", "info": "Mit Beerensauce." },
+      { "id": "gelato",     "name": "Gelato",      "price": "5,50 €", "info": "2 Kugeln nach Wahl." }
     ]
   }
 }
