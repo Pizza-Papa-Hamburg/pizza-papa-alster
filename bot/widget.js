@@ -1,375 +1,341 @@
-/* ============================================================================
-   PPX Widget (v6 COMPACT + UX-Update)
-   Änderungen: längere Delays (Cats 1.4s, Item-Ask 3.0s),
-               Item-Ask nur „← Zurück“ (kein Hauptmenü in der Nav),
-               Secondary-Nav-Buttons dezent, Hauptmenü-Icon = weißer Ring.
-   ============================================================================ */
-(function () {
-  'use strict';
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pizza Papa Hamburg – Italienische Speisen & Pizza</title>
+  <meta name="description" content="Pizza Papa Hamburg: Italienische Klassiker, hausgemachter Teig, frische Saucen und schnelle Küche mit Herz.">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 
-  // 0) Daten & Setup
-  var W = window;
-  var DATA = W.__PPX_DATA__ || {};
-  var CFG = DATA.cfg || {};
-  var DISH = DATA.dishes || {};
-  var FAQ = DATA.faqs || [];
-  var STICKY = true;
+  <style>
+    :root{--parchment:#faf6eb;--ink:#2b2a29;--deep:#173b2d;--wine:#5b2734;--gold:#b08d57;--shadow:0 6px 20px rgba(0,0,0,.10);--radius:0;--max:1080px}
+    *{box-sizing:border-box} html,body{margin:0;padding:0}
+    body{color:var(--ink);font-family:"Cormorant Garamond",Georgia,serif;font-size:18px;line-height:1.7;background:#e7dbc0;min-height:100%;position:relative}
+    body::before{content:"";position:fixed;inset:0;z-index:-2;background:url('images/brick.jpg') center/cover no-repeat;filter:brightness(.82) saturate(.95)}
+    body::after{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(1200px 600px at 50% 0%, rgba(0,0,0,.20), transparent 60%),linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.30));mix-blend-mode:multiply}
+    .frame{border:2px solid var(--gold);border-radius:var(--radius);background:url('images/paper.jpg') repeat;background-size:auto;box-shadow:var(--shadow)}
 
-  // EmailJS init (optional)
-  (function () {
-    try {
-      if (W.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
-        W.emailjs.init({ publicKey: CFG.EMAIL.publicKey });
-      }
-    } catch (e) {}
-  })();
+    header.hero{min-height:60vh;background:url('images/hero.jpg') center/cover no-repeat, linear-gradient(180deg,var(--deep),var(--wine));display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;position:relative;border-bottom:4px double var(--gold)}
+    header.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.5))}
+    .hero-inner{position:relative;z-index:1;padding:36px 18px}
+    .brand{font-family:"Cinzel",serif;margin:0;font-size:44px;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+    .tagline{margin:.4rem 0 1rem;font-style:italic;opacity:.95}
+    .cta{display:inline-block;margin-top:8px;text-decoration:none;border:2px solid var(--gold);color:var(--parchment);background:var(--deep);padding:10px 18px;border-radius:999px;font-weight:600;transition:all .3s ease}
+    .cta:hover{background:var(--wine);color:#fff}
 
-  // STYLE
-  (function () {
-    [
-      'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
-      'ppx-style-v5','ppx-style-v5-override','ppx-style-v6'
-    ].forEach(function(id){ var n=document.getElementById(id); if(n) n.remove(); });
+    section{padding:56px 16px}
+    .container{max-width:var(--max);margin:0 auto}
+    h2.section-title{font-family:"Cinzel",serif;text-align:center;margin:0 0 6px;font-weight:700;letter-spacing:.5px;color:var(--deep);display:inline-block;padding:8px 16px;background:rgba(255,250,240,.92);border:1px solid var(--gold);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+    .section-title{position:relative;left:50%;transform:translateX(-50%)}
+    .section-sub{color:#6b5f57;text-align:center;margin:6px 0 22px 0;font-style:italic}
 
-    var css = `
-:root{
-  --ppx-green-850:#0f3b33; --ppx-green-800:#114136; --ppx-green-700:#154a3e;
-  --ppx-green-650:#1a5044; --ppx-green-600:#195446;
-  --ppx-ink:#f1f7f4; --ppx-gold:#e6c48a; --ppx-gold-ink:#2a2a1f;
-  --ppx-border:rgba(255,255,255,.10); --ppx-shadow:0 4px 12px rgba(0,0,0,.20);
-}
-/* Viewport */
-#ppx-panel.ppx-v5 #ppx-v{ overflow-y:auto; max-height:calc(100vh - 120px); -webkit-overflow-scrolling:touch; padding:10px 10px 16px; }
-/* Bot-Blocks */
-#ppx-panel.ppx-v5 #ppx-v .ppx-bot{ background:linear-gradient(180deg, rgba(14,59,51,.45), rgba(14,59,51,.30)); border:1px solid var(--ppx-border); border-radius:14px; padding:14px; margin:12px auto; max-width:640px; box-shadow:var(--ppx-shadow); text-align:left !important; }
-/* Home-Block */
-#ppx-panel.ppx-v5 #ppx-v [data-block="home"]{ background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important; text-align:center !important; }
-/* Speisen-Root */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"]{ background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important; }
-/* Headline/Copy */
-#ppx-panel.ppx-v5 #ppx-v .ppx-h{ background:var(--ppx-green-800); color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:12px; padding:10px 12px; margin:-2px -2px 10px; font-family:"Cinzel", serif; font-weight:600; letter-spacing:.02em; text-transform:uppercase; font-size:18px; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-m{ color:var(--ppx-ink); line-height:1.5; margin:6px 0 10px; font-family:"Cormorant Garamond", serif; font-weight:400; font-size:18px; }
-/* Rows/Grids */
-#ppx-panel.ppx-v5 #ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start !important; margin-top:8px; width:100%; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:8px; width:100%; }
-/* Buttons & Chips (default) */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b, #ppx-panel.ppx-v5 #ppx-v .ppx-chip{
-  -webkit-appearance:none; appearance:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:flex-start !important; gap:10px; width:100% !important; text-align:left;
-  color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:14px; padding:10px 14px !important; background:var(--ppx-green-650);
-  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 2px 8px rgba(0,0,0,.20); transition:transform .06s ease, filter .2s ease, box-shadow .2s ease, background .2s ease;
-  font-family:"Cormorant Garamond", serif; font-weight:400 !important; font-size:17px !important;
-}
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-600); }
-#ppx-panel.ppx-v5 #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
-/* Secondary (Zurück/Hauptmenü) */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{
-  background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.22); padding:8px 12px !important; font-size:15px !important; box-shadow:none;
-}
-/* Selected */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{ filter:brightness(1.10); box-shadow:0 0 0 2px rgba(230,196,138,.55) inset, 0 2px 8px rgba(0,0,0,.26); }
-/* Home größer */
-#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b, #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{ justify-content:center !important; font-size:18.5px !important; padding:12px 16px !important; }
-/* Badges */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
-  content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; min-width:26px; border-radius:999px; background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
-  box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
-}
-/* Cat-Icons größer */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before{ width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18); }
-/* Weißer Ring für Hauptmenü */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary[data-ic="ring"]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary[data-ic="ring"]::before{
-  content:""; width:22px; height:22px; min-width:22px; border-radius:999px; background:transparent; color:transparent; border:2px solid rgba(255,255,255,.9); box-shadow:none;
-}
-/* 2 Spalten in Speisen */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
-/* Kachel + 2-Zeilen-Clamp */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b .ppx-label, #ppx-panel.ppx-v5 #ppx-v .ppx-chip .ppx-label{
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; line-height:1.25; text-align:left;
-}
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-chip{ min-height:64px; align-items:center; }
-/* Links-Ausrichtung Speisen */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-b, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip,
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-b,  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-chip{
-  justify-content:flex-start !important; text-align:left !important;
-}
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-label, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-label{ text-align:left !important; }
-/* Nav gleich breit */
-#ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
-@media (max-width:380px){
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
-}
-`;
-    var tag = document.createElement('style'); tag.id = 'ppx-style-v6'; tag.textContent = css; document.head.appendChild(tag);
-  })();
+    .menu-section{margin:22px 0;padding:18px}
+    .menu-title{font-family:"Cinzel",serif;color:var(--wine);margin:0 0 8px;text-align:center;font-size:24px}
+    ul.menu-list{list-style:none;margin:0;padding:0}
+    ul.menu-list li{display:flex;gap:10px;align-items:center;padding:10px 6px;border-bottom:1px dotted #d6c9b3}
+    .name{font-weight:600}
+    .dots{flex:1;height:2px;opacity:.9;align-self:center;margin:0 6px;background-image:radial-gradient(#bda98a 1.2px, transparent 1.2px);background-size:8px 2px;background-repeat:repeat-x;background-position:center}
+    .price{white-space:nowrap;font-weight:700}
 
-  // 1) Init
-  var $launch, $panel, $close, $view; var BOUND = false;
-  function queryDom(){ $launch=document.getElementById('ppx-launch'); $panel=document.getElementById('ppx-panel'); $close=document.getElementById('ppx-close'); $view=document.getElementById('ppx-v'); return !!($launch&&$panel&&$close&&$view); }
-  function openPanel(){ if(!queryDom())return; $panel.classList.add('ppx-open','ppx-v5'); if(!$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); } }
-  function closePanel(){ if(!queryDom())return; $panel.classList.remove('ppx-open'); }
-  function bindOnce(){
-    if(BOUND) return true; if(!queryDom()) return false;
-    $panel.classList.add('ppx-v5');
-    $launch.addEventListener('click', openPanel);
-    $close.addEventListener('click', closePanel);
-    window.addEventListener('keydown', function(e){ if(e.key==='Escape') closePanel(); });
-    $panel.addEventListener('click', function(ev){
-      var t=ev.target&&ev.target.closest?ev.target.closest('.ppx-b, .ppx-chip'):null;
-      if(t&&$view&&$view.contains(t)){ t.classList.add('ppx-selected'); jumpBottom(); setTimeout(jumpBottom,140); setTimeout(jumpBottom,700); }
-    });
-    document.addEventListener('click', function(ev){ var t=ev.target&&ev.target.closest?ev.target.closest('#ppx-launch'):null; if(t) openPanel(); });
-    if($panel.classList.contains('ppx-open') && !$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); }
-    BOUND=true; return true;
-  }
-  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', bindOnce, {once:true}); } else { bindOnce(); }
-  if(!BOUND){ var mo=new MutationObserver(function(){ if(bindOnce()) mo.disconnect(); }); mo.observe(document.documentElement||document.body,{childList:true,subtree:true}); setTimeout(function(){ try{mo.disconnect();}catch(e){} },5000); }
+    #galerie .frame{padding-bottom:34px}
+    .gallery{display:grid;gap:16px;grid-template-columns:repeat(auto-fit, minmax(220px,1fr));margin-bottom:8px}
+    .gallery img{width:100%;height:220px;object-fit:cover;border:2px solid var(--gold);border-radius:12px;box-shadow:var(--shadow);margin-bottom:16px}
 
-  // 2) Utils
-  function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
-  function jumpBottom(){ if(!$view) return; try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){} }
-  function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){ if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); } else if(k==='text'){ n.textContent=attrs[k]; } else if(k==='html'){ n.innerHTML=attrs[k]; } else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); } else { n.setAttribute(k, attrs[k]); } }); for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); } return n; }
-  function pretty(s){ return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g,function(c){ return c.toUpperCase(); }); }
-  function block(title,opts){ opts=opts||{}; var w=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}}); if(title) w.appendChild(el('div',{class:'ppx-h'},title)); if($view) $view.appendChild(w); jumpBottom(); return w; }
-  function line(txt){ return el('div',{class:'ppx-m'},txt); }
-  function row(){ return el('div',{class:'ppx-row'}); }
-  function grid(){ return el('div',{class:'ppx-grid'}); }
-  function getScopeIndex(){ return $view ? $view.children.length : 0; }
-  function popToScope(idx){ if(!$view) return; while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); } jumpBottom(); }
+    .hours{list-style:none;margin:16px auto 6px;padding:0;max-width:520px;font-size:.92rem}
+    .hours li{display:flex;gap:10px;align-items:flex-end;padding:6px 0;border-bottom:1px dotted #d6c9b3}
+    .hours .day{min-width:130px;font-weight:600}
+    .hours .fill{flex:1;border-bottom:1px dotted #bda98a;transform:translateY(-4px)}
+    .hours .time{white-space:nowrap;font-weight:600}
 
-  // Button-Factories
-  function btn(label, onClick, extraCls, ic){ var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
-  function chip(label, onClick, extraCls, ic){ var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
-  function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
-  function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary'); }
+    footer{border-top:4px double var(--gold);background:url('images/paper.jpg') center/cover repeat;color:var(--ink);text-align:center;padding:26px 16px}
+    .social{display:flex;gap:16px;justify-content:center;margin-top:10px}
+    .social a{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:2px solid var(--gold);border-radius:999px;color:#0e1b16;text-decoration:none;transition:.25s}
+    .social a:hover{background:rgba(0,0,0,.05);transform:translateY(-2px)}
+    .social svg{width:20px;height:20px;fill:currentColor}
+    .small{opacity:.85;font-size:16px}
+    .center{text-align:center}
+    .legal-links{margin-top:12px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+    .legal-links a{color:inherit;text-decoration:underline dotted}
 
-  // Home (mit echtem Reset)
-  function stepHome(force){
-    if (!force && $view && $view.querySelector('[data-block="home"]')) return;
-    var brand=(CFG.brand||'Pizza Papa Hamburg');
-    var B=block(brand.toUpperCase()); B.setAttribute('data-block','home');
-    B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
-    B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
-    var r1=row(); r1.appendChild(btn('Speisen',function(){ stepSpeisen(); },'ppx-cta','🍽️')); B.appendChild(r1);
-    var r2=row(); r2.appendChild(btn('Reservieren',function(){ stepReservieren(); },'','📅')); B.appendChild(r2);
-    var r3=row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(); },'','⏰')); B.appendChild(r3);
-    var r4=row(); r4.appendChild(btn('Kontaktdaten',function(){ stepKontakt(); },'','☎️')); B.appendChild(r4);
-    var r5=row(); r5.appendChild(btn('Q&As',function(){ stepQAs(); },'','❓')); B.appendChild(r5);
-  }
-  function goHome(){ popToScope(0); stepHome(true); }
-  function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', 'ring'); }
-  function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
-  // 3) HOME ist oben; 4) SPEISEN
-  function stepSpeisen(){
-    var scopeIdx = getScopeIndex();
-    var M = block(null);
-    M.setAttribute('data-block','speisen-info');
-    M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
-    jumpBottom();
-    // LÄNGERER Delay bis die Kategorien erscheinen (1.4 s)
-    setTimeout(function(){ renderSpeisenRoot(scopeIdx); jumpBottom(); }, 1400);
-  }
+    /* -------- OVERRIDES -------- */
+    #menu .section-title{color:#ffffff;background:none;border:none;box-shadow:none;padding:0;display:block;position:static;left:auto;transform:none;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+    #menu .section-sub{color:#ffffff;opacity:.9;text-shadow:0 1px 4px rgba(0,0,0,.35)}
+    #about .section-title,#galerie .section-title,#kontakt .section-title,#impressum .section-title,#datenschutz .section-title{background:none;border:none;box-shadow:none;padding:0;display:block;position:static;left:auto;transform:none;text-align:center}
+    #about .section-sub{color:#2b2a29;opacity:.95}
 
-  function orderCats(keys){
-    var pref = ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
-    var pos  = Object.create(null);
-    pref.forEach(function(k,i){ pos[k]=i; });
-    return keys.slice().sort(function(a,b){
-      var ia = (a in pos)? pos[a] : 999;
-      var ib = (b in pos)? pos[b] : 999;
-      return ia-ib || a.localeCompare(b);
-    });
-  }
+    /* Cookie Banner */
+    .cookie-banner{position:fixed;z-index:9999;left:16px;right:16px;bottom:16px;display:none;align-items:flex-start;gap:14px;padding:14px 16px;border:2px solid var(--gold);border-radius:12px;background:url('images/paper.jpg') center/cover repeat;box-shadow:var(--shadow)}
+    .cookie-banner p{margin:0;font-size:.95rem}
+    .cookie-actions{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
+    .btn{cursor:pointer;border:2px solid var(--gold);padding:8px 12px;border-radius:999px;background:#fff}
+    .btn.primary{background:var(--deep);color:#fff}
+    .btn.link{background:transparent;text-decoration:underline}
 
-  function renderSpeisenRoot(scopeIdx){
-    var B = block('SPEISEN'); B.setAttribute('data-block','speisen-root');
+    /* -------- Bot Styles -------- */
+    :root{--green:#0f3a2f;--green2:#0a2a21;--gold:#c9a667}
+    .ppx-launch{position:fixed;right:22px;bottom:22px;z-index:99999;display:flex;align-items:center;gap:10px;background:#fff;color:#0e1b16;border-radius:999px;padding:10px 14px;border:1px solid #e7ebee;box-shadow:0 14px 36px rgba(0,0,0,.18);cursor:pointer;user-select:none}
+    .ppx-dot{width:38px;height:38px;border-radius:50%;background:var(--green);display:grid;place-items:center;color:#fff;font-size:18px}
+    .ppx-panel{position:fixed;right:22px;bottom:86px;width:480px;max-width:calc(100vw - 44px);display:none;z-index:100000;border-radius:18px;overflow:hidden;border:1px solid rgba(0,0,0,.08);box-shadow:0 28px 80px rgba(0,0,0,.35);background:var(--green2);flex-direction:column;max-height:78vh}
+    .ppx-open{display:flex}
+    .ppx-h{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--green);color:#fff;border-bottom:1px solid rgba(0,0,0,.25)}
+    .ppx-title{font-family:"Cinzel",serif;font-weight:700;letter-spacing:.3px}
+    .ppx-x{border:none;background:transparent;font-size:22px;color:#fff;cursor:pointer;opacity:.9}
+    .ppx-x:hover{opacity:1}
+    .ppx-v{padding:14px;flex:1;overflow:auto;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), var(--green2);color:#f7faf8;display:flex;flex-direction:column;gap:12px;min-height:520px}
+    .ppx-m{line-height:1.35;white-space:pre-wrap}
+    .ppx-link{color:#f3e9c9;text-decoration:underline}
+    .ppx-bot{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);padding:12px;border-radius:12px}
+    .ppx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:2px}
+    .ppx-opt{display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);border-radius:14px;padding:12px;cursor:pointer;transition:transform .15s ease, box-shadow .15s ease}
+    .ppx-opt:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.18)}
+    .ppx-ico{width:26px;height:26px;border-radius:999px;display:grid;place-items:center;background:linear-gradient(135deg,var(--gold),#ead09b);color:#0c1f18;font-weight:700;font-size:14px}
+    .ppx-pill{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);cursor:pointer;user-select:none}
+    .ppx-pill:hover{transform:translateY(-1px)}
+    .ppx-card{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);border-radius:14px;padding:12px}
+    .ppx-card.compact{padding:8px 10px}
+    .ppx-heading{font-family:"Cinzel",serif;margin:0 0 6px;color:#efe6d6}
+    .ppx-heading.compact{font-size:17px;margin:0}
+    .ppx-price.compact{font-size:16px;font-weight:700;white-space:nowrap}
+    .ppx-headrow{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+    .ppx-desc{font-size:15px;line-height:1.45;margin-top:4px}
+    .ppx-actions{display:flex;gap:10px;margin-top:4px;flex-wrap:wrap}
+    .ppx-hours{display:grid;grid-template-columns:1fr auto;row-gap:6px;column-gap:12px}
+    .ppx-note{margin-top:8px;font-weight:600}
+    .ppx-iconrow{display:flex;gap:8px;margin-top:6px}
+    .ppx-iconbtn{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);font-size:12px;font-weight:700;letter-spacing:.2px}
+    .ppx-brandbar{padding:8px 12px;background:rgba(255,255,255,.92);color:#11231c;border-top:1px solid rgba(0,0,0,.08);font-size:12px;text-align:center}
+    .ppx-appear{animation:ppxFade .25s ease both}@keyframes ppxFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    @media (max-width:640px){.ppx-panel{width:auto;left:22px;right:22px;max-height:85vh}.ppx-v{min-height:60vh}}
+    .ppx-opt.ppx-selected,.ppx-pill.ppx-selected{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.45);box-shadow:0 0 0 2px rgba(201,166,103,.35) inset;transform:translateY(-1px)}
+    .ppx-input{display:flex;gap:8px;margin-top:8px}
+    .ppx-input input,.ppx-input select,.ppx-input textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#fff;font-size:15px;outline:none}
+    .ppx-input textarea{min-height:72px;resize:vertical}
+    .ppx-minirow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .ppx-mini{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);cursor:pointer;user-select:none}
 
-    // PDF Button
-    var pdfUrl = CFG.menuPdf || (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) || CFG.menuPDF || 'speisekarte.pdf';
-    var r = row(); r.style.justifyContent = 'flex-start';
-    r.appendChild(btn('Speisekarte als PDF', function(){ try{ window.open(pdfUrl,'_blank','noopener'); }catch(e){} }, '', '📄'));
-    B.appendChild(r);
+    /* >>> Home-Optionen mittig (nur Startansicht, keine Kategorien) <<< */
+    #ppx-v > .ppx-appear > .ppx-opt{justify-content:center}
+    #ppx-v > .ppx-appear > .ppx-opt .ppx-m{text-align:center}
+  </style>
+</head>
+<body>
+  <header class="hero" id="top">
+    <div class="hero-inner">
+      <h1 class="brand">Pizza Papa Hamburg</h1>
+      <p class="tagline">Italienische Klassiker – schnell, herzlich, mit Charakter.</p>
+      <a class="cta" href="#kontakt">Jetzt anrufen / reservieren</a>
+    </div>
+  </header>
 
-    B.appendChild(line('…oder wähle eine Kategorie:'));
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container frame">
+      <h2 class="section-title">Unsere Philosophie</h2>
+      <p class="section-sub">Traditionelle Rezepte, ehrliche Zutaten, freundschaftliche Atmosphäre.</p>
+      <p class="center">Echte italienische Pizza – hausgemachter Teig, frische Saucen, schnelle Zubereitung im Steinofen.</p>
+    </div>
+  </section>
 
-    var cats = Object.keys(DISH);
-    cats = cats.length ? orderCats(cats.map(function(k){ return pretty(k); })) :
-                         ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
-    var map = {}; Object.keys(DISH).forEach(function(k){ map[pretty(k)] = k; });
+  <!-- MENU -->
+  <section id="menu">
+    <div class="container">
+      <h2 class="section-title">Speisekarte</h2>
+      <p class="section-sub">Alle Preise sind Platzhalter (XX/YY/ZZ).</p>
 
-    var G = grid();
-    cats.forEach(function(catPretty){
-      var rawKey = map[catPretty] || catPretty.toLowerCase();
-      G.appendChild(chip(catPretty, function(){ renderCategory(rawKey); }, 'ppx-cat', '►'));
-    });
-    B.appendChild(G);
+      <div class="menu-section frame">
+        <h3 class="menu-title">Antipasti – Vorspeisen</h3>
+        <ul class="menu-list">
+          <li><span class="name">Bruschetta Classica</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Caprese</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Arancini</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Antipasto Misto</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Knoblauchbrot</span><span class="dots"></span><span class="price">XX €</span></li>
+        </ul>
+      </div>
 
-    // Nav: Zurück + Hauptmenü (Secondary)
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-    jumpBottom();
-  }
+      <div class="menu-section frame">
+        <h3 class="menu-title">Pizza</h3>
+        <ul class="menu-list">
+          <li><span class="name">Margherita</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Prosciutto e Funghi</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Diavola (pikant)</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Quattro Formaggi</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Verdure (Gemüse)</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Tonno e Cipolla</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Parma (Rucola &amp; Grana)</span><span class="dots"></span><span class="price">ZZ €</span></li>
+          <li><span class="name">Calzone (gefüllt)</span><span class="dots"></span><span class="price">ZZ €</span></li>
+        </ul>
+      </div>
 
-  function renderCategory(catKey){
-    var scopeIdx = getScopeIndex();
-    var B = block('Gern! Hier ist die Auswahl für '+pretty(catKey)+':');
-    B.setAttribute('data-block','speisen-cat');
+      <div class="menu-section frame">
+        <h3 class="menu-title">Pasta</h3>
+        <p class="center small"><em>Nudelsorten:</em> Spaghetti, Tortellini, Linguine, Fusilli, Penne, Rigatoni, Tagliatelle, Gnocchi, Farfalle, Bucatini</p>
+        <ul class="menu-list">
+          <li><span class="name">Pomodoro</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Arrabbiata</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Carbonara</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Bolognese</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Pesto Genovese</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Funghi (Pilze)</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Gamberi (Garnelen)</span><span class="dots"></span><span class="price">ZZ €</span></li>
+          <li><span class="name">Frutti di Mare</span><span class="dots"></span><span class="price">ZZ €</span></li>
+          <li><span class="name">Alfredo</span><span class="dots"></span><span class="price">YY €</span></li>
+          <li><span class="name">Puttanesca</span><span class="dots"></span><span class="price">YY €</span></li>
+        </ul>
+      </div>
 
-    var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
-    if (!list.length) list = [
-      { name: pretty(catKey)+' Classic', price:'9,50 €' },
-      { name: pretty(catKey)+' Special', price:'12,90 €' }
-    ];
+      <div class="menu-section frame">
+        <h3 class="menu-title">Getränke</h3>
+        <ul class="menu-list">
+          <li><span class="name">Mineralwasser (still/prickelnd)</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Limonata / Aranciata</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Cola / Zero</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Espresso</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Cappuccino</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Hauswein Weiß (Glas/Fl.)</span><span class="dots"></span><span class="price">XX / YY €</span></li>
+          <li><span class="name">Hauswein Rot (Glas/Fl.)</span><span class="dots"></span><span class="price">XX / YY €</span></li>
+          <li><span class="name">Prosecco (Glas)</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Pils (0,3 / 0,5)</span><span class="dots"></span><span class="price">XX / YY €</span></li>
+          <li><span class="name">Helles / Lager (Fl.)</span><span class="dots"></span><span class="price">XX €</span></li>
+          <li><span class="name">Alkoholfreies Bier</span><span class="dots"></span><span class="price">XX €</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
-    var L = grid();
-    list.forEach(function(it){
-      var label = (it && it.name) ? it.name : 'Artikel';
-      L.appendChild(chip(label, function(){ renderItem(catKey, it); }, '', '➜'));
-    });
-    B.appendChild(L);
+  <!-- GALERIE -->
+  <section id="galerie">
+    <div class="container frame">
+      <h2 class="section-title">Galerie</h2>
+      <div class="section-sub">Bilder können später jederzeit ersetzt werden.</div>
+      <div class="gallery">
+        <img src="images/gallery1.jpg" alt="Pizza">
+        <img src="images/gallery2.jpg" alt="Pasta">
+        <img src="images/gallery3.jpg" alt="Calzone">
+        <img src="images/gallery4.jpg" alt="Dessert">
+      </div>
+    </div>
+  </section>
+  <!-- KONTAKT -->
+  <section id="kontakt">
+    <div class="container frame">
+      <h2 class="section-title">Reservierung & Kontakt</h2>
+      <div class="section-sub">Beispieldaten – später ersetzen.</div>
+      <p class="center">
+        Telefon: <strong>+49 40 1234567</strong><br>
+        WhatsApp: <strong>+49 40 1234567</strong><br>
+        Adresse: <strong>Muster Str. XX, YYYYY Musterstadt</strong>
+      </p>
+      <ul class="hours">
+        <li><span class="day">Montag</span><span class="fill"></span><span class="time">11:00 – 22:00 Uhr</span></li>
+        <li><span class="day">Dienstag</span><span class="fill"></span><span class="time">11:00 – 22:00 Uhr</span></li>
+        <li><span class="day">Mittwoch</span><span class="fill"></span><span class="time">11:00 – 22:00 Uhr</span></li>
+        <li><span class="day">Donnerstag</span><span class="fill"></span><span class="time">11:00 – 22:00 Uhr</span></li>
+        <li><span class="day">Freitag</span><span class="fill"></span><span class="time">11:00 – 22:00 Uhr</span></li>
+        <li><span class="day">Samstag</span><span class="fill"></span><span class="time">13:00 – 24:00 Uhr</span></li>
+        <li><span class="day">Sonntag</span><span class="fill"></span><span class="time">15:00 – 21:00 Uhr</span></li>
+      </ul>
+      <p class="center" style="margin-top:18px">
+        <a class="cta" href="#top">Nach oben</a>
+      </p>
+    </div>
+  </section>
 
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-    jumpBottom();
-  }
+  <!-- IMPRESSUM -->
+  <section id="impressum">
+    <div class="container frame">
+      <h2 class="section-title">Impressum</h2>
+      <p class="center small">
+        <strong>Pizza Papa Hamburg</strong><br>
+        Muster Str. XX, YYYYY Musterstadt<br>
+        Telefon: +49 123 456789 · E-Mail: info@pizzapapa.de<br>
+        Vertreten durch: Max Mustermann<br>
+        USt-IdNr.: DE123456789 · Aufsichtsbehörde: Musterbehörde
+      </p>
+      <p class="center small">Inhaltlich Verantwortlicher gem. § 18 Abs. 2 MStV: Max Mustermann (Anschrift wie oben)</p>
+      <p class="center small">Haftung für Inhalte/Links: Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für externe Links. Für den Inhalt verlinkter Seiten sind ausschließlich deren Betreiber verantwortlich.</p>
+    </div>
+  </section>
 
-  function renderItem(catKey, item){
-    var scopeIdx = getScopeIndex();
-    var title = (item && item.name) ? item.name : pretty(catKey);
-    var B = block(title); B.setAttribute('data-block','speisen-item');
+  <!-- DATENSCHUTZ -->
+  <section id="datenschutz">
+    <div class="container frame">
+      <h2 class="section-title">Datenschutzerklärung</h2>
+      <p class="small">
+        Diese Website verarbeitet personenbezogene Daten nur, soweit dies zur Bereitstellung der Website erforderlich ist (Art. 6 Abs. 1 lit. f DSGVO). Beim Aufruf werden serverseitig technisch notwendige Daten (z.&nbsp;B. IP-Adresse, Zeitpunkt, angeforderte Ressource) in Logfiles verarbeitet und nach kurzer Zeit gelöscht.
+      </p>
+      <p class="small"><strong>Cookies/Tracking:</strong> Es werden keine Tracking-Cookies gesetzt. Es wird lediglich Ihre Auswahl zur Cookie-Einwilligung lokal auf Ihrem Gerät gespeichert (technisch notwendig, keine Übermittlung an Dritte).</p>
+      <p class="small"><strong>Schriften/Fonts:</strong> Zurzeit werden Google Fonts extern geladen. Dadurch kann Ihre IP-Adresse an Google übertragen werden. Für eine vollständig datenschutzfreundliche Lösung empfehlen wir die lokale Einbindung (Self-Hosting) der Schriftarten.</p>
+      <p class="small"><strong>Kontaktaufnahme:</strong> Wenn Sie uns kontaktieren, verarbeiten wir die angegebenen Daten zur Bearbeitung der Anfrage. Die Daten werden nicht ohne Ihre Einwilligung weitergegeben.</p>
+      <p class="small"><strong>Ihre Rechte:</strong> Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit sowie Beschwerderecht bei einer Aufsichtsbehörde. Kontakt: <em>privacy@pizzapapa.de</em>.</p>
+    </div>
+  </section>
 
-    if (item && (item.info || item.desc)) B.appendChild(line(item.info || item.desc));
-    if (item && item.price) B.appendChild(line('Preis: ' + String(item.price)));
-    if (item && item.hinweis) B.appendChild(line('ℹ️ ' + item.hinweis));
+  <footer>
+    <p>&copy; 2025 Pizza Papa Hamburg</p>
+    <div class="social" aria-label="Social Media">
+      <a href="#" aria-label="Instagram" title="Instagram">
+        <svg viewBox="0 0 24 24"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zm6.25-3a1.25 1.25 0 1 1-1.25 1.25A1.25 1.25 0 0 1 18.25 6.5z"/></svg>
+      </a>
+      <a href="#" aria-label="Facebook" title="Facebook">
+        <svg viewBox="0 0 24 24"><path d="M13.5 22v-8h2.7l.4-3h-3.1V8.3c0-.9.3-1.5 1.7-1.5H17V4.1c-.3 0-1.3-.1-2.5-.1-2.4 0-4 1.4-4 4v2.9H8v3h2.5v8h3z"/></svg>
+      </a>
+      <a href="#" aria-label="LinkedIn" title="LinkedIn">
+        <svg viewBox="0 0 24 24"><path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM0 8h5v13H0zM8 8h4.8v1.8h.1c.7-1.2 2.3-2.5 4.8-2.5 5.1 0 6 3.3 6 7.6V21H19v-5.8c0-1.4 0-3.3-2-3.3s-2.3 1.6-2.3 3.2V21H8V8z"/></svg>
+      </a>
+    </div>
+    <div class="legal-links">
+      <a href="#impressum">Impressum</a>
+      <a href="#datenschutz">Datenschutz</a>
+      <a href="#" onclick="resetConsent();return false;">Cookie-Einstellungen</a>
+    </div>
+  </footer>
 
-    // LÄNGERER Delay bis zur Reservierungsfrage (3.0 s)
-    setTimeout(function(){ askReserveAfterItem(scopeIdx); }, 3000);
-    jumpBottom();
-  }
+  <!-- Cookie Banner -->
+  <div class="cookie-banner" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie-Hinweis">
+    <p><strong>Cookie-Hinweis:</strong> Wir verwenden keine Tracking-Cookies. Wir speichern nur Ihre Auswahl lokal auf Ihrem Gerät, damit dieser Hinweis verschwindet.</p>
+    <div class="cookie-actions">
+      <button class="btn primary" onclick="acceptCookies()">Einverstanden</button>
+      <button class="btn" onclick="declineCookies()">Ablehnen</button>
+      <a class="btn link" href="#datenschutz">Mehr erfahren</a>
+    </div>
+  </div>
 
-  function askReserveAfterItem(scopeIdx){
-    var Q = block(null); Q.setAttribute('data-block','speisen-item-ask');
-    Q.appendChild(line('Na, Appetit bekommen? 😍 Soll ich dir gleich einen Tisch reservieren, damit du das bald probieren kannst?'));
+  <script>
+    /* Cookie Consent */
+    (function(){
+      const KEY='pp-consent';
+      const banner=document.getElementById('cookieBanner');
+      try{ if(!localStorage.getItem(KEY)){ banner.style.display='flex'; } }catch(e){ banner.style.display='flex'; }
+      window.acceptCookies=function(){ try{ localStorage.setItem(KEY,'accepted'); }catch(e){} banner.remove(); };
+      window.declineCookies=function(){ try{ localStorage.setItem(KEY,'declined'); }catch(e){} banner.remove(); };
+      window.resetConsent=function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.hash='#datenschutz'; location.reload(); };
+    })();
+  </script>
 
-    // Primär/sekundär-CTAs
-    var r = row(); r.style.justifyContent = 'flex-start';
-    r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '✅'));
-    r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, '', '↩️'));
-    Q.appendChild(r);
+  <!-- Pizza Papa Lux Bot START -->
+  <!-- Launcher -->
+  <div class="ppx-launch" id="ppx-launch" role="button" aria-label="Schnellzugriff öffnen">
+    <div>Reservieren &amp; mehr ✨</div><div class="ppx-dot">💬</div>
+  </div>
 
-    // HINWEIS: Hier nur „← Zurück“ (kein Hauptmenü in der Nav, da oben vorhanden)
-    Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
-    jumpBottom();
-  }
-  // 5) RESERVIEREN
-  function stepReservieren(){
-    var scopeIdx = getScopeIndex();
-    var B = block('RESERVIEREN'); B.setAttribute('data-block','reservieren');
+  <!-- Panel -->
+  <div class="ppx-panel" id="ppx-panel" aria-live="polite">
+    <div class="ppx-h">
+      <div class="ppx-title">Pizza Papa Hamburg</div>
+      <button class="ppx-x" id="ppx-close" aria-label="Chat schließen">×</button>
+    </div>
+    <div class="ppx-v" id="ppx-v"></div>
+    <div class="ppx-brandbar">Powered by <strong>AI Elements</strong> ✨</div>
+  </div>
 
-    B.appendChild(line('Schnell-Anfrage senden oder E-Mail öffnen:'));
-
-    var r = row(); r.style.justifyContent = 'flex-start';
-    r.appendChild(btn('Schnell senden', function(){ quickEmail(); }, 'ppx-cta', '⚡'));
-
-    var addr = CFG.email || (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) || 'info@example.com';
-    r.appendChild(btn('E-Mail öffnen', function(){ openEmailDraft(addr); }, '', '✉️'));
-    B.appendChild(r);
-
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-    jumpBottom();
-  }
-
-  function openEmailDraft(addr){
-    var body = [
-      'Hallo '+(CFG.brand||'Restaurant')+',','',
-      'ich möchte gern reservieren.',
-      'Datum & Uhrzeit: ________',
-      'Personenanzahl: ________',
-      'Telefon: ________','',
-      'Liebe Grüße'
-    ].join('%0A');
-    window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
-    showReservationSuccess('mailto');
-  }
-
-  function quickEmail(){
-    var name = prompt('Dein Name:');                            if (!name) return;
-    var when = prompt('Datum & Uhrzeit (z. B. 24.09. 19:00):'); if (!when) return;
-    var ppl  = prompt('Personenanzahl:');                       if (!ppl) return;
-    var tel  = prompt('Telefon (optional):') || '';
-    var payload = { name:name, when:when, persons:ppl, phone:tel, brand:(CFG.brand||'Restaurant') };
-
-    var svcId = CFG.EMAIL && (CFG.EMAIL.serviceId || CFG.EMAIL.service);
-    var tplId = CFG.EMAIL && (CFG.EMAIL.templateId || CFG.EMAIL.toTemplate);
-
-    if (window.emailjs && svcId && tplId) {
-      emailjs.send(svcId, tplId, payload).then(
-        function(){ showReservationSuccess('emailjs'); },
-        function(){ alert('Senden fehlgeschlagen. Bitte „E-Mail öffnen“ nutzen.'); }
-      ); return;
-    }
-
-    var addr = CFG.email || (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) || 'info@example.com';
-    var body = encodeURIComponent('Name: '+name+'\nZeit: '+when+'\nPersonen: '+ppl+'\nTelefon: '+tel+'\n——\nGesendet via Bot');
-    window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
-    showReservationSuccess('mailto');
-  }
-
-  function showReservationSuccess(kind){
-    var B = block('RESERVIERUNG'); B.setAttribute('data-block','reservieren-success');
-    if (kind === 'emailjs') { B.appendChild(line('Danke! Deine Reservierungsanfrage wurde gesendet. Wir melden uns asap. ✅')); }
-    else { B.appendChild(line('Hast du die E-Mail versendet? Falls ja, kannst du hier abschließen. ✉️')); }
-    B.appendChild(nav([ homeBtn(), doneBtn() ])); // „Fertig ✓“ nur hier
-    jumpBottom();
-  }
-
-  // 6) ÖFFNUNGSZEITEN
-  function stepHours(){
-    var scopeIdx = getScopeIndex();
-    var B = block('ÖFFNUNGSZEITEN'); B.setAttribute('data-block','hours');
-    var lines = CFG.hoursLines || [];
-    if (!lines.length) { B.appendChild(line('Keine Zeiten hinterlegt.')); }
-    else { lines.forEach(function(rowArr){ var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr); B.appendChild(line('• '+txt)); }); }
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ])); jumpBottom();
-  }
-
-  // 7) KONTAKT
-  function stepKontakt(){
-    var scopeIdx = getScopeIndex();
-    var B = block('KONTAKTDATEN'); B.setAttribute('data-block','kontakt');
-
-    if (CFG.phone) {
-      B.appendChild(line('📞 '+CFG.phone));
-      var r1 = row(); r1.style.justifyContent = 'flex-start';
-      r1.appendChild(btn('Anrufen', function(){ window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,''); }, '', '📞'));
-      B.appendChild(r1);
-    }
-    if (CFG.email) {
-      B.appendChild(line('✉️  '+CFG.email));
-      var r2 = row(); r2.style.justifyContent = 'flex-start';
-      r2.appendChild(btn('E-Mail schreiben', function(){ window.location.href='mailto:'+CFG.email; }, '', '✉️'));
-      B.appendChild(r2);
-    }
-    if (CFG.address) {
-      B.appendChild(line('📍 '+CFG.address));
-      var maps = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(CFG.address);
-      var r3 = row(); r3.style.justifyContent = 'flex-start';
-      r3.appendChild(btn('Anfahrt öffnen', function(){ window.open(maps, '_blank'); }, '', '🗺️'));
-      B.appendChild(r3);
-    }
-
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-    jumpBottom();
-  }
-
-  // 8) Q&As
-  function stepQAs(){
-    var scopeIdx = getScopeIndex();
-    var B = block('Q&As'); B.setAttribute('data-block','faq');
-    if (!Array.isArray(FAQ) || !FAQ.length) { B.appendChild(line('Häufige Fragen folgen in Kürze.')); }
-    else { FAQ.forEach(function(f){ var q=(f&&(f.q||f.question))||''; var a=(f&&(f.a||f.answer))||''; if(q) B.appendChild(line('• '+q)); if(a) B.appendChild(line('↳ '+a)); }); }
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-    jumpBottom();
-  }
-
-})(); // Ende IIFE
+  <!-- Scripts: EmailJS zuerst, dann Loader (mit Cache-Buster + No-Cache) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script defer src="bot/loader.js"
+          data-ppx-loader
+          data-config="bot-data/bot.json?v=5"
+          data-widget="bot/widget.js?v=5"
+          data-nocache></script>
+  <!-- Pizza Papa Lux Bot END -->
+</body>
+</html>
