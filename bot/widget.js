@@ -1,8 +1,7 @@
 /* ============================================================================
-   PPX Widget (v6 ULTRA-ROBUST) — Global Back + Auto-Scroll + Selected-State
-   - "Zurück": entfernt immer alles seit der letzten Auswahl (Scope-Pop)
-   - Auto-Scroll: bei JEDEM Button-Klick sofort + verzögert nach unten
-   - Selected-State: geklickte Buttons bleiben optisch markiert
+   PPX Widget (v6 ULTRA-ROBUST) — Sticky/Append + globale Back-Logik
+   Änderung: "Zurück" entfernt immer alle seit der letzten Auswahl erzeugten
+   Blöcke (Scope-Pop). Gilt für ALLE Zurück-Buttons konsistent.
    ============================================================================ */
 (function () {
   'use strict';
@@ -27,7 +26,8 @@
   })();
 
   // ---------------------------------------------------------------------------
-  // STYLE
+  // STYLE: Farben/Layout wie gewünscht, nur HOME zentriert, ab Speisen links
+  // Entfernt alte Bot-Styles & injiziert neu mit höherer Spezifität (.ppx-v5)
   // ---------------------------------------------------------------------------
   (function injectStyles(){
     [
@@ -52,16 +52,18 @@
   padding:8px 8px 16px;
 }
 
-/* Cards */
+/* Cards (Blocks) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot{
   background:linear-gradient(180deg, rgba(9,39,33,.55), rgba(9,39,33,.35));
   border:1px solid var(--ppx-border); border-radius:16px;
   padding:18px; margin:16px auto; max-width:680px; box-shadow:var(--ppx-shadow);
-  text-align:left !important;
+  text-align:left !important; /* Standard: LINKS */
 }
-#ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"]{ text-align:center !important; }
+#ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"]{
+  text-align:center !important; /* Nur Home zentriert */
+}
 
-/* Headline */
+/* Headline im Block */
 #ppx-panel.ppx-v5 #ppx-v .ppx-h{
   background:var(--ppx-green-800); color:var(--ppx-ink);
   border:1px solid var(--ppx-border); border-radius:12px;
@@ -69,19 +71,19 @@
   font-family:"Cinzel", serif; font-weight:600; letter-spacing:.02em; text-transform:uppercase;
 }
 
-/* Text */
+/* Fließtext */
 #ppx-panel.ppx-v5 #ppx-v .ppx-m{
   color:var(--ppx-ink); line-height:1.55; margin:8px 0 12px;
   font-family:"Cormorant Garamond", serif; font-weight:400; font-size:20px;
 }
 
-/* Rows & Grid */
+/* Reihen/Grids */
 #ppx-panel.ppx-v5 #ppx-v .ppx-row{
   display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-start !important;
   margin-top:10px; width:100%;
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"] .ppx-row{
-  justify-content:center !important;
+  justify-content:center !important; /* Home-Reihen zentriert */
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-grid{
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:10px; width:100%;
@@ -90,36 +92,28 @@
   #ppx-panel.ppx-v5 #ppx-v .ppx-grid{ grid-template-columns:1fr; }
 }
 
-/* Buttons & Chips */
+/* Buttons & Chips – standardmäßig LINKS ausgerichtet, kompakter */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{
   -webkit-appearance:none; appearance:none; cursor:pointer;
   display:inline-flex; align-items:center; justify-content:flex-start !important; gap:10px;
-  width:100% !important;
+  width:100% !important; /* volle Zeile */
   color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:16px;
-  padding:12px 16px !important;
-  background:var(--ppx-green-600);
-  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 3px 12px rgba(0,0,0,.25);
-  transition:transform .06s ease, filter .2s ease, box-shadow .2s ease, background .2s ease;
-  font-family:"Cormorant Garamond", serif; font-weight:400 !important; font-size:18px !important;
+  padding:12px 16px !important; /* kompakter */
+  background:var(--ppx-green-600); box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 3px 12px rgba(0,0,0,.25);
+  transition:transform .06s ease, filter .2s ease;
+  font-family:"Cormorant Garamond", serif; font-weight:400 !important; font-size:18px !important; /* kleiner */
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-500); }
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
 
-/* Selected-State (persistiert) */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected,
-#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{
-  filter: brightness(1.12);
-  box-shadow: 0 0 0 2px rgba(230,196,138,.65) inset, 0 3px 12px rgba(0,0,0,.35);
-}
-
-/* Home: größer & zentriert */
+/* Home-Block: Buttons zentriert & etwas größer */
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"] .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"] .ppx-chip{
   justify-content:center !important; font-size:20px !important; padding:14px 18px !important;
 }
 
-/* Icon-Badges */
+/* Icon-Badges via data-ic */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center;
@@ -128,7 +122,7 @@
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1.5px 0 rgba(255,255,255,.25) inset;
 }
 
-/* Nav */
+/* Nav-Reihe: drei Buttons nebeneinander, links ausgerichtet */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{
   display:flex; gap:12px; width:100%; justify-content:flex-start !important; margin-top:12px;
 }
@@ -139,7 +133,7 @@
   color:var(--ppx-ink); text-decoration:underline; text-underline-offset:2px;
 }
 
-/* Speisen einspaltig */
+/* Speisen: explizit einspaltig für Kategorien & Items */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{
   grid-template-columns:1fr !important;
@@ -152,7 +146,7 @@
   })();
 
   // ---------------------------------------------------------------------------
-  // 1) Robuste Init
+  // 1) Robuste Init (wartet auf DOM + IDs) + Delegation
   // ---------------------------------------------------------------------------
   var $launch, $panel, $close, $view;
   var BOUND = false;
@@ -169,10 +163,10 @@
     if (!$panel || !$view) queryDom();
     if (!$panel || !$view) return;
     $panel.classList.add('ppx-open');
-    $panel.classList.add('ppx-v5');
+    $panel.classList.add('ppx-v5'); // für Styles
     if (!$panel.dataset.init) {
       $panel.dataset.init = '1';
-      stepHome();
+      stepHome(); // Home einmalig rendern; bleibt stehen
     }
   }
 
@@ -185,73 +179,60 @@
     if (BOUND) return true;
     if (!queryDom()) return false;
 
+    // Panel-Klasse für CSS-Overrides
     $panel.classList.add('ppx-v5');
+
+    // Öffnen/Schließen (direkte Listener)
     $launch.addEventListener('click', openPanel);
     $close.addEventListener('click', closePanel);
 
+    // ESC schließt
     window.addEventListener('keydown', function(e){
       if (e.key === 'Escape') closePanel();
     });
 
+    // Overlay-Klick schließt nur, wenn direkt auf Panel (nicht auf Inhalt)
     $panel.addEventListener('click', function(ev){
       if (ev.target === $panel) closePanel();
     });
 
+    // Falls durch CSS bereits offen, trotzdem einmal Home rendern (ohne Clear)
     if ($panel.classList.contains('ppx-open') && !$panel.dataset.init) {
       $panel.dataset.init = '1';
       stepHome();
     }
 
-    // Delegierter Fallback zum Öffnen
+    // Delegierter Fallback-Listener: reagiert auch, wenn Direktbindung verpasst wurde
     document.addEventListener('click', function(ev){
       var t = ev.target && ev.target.closest ? ev.target.closest('#ppx-launch') : null;
       if (t) openPanel();
-    });
-
-    // Delegation: Jeder Bot-Button → Selected-State + Auto-Scroll
-    $panel.addEventListener('click', function(ev){
-      if (!$view) return;
-      var btn = ev.target && ev.target.closest ? ev.target.closest('.ppx-b, .ppx-chip') : null;
-      if (btn && $view.contains(btn)) {
-        btn.classList.add('ppx-selected');     // persistentes Highlight
-        // Sofort und minimal verzögert nach unten scrollen (für Delays/Images)
-        jumpBottom();
-        setTimeout(jumpBottom, 120);
-        setTimeout(jumpBottom, 700);           // fängt z.B. Speisen-Delay (500ms) ab
-      }
     });
 
     BOUND = true;
     return true;
   }
 
+  // DOMContentLoaded → erster Versuch
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindOnce, { once:true });
   } else {
-    bindOnce();
+    bindOnce(); // DOM ist schon da
   }
 
+  // MutationObserver → falls Elemente nachträglich ins DOM kommen
   if (!BOUND) {
     var mo = new MutationObserver(function(){
       if (bindOnce()) mo.disconnect();
     });
     mo.observe(document.documentElement || document.body, { childList:true, subtree:true });
+    // Fallback: nach 5s observer stoppen
     setTimeout(function(){ try{ mo.disconnect(); }catch(e){} }, 5000);
   }
 
   // ---------------------------------------------------------------------------
-  // 2) Utils + globale Back-Logik
+  // 2) Utils + Globale Back-Logik
   // ---------------------------------------------------------------------------
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
-
-  function jumpBottom(){
-    if (!$view) return;
-    try {
-      $view.scrollTop = $view.scrollHeight;
-      requestAnimationFrame(function(){ $view.scrollTop = $view.scrollHeight; });
-      setTimeout(function(){ $view.scrollTop = $view.scrollHeight; }, 0);
-    } catch(e){}
-  }
 
   function el(tag, attrs){
     var n = document.createElement(tag);
@@ -288,10 +269,10 @@
   function scrollToEl(node){
     if (!node) return;
     try { node.scrollIntoView({ behavior:'smooth', block:'start' }); }
-    catch(e){}
-    jumpBottom();
+    catch(e){ if ($view) $view.scrollTop = $view.scrollHeight; }
   }
 
+  // NIE auto-clearen (außer gezwungen)
   function clearView(opts){
     if (!STICKY) $view.innerHTML = '';
     else if (opts && opts.force) $view.innerHTML = '';
@@ -301,7 +282,7 @@
   function row(){ return el('div', { class:'ppx-row' }); }
   function grid(){ return el('div', { class:'ppx-grid' }); }
 
-  // ---- Scope-Back ----
+  // ---- Scope / Back-Stack ----
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
   function popToScope(idx){
     if (!$view) return;
@@ -310,10 +291,11 @@
       if (!last) break;
       last.remove();
     }
-    jumpBottom();
+    var target = $view.lastElementChild || $view;
+    scrollToEl(target);
   }
 
-  // Buttons/Chips
+  // Buttons/Chips mit data-ic
   function btn(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick, type:'button' };
     if (ic) attrs['data-ic'] = ic;
@@ -325,7 +307,7 @@
     return el('button', attrs, label);
   }
 
-  // Block
+  // Neuer Block (Card) anhängen
   function block(title, opts){
     opts = opts || {};
     var wrap = el('div', {
@@ -335,30 +317,29 @@
     if (title) wrap.appendChild(el('div', { class:'ppx-h' }, title));
     if ($view) $view.appendChild(wrap);
     scrollToEl(wrap);
-    // Sicherheit: noch einmal nach unten, falls Inhalte nachfließen
-    setTimeout(jumpBottom, 60);
     return wrap;
   }
 
-  // Nav
+  // horizontale Button-Gruppe (Nav-Row, links)
   function nav(btns){
     var r = el('div', { class:'ppx-nav' });
     btns.forEach(function(b){ if (b) r.appendChild(b); });
     return r;
   }
 
+  // ----- NEU: Back-Button mit Scope-Index -----
   function backBtnAt(scopeIdx){
     return btn('Zurück', function(){ popToScope(scopeIdx); }, '', '←');
   }
   function doneBtn(){
-    return btn('Fertig ✓', function(){ jumpBottom(); }, '', '✓');
+    return btn('Fertig ✓', function(){ scrollToEl($view && $view.lastElementChild || $view); }, '', '✓');
   }
-  function resBtn(){
+  function resBtn(){ // prev ignoriert: Reservieren hat eigenen Scope
     return btn('Reservieren', function(){ stepReservieren(); }, '', '📅');
   }
 
   // ---------------------------------------------------------------------------
-  // 3) HOME
+  // 3) HOME (einmalig rendern; bleibt zentriert)
   // ---------------------------------------------------------------------------
   function stepHome(){
     if (!$view) return;
@@ -371,18 +352,19 @@
     B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
     B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
 
-    var r1 = row(); r1.appendChild(btn('Speisen',       function(){ stepSpeisen(); }, 'ppx-cta', '🍽️')); B.appendChild(r1);
-    var r2 = row(); r2.appendChild(btn('Reservieren',   function(){ stepReservieren(); }, '', '📅'));     B.appendChild(r2);
-    var r3 = row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(); }, '', '⏰'));          B.appendChild(r3);
-    var r4 = row(); r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(); }, '', '☎️'));        B.appendChild(r4);
-    var r5 = row(); r5.appendChild(btn('Q&As',          function(){ stepQAs(); }, '', '❓'));             B.appendChild(r5);
+    var r1 = row(); r1.appendChild(btn('Speisen',       function(){ stepSpeisen(B); }, 'ppx-cta', '🍽️')); B.appendChild(r1);
+    var r2 = row(); r2.appendChild(btn('Reservieren',   function(){ stepReservieren(B); }, '', '📅'));     B.appendChild(r2);
+    var r3 = row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(B); }, '', '⏰'));          B.appendChild(r3);
+    var r4 = row(); r4.appendChild(btn('Kontaktdaten',  function(){ stepKontakt(B); }, '', '☎️'));        B.appendChild(r4);
+    var r5 = row(); r5.appendChild(btn('Q&As',          function(){ stepQAs(B); }, '', '❓'));             B.appendChild(r5);
   }
 
   // ---------------------------------------------------------------------------
-  // 4) SPEISEN
+  // 4) SPEISEN (erst Info, Delay, dann Block mit PDF + Kategorien)
+  //     Back-Logik: Scope vor ALLEM starten → Back entfernt Info + Root zusammen
   // ---------------------------------------------------------------------------
-  function stepSpeisen(){
-    var scopeIdx = getScopeIndex();     // Startzustand vor Info
+  function stepSpeisen(/*prevBlock*/){
+    var scopeIdx = getScopeIndex();     // ← Startzustand merken (vor Info!)
     var M = block(null);
     M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
     setTimeout(function(){ renderSpeisenRoot(scopeIdx); }, 500);
@@ -395,7 +377,9 @@
     if (CFG.menuPdf) {
       var r = row();
       r.style.justifyContent = 'flex-start';
-      r.appendChild(btn('Speisekarte als PDF', function(){ window.open(CFG.menuPdf, '_blank'); }, '', '📄'));
+      r.appendChild(
+        btn('Speisekarte als PDF', function(){ window.open(CFG.menuPdf, '_blank'); }, '', '📄')
+      );
       B.appendChild(r);
     }
 
@@ -405,7 +389,7 @@
     if (!cats.length) cats = ['Antipasti','Salat','Pizza','Pasta','Drinks','Desserts'];
 
     var G = grid();
-    G.style.gridTemplateColumns = '1fr';
+    G.style.gridTemplateColumns = '1fr'; // volle Zeile pro Button
     cats.forEach(function(cat){
       var list  = Array.isArray(DISH[cat]) ? DISH[cat] : [];
       var count = list.length ? ' ('+list.length+')' : '';
@@ -416,11 +400,10 @@
     B.appendChild(G);
 
     B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
-    jumpBottom();
   }
 
   function renderCategory(catKey){
-    var scopeIdx = getScopeIndex();
+    var scopeIdx = getScopeIndex(); // ← Startzustand vor Kategorie
     var title = 'Gern! Hier ist die Auswahl für '+pretty(catKey)+':';
     var B = block(title);
     B.setAttribute('data-block','speisen-cat');
@@ -444,11 +427,10 @@
     B.appendChild(L);
 
     B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
-    jumpBottom();
   }
 
   function renderItem(catKey, item){
-    var scopeIdx = getScopeIndex();
+    var scopeIdx = getScopeIndex(); // ← Startzustand vor Item
     var title = item && item.name ? item.name : pretty(catKey);
     var B = block(title);
     B.setAttribute('data-block','speisen-item');
@@ -458,13 +440,12 @@
     if (item && item.hinweis) B.appendChild(line('ℹ️ '+item.hinweis));
 
     B.appendChild(nav([ backBtnAt(scopeIdx), resBtn(), doneBtn() ]));
-    jumpBottom();
   }
 
   // ---------------------------------------------------------------------------
-  // 5) RESERVIEREN
+  // 5) RESERVIEREN (Append) – eigener Scope
   // ---------------------------------------------------------------------------
-  function stepReservieren(){
+  function stepReservieren(/*prevBlock*/){
     var scopeIdx = getScopeIndex();
     var B = block('RESERVIEREN');
     B.setAttribute('data-block','reservieren');
@@ -495,7 +476,6 @@
     B.appendChild(r);
 
     B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
-    jumpBottom();
   }
 
   function quickEmail(){
@@ -527,9 +507,9 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 6) ÖFFNUNGSZEITEN
+  // 6) ÖFFNUNGSZEITEN (Append) – eigener Scope
   // ---------------------------------------------------------------------------
-  function stepHours(){
+  function stepHours(/*prevBlock*/){
     var scopeIdx = getScopeIndex();
     var B = block('ÖFFNUNGSZEITEN');
     B.setAttribute('data-block','hours');
@@ -544,13 +524,12 @@
       });
     }
     B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
-    jumpBottom();
   }
 
   // ---------------------------------------------------------------------------
-  // 7) KONTAKT
+  // 7) KONTAKT (Append) – eigener Scope
   // ---------------------------------------------------------------------------
-  function stepKontakt(){
+  function stepKontakt(/*prevBlock*/){
     var scopeIdx = getScopeIndex();
     var B = block('KONTAKTDATEN');
     B.setAttribute('data-block','kontakt');
@@ -580,13 +559,12 @@
     }
 
     B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
-    jumpBottom();
   }
 
   // ---------------------------------------------------------------------------
-  // 8) Q&As
+  // 8) Q&As (Append) – eigener Scope
   // ---------------------------------------------------------------------------
-  function stepQAs(){
+  function stepQAs(/*prevBlock*/){
     var scopeIdx = getScopeIndex();
     var B = block('Q&As');
     B.setAttribute('data-block','faq');
@@ -596,13 +574,12 @@
     } else {
       FAQ.forEach(function(f){
         var q = (f && (f.q || f.question)) || '';
-        var a = (f && (f.a or f.answer)) || '';
+        var a = (f && (f.a || f.answer)) || '';
         if (q) B.appendChild(line('• '+q));
         if (a) B.appendChild(line('↳ '+a));
       });
     }
     B.appendChild(nav([ backBtnAt(scopeIdx), doneBtn() ]));
-    jumpBottom();
   }
 
 })(); // Ende IIFE
