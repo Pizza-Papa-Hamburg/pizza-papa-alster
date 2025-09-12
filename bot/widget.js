@@ -24,7 +24,7 @@
   })();
 
   // ---------------------------------------------------------------------------
-  // STYLE – kompakter wie der „kleinere“ Look
+  // STYLE – kompakter Look + spezielle Anpassungen
   // ---------------------------------------------------------------------------
   (function(){
     [
@@ -46,14 +46,26 @@
   padding:10px 10px 16px;
 }
 
-/* Cards (kompakter) */
+/* Bot-Blocks (Card-Optik allgemein) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot{
   background:linear-gradient(180deg, rgba(14,59,51,.45), rgba(14,59,51,.30));
   border:1px solid var(--ppx-border); border-radius:14px;
   padding:14px; margin:12px auto; max-width:640px; box-shadow:var(--ppx-shadow);
   text-align:left !important;
 }
-#ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"]{ text-align:center !important; }
+
+/* Home-Block: Rahmen weg + volle Breite (chat-hafter) */
+#ppx-panel.ppx-v5 #ppx-v [data-block="home"]{
+  background:transparent !important; border:none !important; box-shadow:none !important;
+  padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important;
+  text-align:center !important;
+}
+
+/* Speisen-Root: Rahmen weg + volle Breite */
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"]{
+  background:transparent !important; border:none !important; box-shadow:none !important;
+  padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important;
+}
 
 /* Headline (schlanker Rahmen & Padding) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-h{
@@ -75,21 +87,18 @@
   display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start !important;
   margin-top:8px; width:100%;
 }
-#ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"] .ppx-row{
-  justify-content:center !important;
-}
 #ppx-panel.ppx-v5 #ppx-v .ppx-grid{
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:8px; width:100%;
 }
 
-/* Buttons & Chips – kompakter & weniger „pompös“ */
+/* Buttons & Chips – kompakter */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{
   -webkit-appearance:none; appearance:none; cursor:pointer;
   display:inline-flex; align-items:center; justify-content:flex-start !important; gap:10px;
+  width:100% !important;
   color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:14px;
   padding:10px 14px !important; background:var(--ppx-green-650);
-  width:100% !important;
   box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 2px 8px rgba(0,0,0,.20);
   transition:transform .06s ease, filter .2s ease, box-shadow .2s ease, background .2s ease;
   font-family:"Cormorant Garamond", serif; font-weight:400 !important; font-size:17px !important;
@@ -97,7 +106,7 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-600); }
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
 
-/* Selected-State (dezent, persistiert) */
+/* Selected-State (dezent) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{
   filter: brightness(1.10);
@@ -105,12 +114,12 @@
 }
 
 /* Home: Buttons minimal größer */
-#ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"] .ppx-b,
-#ppx-panel.ppx-v5 #ppx-v .ppx-bot[data-block="home"] .ppx-chip{
+#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b,
+#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{
   justify-content:center !important; font-size:18.5px !important; padding:12px 16px !important;
 }
 
-/* Icon-Badges (Standard für alle Buttons mit data-ic) */
+/* Icon-Badges (Standard) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center;
@@ -122,27 +131,26 @@
 /* --------- NUR Kategorie-Icons: gelber Kreis + SCHWARZER Pfeil --------- */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before{
   width:34px; height:34px; min-width:34px;
-  background:#E9D18B;           /* gelb */
-  color:#111;                   /* schwarzer Pfeil */
-  font-size:18px;
+  background:#E9D18B; color:#111; font-size:18px;
   box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18);
 }
 
-/* Speisen-Root: komplett ohne Rahmen/Box */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"]{
-  background:transparent !important; border:none !important; box-shadow:none !important;
-  padding:0 !important;
-}
-/* Speisen-Root-Grid: **zwei** Spalten, immer volle Breite je Spalte */
+/* Speisen-Root-Grid: zwei Spalten, volle Zeile */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{
   grid-template-columns:1fr 1fr !important;
 }
+
+/* Items (Artikel) später 1 Spalte */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-grid{
-  grid-template-columns:1fr !important; /* Items später weiterhin 1 Spalte */
+  grid-template-columns:1fr !important;
 }
+
 @media (max-width:380px){
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
+  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{
+    grid-template-columns:1fr 1fr !important;
+  }
 }
+
 /* Nav */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{
   display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px;
@@ -404,10 +412,9 @@
     var cats = Object.keys(DISH);
     cats = cats.length ? orderCats(cats) : ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
 
-    var G = grid(); // **2 Spalten**, Buttons füllen Spalte komplett
+    var G = grid(); // 2 Spalten, je Spalte volle Breite
     cats.forEach(function(cat){
       G.appendChild(
-        // Kategorie-Label **ohne** Anzahl
         chip(pretty(cat), function(){ renderCategory(cat); }, 'ppx-cat', '►')
       );
     });
@@ -431,7 +438,7 @@
       ];
     }
 
-    var L = grid(); // Items = 1 Spalte per CSS
+    var L = grid(); // Items = 1 Spalte
     list.forEach(function(it){
       var label = (it.name || 'Artikel') + (it.price ? (' – '+it.price+' €') : '');
       L.appendChild(
