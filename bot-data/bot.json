@@ -39,7 +39,7 @@
     },
 
     "menuOrder": ["antipasti","pizza","pasta","drinks","salads","desserts"],
-    { "cfg": { "menuPdf": "speisekarte_test.pdf" } }
+    "menuPdf": "speisekarte_test.pdf"
   },
 
   "dishes": {
@@ -73,6 +73,7 @@
       { "id": "alfredo",    "name": "Alfredo",           "price": "YY €", "info": "Butter, Parmesan, Sahne." },
       { "id": "puttanesca", "name": "Puttanesca",        "price": "YY €", "info": "Oliven, Kapern, Sardellen, Tomate." }
     ],
+
     "salads": [
       { "id": "caesar",  "name": "Caesar",             "price": "XX €", "info": "Römersalat, Croûtons, Parmesan." },
       { "id": "mista",   "name": "Insalata Mista",     "price": "XX €", "info": "Gemischter Salat, Hausdressing." },
@@ -100,4 +101,3 @@
     ]
   }
 }
-
