@@ -127,8 +127,22 @@
   font-size:18px;
   box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18);
 }
-/* ----------------------------------------------------------------------- */
 
+/* Speisen-Root: komplett ohne Rahmen/Box */
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"]{
+  background:transparent !important; border:none !important; box-shadow:none !important;
+  padding:0 !important;
+}
+/* Speisen-Root-Grid: **zwei** Spalten, immer volle Breite je Spalte */
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{
+  grid-template-columns:1fr 1fr !important;
+}
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-grid{
+  grid-template-columns:1fr !important; /* Items später weiterhin 1 Spalte */
+}
+@media (max-width:380px){
+  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
+}
 /* Nav */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{
   display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px;
@@ -138,17 +152,6 @@
 /* Links */
 #ppx-panel.ppx-v5 #ppx-v .ppx-link{
   color:var(--ppx-ink); text-decoration:underline; text-underline-offset:2px;
-}
-
-/* Speisen: Root immer 2 Spalten; Items 1 Spalte */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{
-  grid-template-columns:1fr 1fr !important;
-}
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-grid{
-  grid-template-columns:1fr !important;
-}
-@media (max-width:380px){
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 }
 `;
     var tag = document.createElement('style');
@@ -311,7 +314,7 @@
   // Buttons/Chips
   function btn(label, onClick, extraCls, ic){
     var attrs = { class: 'ppx-b ' + (extraCls||''), onclick: onClick, type:'button' };
-    if (ic) attrs['data-ic'] = ic;   // nur setzen, wenn wir einen runden Badge wollen
+    if (ic) attrs['data-ic'] = ic;   // nur setzen, wenn runder Badge gewünscht
     return el('button', attrs, label);
   }
   function chip(label, onClick, extraCls, ic){
@@ -401,13 +404,11 @@
     var cats = Object.keys(DISH);
     cats = cats.length ? orderCats(cats) : ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
 
-    var G = grid(); // CSS erzwingt 2 Spalten
+    var G = grid(); // **2 Spalten**, Buttons füllen Spalte komplett
     cats.forEach(function(cat){
-      var list  = Array.isArray(DISH[cat]) ? DISH[cat] : [];
-      var count = list.length ? ' ('+list.length+')' : '';
       G.appendChild(
-        // spezielle Kategorie-Optik (schwarzer Pfeil im gelben Kreis)
-        chip(pretty(cat)+count, function(){ renderCategory(cat); }, 'ppx-cat', '►')
+        // Kategorie-Label **ohne** Anzahl
+        chip(pretty(cat), function(){ renderCategory(cat); }, 'ppx-cat', '►')
       );
     });
     B.appendChild(G);
