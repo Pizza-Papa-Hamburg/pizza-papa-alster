@@ -111,7 +111,7 @@
     .ppx-input input,.ppx-input select,.ppx-input textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#fff;font-size:15px;outline:none}
     .ppx-input textarea{min-height:72px;resize:vertical}
     .ppx-minirow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .ppx-mini{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);cursor:pointer;user-select:none}
+    .ppx-mini{padding:8px 12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);border-radius:999px;cursor:pointer;user-select:none}
 
     /* >>> Home-Optionen mittig (nur Startansicht, keine Kategorien) <<< */
     #ppx-v > .ppx-appear > .ppx-opt{justify-content:center}
@@ -216,7 +216,6 @@
       </div>
     </div>
   </section>
-
   <!-- KONTAKT -->
   <section id="kontakt">
     <div class="container frame">
@@ -241,6 +240,7 @@
       </p>
     </div>
   </section>
+
   <!-- IMPRESSUM -->
   <section id="impressum">
     <div class="container frame">
@@ -329,12 +329,12 @@
     <div class="ppx-brandbar">Powered by <strong>AI Elements</strong> ✨</div>
   </div>
 
-  <!-- Scripts: EmailJS zuerst, dann Loader (Cache-Buster v=5) -->
+  <!-- Scripts: EmailJS zuerst, dann Loader (mit Cache-Buster + No-Cache) -->
   <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <script defer src="bot/loader.js"
           data-ppx-loader
-          data-config="bot-data/bot.json?v=5"
-          data-widget="bot/widget.js?v=5"
+          data-config="bot-data/bot.json?v=6"
+          data-widget="bot/widget.js?v=6"
           data-nocache></script>
   <!-- Pizza Papa Lux Bot END -->
 </body>
