@@ -1,11 +1,9 @@
 /* ============================================================================
-   PPX Widget (v6 COMPACT + UX-Update + Q&A-Flow)
-   Änderungen (dieses Build):
-   - Q&A: Kategorien als Kachel-Grid; Fragen als Vollbreite-Buttons.
-   - Q&A: Sekundärlink "Alle FAQs als PDF" ganz oben; Kategorien erscheinen nach 1.0s.
-   - Q&A: Nach Antwort CTA mit Delay (3.0s): „Bestellen“, „Tisch reservieren“, „Weitere Fragen“.
-   - Speisen: Unverändert (inkl. 0.4s Pre-Delay + PDF zuerst + 1.0s bis Kategorien).
-   - Öffnungszeiten: KEINE Nav; nach 3.0s Reservierungsfrage mit 🗓️/🏠.
+   PPX Widget (v6 + Q&A-Refactor)
+   - Q&A: Header & PDF-Link zentriert; 1s Delay bis Kategorien.
+   - Q&A: Kategorien geordnet; Fragen Vollbreite; Standard-CTA nur „Reservieren“.
+   - Q&A Spezial: „Wie bestelle ich am schnellsten?“ mit Anrufen + Lieferando.
+   - Speisen/Reservieren/Öffnungszeiten: unverändert zu deinem letzten Stand.
    ============================================================================ */
 (function () {
   'use strict';
@@ -13,9 +11,9 @@
   // 0) Daten & Setup
   var W = window;
   var DATA = W.__PPX_DATA__ || {};
-  var CFG = DATA.cfg || {};
+  var CFG  = DATA.cfg || {};
   var DISH = DATA.dishes || {};
-  var FAQ  = DATA.faqs  || [];   // jetzt Kategorie-fähig
+  var FAQ  = DATA.faqs  || [];   // Objekt mit {cats:[]} oder Array
   var STICKY = true;
 
   // EmailJS init (optional)
@@ -27,7 +25,7 @@
     } catch (e) {}
   })();
 
-  // STYLE
+  // STYLE (inkl. Q&A-Zentrierung & aufgeräumtes Grid)
   (function () {
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
@@ -64,11 +62,11 @@
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-600); }
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
-/* Secondary (Zurück/Hauptmenü) */
+/* Secondary */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{
   background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.22); padding:8px 12px !important; font-size:15px !important; box-shadow:none;
 }
-/* Secondary: Icon dezent (kein Gold-Badge) */
+/* Secondary-Icon dezent */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary[data-ic]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; min-width:22px; border-radius:999px; background:transparent; color:inherit; box-shadow:none; border:none; font-size:16px; line-height:1;
 }
@@ -76,7 +74,7 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{ filter:brightness(1.10); box-shadow:0 0 0 2px rgba(230,196,138,.55) inset, 0 2px 8px rgba(0,0,0,.26); }
 /* Home größer */
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b, #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{ justify-content:center !important; font-size:18.5px !important; padding:12px 16px !important; }
-/* Badges (Default: Gold) */
+/* Badges */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; min-width:26px; border-radius:999px; background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
@@ -84,16 +82,13 @@
 /* Cat-Icons größer */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before,
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-chip.ppx-cat::before{ width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18); }
-/* 2 Spalten in Speisen/FAQ */
+/* Grids 2-spaltig */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid,
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"]     .ppx-grid{ grid-template-columns:1fr 1fr !important; }
-/* Kachel + 2-Zeilen-Clamp */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b .ppx-label, #ppx-panel.ppx-v5 #ppx-v .ppx-chip .ppx-label{
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; line-height:1.25; text-align:left;
-}
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-chip{ min-height:64px; align-items:center; }
-/* Links-Ausrichtung */
+/* Fragen lassen ganze Zeile füllen */
+#ppx-panel.ppx-v5 #ppx-v [data-block="faq-cat"] .ppx-row > .ppx-b{ width:100% !important; }
+/* Ausrichtung links */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-b, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip,
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-b,  #ppx-panel.ppx-v5 #ppx-v .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-chip{ justify-content:flex-start !important; text-align:left !important; }
@@ -101,6 +96,9 @@
 /* Nav gleich breit */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
+/* Q&A Header & PDF-Link zentriert */
+#ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-h{ text-align:center; }
+#ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-center{ display:flex; justify-content:center; }
 @media (max-width:380px){
   #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
   #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid,
@@ -388,28 +386,41 @@
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
-  // 8) Q&As (mit Kategorien, PDF-Link oben, 1s-Delay bis Kategorien)
+  // 8) Q&As (zentrierter Header + PDF-Link, 1s-Delay bis Kategorien)
   function getFaqPdfUrl(){
-    // Mehrere Fallbacks erlaubt
-    var url = (CFG.faqPdf) ||
-              (isObj(FAQ) && FAQ.pdfUrl) ||
-              (CFG.pdf && (CFG.pdf.faq || CFG.pdf.url)) ||
-              'faq_pizzapapa.pdf';
-    return url;
+    return (CFG.faqPdf) ||
+           ((isObj(FAQ) && FAQ.pdfUrl) ? FAQ.pdfUrl : null) ||
+           (CFG.pdf && (CFG.pdf.faq || CFG.pdf.url)) ||
+           'pizza_papa_faq.pdf';
+  }
+
+  // Wunsch-Reihenfolge & erlaubte Kategorien
+  var FAQ_ORDER = ['Speisekarte','Allergene','Lieferung','Öffnungszeiten','Preise','Bestellung'];
+  function orderFaqCats(cats){
+    // Filter auf erlaubte, dann nach ORDER sortieren
+    var allow = Object.create(null); FAQ_ORDER.forEach(function(t){ allow[t]=1; });
+    var filtered = cats.filter(function(c){
+      var t = (c.title||c.name||'').trim();
+      // Normalize: "Speisekarte & Klassiker" -> "Speisekarte"
+      if (/speisekarte/i.test(t)) c.title = 'Speisekarte';
+      return allow[c.title||c.name];
+    });
+    var pos = Object.create(null); FAQ_ORDER.forEach(function(t,i){ pos[t]=i; });
+    return filtered.sort(function(a,b){
+      var ta = a.title||a.name||''; var tb = b.title||b.name||'';
+      var ia = ta in pos ? pos[ta] : 999, ib = tb in pos ? pos[tb] : 999;
+      return ia-ib || ta.localeCompare(tb);
+    });
   }
 
   function getFaqCats(){
-    // Unterstützt: Array einfacher Q&As, oder Objekt { cats: [...] }
     if (Array.isArray(FAQ)) {
-      return [{
-        key:'allgemein', title:'Alle Fragen', icon:'❓',
-        items: FAQ
-      }];
+      return orderFaqCats([{ key:'all', title:'Speisekarte', icon:'🍕', items:FAQ }]);
     }
     if (isObj(FAQ)) {
-      if (Array.isArray(FAQ.cats)) return FAQ.cats;
+      if (Array.isArray(FAQ.cats)) return orderFaqCats(FAQ.cats.slice());
       if (Array.isArray(FAQ.items)) {
-        return [{ key:'allgemein', title: (FAQ.title||'Alle Fragen'), icon:(FAQ.icon||'❓'), items:FAQ.items }];
+        return orderFaqCats([{ key:'all', title:(FAQ.title||'Speisekarte'), icon:(FAQ.icon||'🍕'), items:FAQ.items }]);
       }
     }
     return [];
@@ -418,23 +429,21 @@
   function stepQAs(){
     var scopeIdx = getScopeIndex();
     var B = block('Q&As'); B.setAttribute('data-block','faq-root');
-
-    // Sekundärlink ganz oben: PDF direkt
-    var pdfUrl = getFaqPdfUrl();
-    var rTop = row(); rTop.style.justifyContent = 'flex-start';
-    rTop.appendChild(btn('Alle FAQs als PDF', function(){ try{ window.open(pdfUrl,'_blank','noopener'); }catch(e){} }, '', '📄'));
+    // Header zentriert via CSS
+    var rTop = row(); rTop.className += ' ppx-center';
+    rTop.appendChild(btn('Alle FAQs als PDF', function(){
+      try{ window.open(getFaqPdfUrl(), '_blank','noopener'); }catch(e){}
+    }, '', '📄'));
     B.appendChild(rTop);
 
-    // Nach 1 Sekunde Kategorien anzeigen
+    // Kategorien erst nach 1s
     setTimeout(function(){
       var cats = getFaqCats();
       if (!cats.length){
         B.appendChild(line('Häufige Fragen folgen in Kürze.'));
         B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-        jumpBottom();
-        return;
+        jumpBottom(); return;
       }
-
       B.appendChild(line('Wonach möchtest du schauen?'));
       var G = grid();
       cats.forEach(function(ct){
@@ -456,22 +465,25 @@
     if (!items.length){
       B.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.'));
       B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-      jumpBottom();
-      return;
+      jumpBottom(); return;
     }
 
     B.appendChild(line('Wähle eine Frage:'));
-    // Fragen als Vollbreite-Buttons (ganze Zeile)
-    var L = el('div', { class:'ppx-row' });
+    var L = el('div', { class:'ppx-row' }); // Fragen volle Breite
     items.forEach(function(it){
       var q = (it && (it.q || it.question)) || '';
       if (!q) return;
       L.appendChild(btn(q, function(){ renderFaqAnswer(ct, it, scopeIdx); }, '', '➜'));
     });
     B.appendChild(L);
-
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
+  }
+
+  // Spezial-Erkennung: „Wie bestelle ich am schnellsten?“
+  function isOrderQuick(it){
+    var q = (it && (it.q || it.question) || '').toLowerCase();
+    return (it && it.special === 'orderQuick') || /wie\s+bestelle\s+ich\s+am\s+schnellsten/.test(q);
   }
 
   function renderFaqAnswer(ct, it, backScopeIdx){
@@ -483,22 +495,36 @@
     if (a)   B.appendChild(line(a));
     if (more) B.appendChild(line(more));
 
-    // CTA nach Delay (3.0 s): Bestellen / Reservieren / Weitere Fragen
+    if (isOrderQuick(it)){
+      // Quick-Actions: Lieferando + Anrufen, KEINE Reservierungsfrage
+      var r = row(); r.style.justifyContent = 'flex-start';
+      var orderUrl = (CFG.orderUrl || (CFG.links && CFG.links.lieferando) || 'https://www.lieferando.de/');
+      r.appendChild(btn('Lieferando öffnen', function(){ try{ window.open(orderUrl,'_blank','noopener'); }catch(e){} }, 'ppx-cta', '⚡'));
+      if (CFG.phone){
+        r.appendChild(btn('Anrufen', function(){ window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,''); }, '', '📞'));
+      }
+      B.appendChild(r);
+      // Nav: Zurück & Hauptmenü (kein Reserve-CTA hier)
+      B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
+      jumpBottom();
+      return;
+    }
+
+    // Standard: CTA nach Delay -> nur Reservieren (wie Speisen-Flow)
     setTimeout(function(){ askAfterFaqAnswer(backScopeIdx); }, 3000);
     jumpBottom();
   }
 
   function askAfterFaqAnswer(backScopeIdx){
     var Q = block(null); Q.setAttribute('data-block','faq-answer-ask');
-    Q.appendChild(line('Hilft dir das? Möchtest du jetzt bestellen oder einen Tisch reservieren?'));
+    Q.appendChild(line('Hilft dir das? Möchtest du als nächstes reservieren? 🙂'));
 
     var r = row(); r.style.justifyContent = 'flex-start';
-    r.appendChild(btn('Bestellen', function(){ stepSpeisen(); }, 'ppx-cta', '🍽️'));
-    r.appendChild(btn('Tisch reservieren', function(){ stepReservieren(); }, '', '🗓️'));
-    r.appendChild(btn('Weitere Fragen', function(){ popToScope(backScopeIdx); }, 'ppx-secondary', '❓'));
+    r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '🗓️'));
+    r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
 
-    // Optional: ein einfacher „← Zurück“-Button reicht
+    // Optionaler „← Zurück“ unten wie im Speisen-Flow
     Q.appendChild(nav([ backBtnAt(backScopeIdx) ]));
     jumpBottom();
   }
