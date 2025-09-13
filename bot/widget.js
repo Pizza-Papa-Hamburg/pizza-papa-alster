@@ -1,9 +1,9 @@
 /* ============================================================================
-   PPX Widget (v6 + Q&A-Refactor)
-   - Q&A: Header & PDF-Link zentriert; 1s Delay bis Kategorien.
-   - Q&A: Kategorien geordnet; Fragen Vollbreite; Standard-CTA nur „Reservieren“.
-   - Q&A Spezial: „Wie bestelle ich am schnellsten?“ mit Anrufen + Lieferando.
-   - Speisen/Reservieren/Öffnungszeiten: unverändert zu deinem letzten Stand.
+   PPX Widget (v7 – Reservation Flow)
+   - Neuer Reservierungsflow (Name → Datum → Slot 30min → Personen → Phone? → E-Mail)
+   - Slots: aus CFG.OPEN (0=So..6=Sa), 30-min, letzte Stunde ausgenommen, mind. 4h Vorlauf
+   - EmailJS: 2 Sends (toTemplate an Restaurant, autoReplyTemplate an Gast), Fallback: mailto
+   - Bestehende Speisen/FAQ/Öffnungszeiten-Logik bleibt erhalten
    ============================================================================ */
 (function () {
   'use strict';
@@ -14,9 +14,8 @@
   var CFG  = DATA.cfg || {};
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs  || [];   // Objekt mit {cats:[]} oder Array
-  var STICKY = true;
 
-  // EmailJS init (optional)
+  // EmailJS init
   (function () {
     try {
       if (W.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
@@ -25,11 +24,11 @@
     } catch (e) {}
   })();
 
-  // STYLE (inkl. Q&A-Zentrierung & aufgeräumtes Grid)
+  // STYLE (inkl. Q&A-Zentrierung & Reservierungsflow-Hilfen)
   (function () {
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
-      'ppx-style-v5','ppx-style-v5-override','ppx-style-v6'
+      'ppx-style-v5','ppx-style-v5-override','ppx-style-v6','ppx-style-v7'
     ].forEach(function(id){ var n=document.getElementById(id); if(n) n.remove(); });
 
     var css = `
@@ -39,21 +38,14 @@
   --ppx-ink:#f1f7f4; --ppx-gold:#e6c48a; --ppx-gold-ink:#2a2a1f;
   --ppx-border:rgba(255,255,255,.10); --ppx-shadow:0 4px 12px rgba(0,0,0,.20);
 }
-/* Viewport */
 #ppx-panel.ppx-v5 #ppx-v{ overflow-y:auto; max-height:calc(100vh - 120px); -webkit-overflow-scrolling:touch; padding:10px 10px 16px; }
-/* Bot-Blocks */
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot{ background:linear-gradient(180deg, rgba(14,59,51,.45), rgba(14,59,51,.30)); border:1px solid var(--ppx-border); border-radius:14px; padding:14px; margin:12px auto; max-width:640px; box-shadow:var(--ppx-shadow); text-align:left !important; }
-/* Home-Block */
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"]{ background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important; text-align:center !important; }
-/* Speisen-Root */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"]{ background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important; }
-/* Headline/Copy */
 #ppx-panel.ppx-v5 #ppx-v .ppx-h{ background:var(--ppx-green-800); color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:12px; padding:10px 12px; margin:-2px -2px 10px; font-family:"Cinzel", serif; font-weight:600; letter-spacing:.02em; text-transform:uppercase; font-size:18px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-m{ color:var(--ppx-ink); line-height:1.5; margin:6px 0 10px; font-family:"Cormorant Garamond", serif; font-weight:400; font-size:18px; }
-/* Rows/Grids */
 #ppx-panel.ppx-v5 #ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start !important; margin-top:8px; width:100%; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:8px; width:100%; }
-/* Buttons & Chips (default) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b, #ppx-panel.ppx-v5 #ppx-v .ppx-chip{
   -webkit-appearance:none; appearance:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:flex-start !important; gap:10px; width:100% !important; text-align:left;
   color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:14px; padding:10px 14px !important; background:var(--ppx-green-650);
@@ -62,19 +54,11 @@
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-600); }
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
-/* Secondary */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{
   background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.22); padding:8px 12px !important; font-size:15px !important; box-shadow:none;
 }
-/* Secondary-Icon dezent */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary[data-ic]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary[data-ic]::before{
-  content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; min-width:22px; border-radius:999px; background:transparent; color:inherit; box-shadow:none; border:none; font-size:16px; line-height:1;
-}
-/* Selected */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{ filter:brightness(1.10); box-shadow:0 0 0 2px rgba(230,196,138,.55) inset, 0 2px 8px rgba(0,0,0,.26); }
-/* Home größer */
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b, #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{ justify-content:center !important; font-size:18.5px !important; padding:12px 16px !important; }
-/* Badges */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; min-width:26px; border-radius:999px; background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
@@ -82,30 +66,25 @@
 /* Cat-Icons größer */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before,
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-chip.ppx-cat::before{ width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18); }
-/* Grids 2-spaltig */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid,
-#ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"]     .ppx-grid{ grid-template-columns:1fr 1fr !important; }
-/* Fragen lassen ganze Zeile füllen */
-#ppx-panel.ppx-v5 #ppx-v [data-block="faq-cat"] .ppx-row > .ppx-b{ width:100% !important; }
-/* Ausrichtung links */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-b, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip,
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-b,  #ppx-panel.ppx-v5 #ppx-v .ppx-b,
-#ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-chip{ justify-content:flex-start !important; text-align:left !important; }
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-label, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-label{ text-align:left !important; }
 /* Nav gleich breit */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
 /* Q&A Header & PDF-Link zentriert */
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-h{ text-align:center; }
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-center{ display:flex; justify-content:center; }
+/* Inputs */
+#ppx-panel.ppx-v5 #ppx-v .ppx-input{ display:flex; gap:8px; margin-top:8px; }
+#ppx-panel.ppx-v5 #ppx-v .ppx-input input, #ppx-panel.ppx-v5 #ppx-v .ppx-input select, #ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.1); color:#fff; font-size:15px; outline:none;
+}
+#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-disabled{ opacity:.45; pointer-events:none; text-decoration:line-through; }
+/* Fragen volle Breite */
+#ppx-panel.ppx-v5 #ppx-v [data-block="faq-cat"] .ppx-row > .ppx-b{ width:100% !important; }
 @media (max-width:380px){
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid,
-  #ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"]     .ppx-grid{ grid-template-columns:1fr 1fr !important; }
+  #ppx-panel.ppx-v5 #ppx-v .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 }
 `;
-    var tag = document.createElement('style'); tag.id = 'ppx-style-v6'; tag.textContent = css; document.head.appendChild(tag);
+    var tag = document.createElement('style'); tag.id = 'ppx-style-v7'; tag.textContent = css; document.head.appendChild(tag);
   })();
 
   // 1) Init
@@ -142,13 +121,13 @@
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
   function popToScope(idx){ if(!$view) return; while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); } jumpBottom(); }
 
-  // Button-Factories
+  // Buttons/Chips/Nav
   function btn(label, onClick, extraCls, ic){ var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
   function chip(label, onClick, extraCls, ic){ var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
   function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
   function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary'); }
 
-  // Home (mit echtem Reset)
+  // Home
   function stepHome(force){
     if (!force && $view && $view.querySelector('[data-block="home"]')) return;
     var brand=(CFG.brand||'Pizza Papa Hamburg');
@@ -170,9 +149,7 @@
     var M = block(null);
     M.setAttribute('data-block','speisen-info');
     M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
-    jumpBottom();
-    // Mini-Pre-Delay bis die Speisen-Root aufgebaut wird (0.4 s)
-    setTimeout(function(){ renderSpeisenRoot(scopeIdx); jumpBottom(); }, 400);
+    setTimeout(function(){ renderSpeisenRoot(scopeIdx); }, 400);
   }
 
   function orderCats(keys){
@@ -263,99 +240,263 @@
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
 
-    // Hier nur „← Zurück“ in der Nav (kein Hauptmenü, da oben vorhanden)
+    // Nur „← Zurück“ in der Nav
     Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
     jumpBottom();
   }
+  // 5) RESERVIEREN – geführter Flow (Name → Datum → Zeit → Personen → Phone? → E-Mail)
+  var RESV = null;
 
-  // 5) RESERVIEREN
   function stepReservieren(){
-    var scopeIdx = getScopeIndex();
-    var B = block('RESERVIEREN'); B.setAttribute('data-block','reservieren');
+    RESV = { name:'', dateISO:'', dateReadable:'', time:'', persons:'', phone:'', email:'' };
+    var B = block('RESERVIEREN'); B.setAttribute('data-block','resv-name');
+    B.appendChild(line('Du möchtest gerne reservieren?'));
+    B.appendChild(line('Darf ich bitte deinen Namen wissen?'));
 
-    B.appendChild(line('Schnell-Anfrage senden oder E-Mail öffnen:'));
+    var rowIn = row();
+    var inp = el('input',{type:'text',placeholder:'Dein Name'});
+    rowIn.className = 'ppx-input';
+    rowIn.appendChild(inp);
+    B.appendChild(rowIn);
 
-    var r = row(); r.style.justifyContent = 'flex-start';
-    r.appendChild(btn('Schnell senden', function(){ quickEmail(); }, 'ppx-cta', '⚡'));
-
-    var addr = CFG.email || (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) || 'info@example.com';
-    r.appendChild(btn('E-Mail öffnen', function(){ openEmailDraft(addr); }, '', '✉️'));
+    var r = row();
+    r.appendChild(btn('Weiter', function(){
+      var v = String(inp.value||'').trim();
+      if(v.length<2){ alert('Bitte gib einen gültigen Namen ein.'); inp.focus(); return; }
+      RESV.name = v;
+      renderResvDate();
+    }, 'ppx-cta', '➡️'));
+    r.appendChild(homeBtn());
     B.appendChild(r);
-
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-    jumpBottom();
   }
 
-  function openEmailDraft(addr){
-    var body = [
-      'Hallo '+(CFG.brand||'Restaurant')+',','',
-      'ich möchte gern reservieren.',
-      'Datum & Uhrzeit: ________',
-      'Personenanzahl: ________',
-      'Telefon: ________','',
-      'Liebe Grüße'
-    ].join('%0A');
-    window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
-    showReservationSuccess('mailto');
+  // ---- Date → Time
+  function todayISO(){
+    var d=new Date(); var m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return d.getFullYear()+'-'+m+'-'+day;
+  }
+  function parseDateAny(s){
+    if(!s) return null;
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)){ var p=s.split('-'); return new Date(Number(p[0]),Number(p[1])-1,Number(p[2])); }
+    var m = s.match(/^(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})$/);
+    if(m){ return new Date(Number(m[3]),Number(m[2])-1,Number(m[1])); }
+    return null;
+  }
+  function fmtDateReadable(d){
+    var wd=['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()];
+    var dd=String(d.getDate()).padStart(2,'0'), mm=String(d.getMonth()+1).padStart(2,'0');
+    return wd+', '+dd+'.'+mm+'.';
   }
 
-  function quickEmail(){
-    var name = prompt('Dein Name:');                            if (!name) return;
-    var when = prompt('Datum & Uhrzeit (z. B. 24.09. 19:00):'); if (!when) return;
-    var ppl  = prompt('Personenanzahl:');                       if (!ppl) return;
-    var tel  = prompt('Telefon (optional):') || '';
-    var payload = { name:name, when:when, persons:ppl, phone:tel, brand:(CFG.brand||'Restaurant') };
+  function renderResvDate(){
+    var scopeIdx = getScopeIndex();
+    var B = block('Perfekt, '+RESV.name+'! :)'); B.setAttribute('data-block','resv-date');
+    B.appendChild(line('Für welches Datum möchtest du reservieren?'));
 
-    var svcId = CFG.EMAIL && (CFG.EMAIL.serviceId || CFG.EMAIL.service);
-    var tplId = CFG.EMAIL && (CFG.EMAIL.templateId || CFG.EMAIL.toTemplate);
+    var rowIn = row(); rowIn.className='ppx-input';
+    var inp = el('input',{type:'date', min:todayISO(), placeholder:'TT.MM.JJJJ'});
+    rowIn.appendChild(inp); B.appendChild(rowIn);
 
-    if (window.emailjs && svcId && tplId) {
-      emailjs.send(svcId, tplId, payload).then(
-        function(){ showReservationSuccess('emailjs'); },
-        function(){ alert('Senden fehlgeschlagen. Bitte „E-Mail öffnen“ nutzen.'); }
-      ); return;
+    var r = row();
+    r.appendChild(btn('Weiter', function(){
+      var val = inp.value || '';
+      // Einige Browser liefern lokalisiertes Datum; parse fallback
+      var d = val ? parseDateAny(val) : null;
+      if(!d){ alert('Bitte wähle ein Datum.'); inp.focus(); return; }
+      var iso = d.toISOString().slice(0,10);
+      RESV.dateISO = iso; RESV.dateReadable = fmtDateReadable(d);
+      renderResvTime(d, scopeIdx);
+    }, 'ppx-cta', '🗓️'));
+    r.appendChild(backBtnAt(scopeIdx));
+    B.appendChild(r);
+  }
+
+  // ---- Slots
+  function hmToMin(s){ var a=s.split(':'); var h=Number(a[0]), m=Number(a[1]||0); if(h===24&&m===0) return 1440; return h*60+m; }
+  function minToHM(n){ var h=Math.floor(n/60), m=n%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
+
+  function buildSlotsForDate(d){
+    var wd = d.getDay(); // 0=So..6=Sa
+    var span = (CFG.OPEN && CFG.OPEN[String(wd)]) || null;
+    if(!span || !Array.isArray(span) || span.length<2) return [];
+    var openMin = hmToMin(span[0]);
+    var closeMin = hmToMin(span[1]);
+    if(closeMin - openMin < 90) return []; // weniger als 1.5h → praktisch zu
+    var lastStart = closeMin - 60; // letzte Stunde ausgenommen
+    var slots = [];
+    for(var t=openMin; t<=lastStart; t+=30){ slots.push(minToHM(t)); }
+
+    // Lead-Time 4h nur für HEUTE
+    var now = new Date();
+    var isToday = now.getFullYear()===d.getFullYear() && now.getMonth()===d.getMonth() && now.getDate()===d.getDate();
+    if(isToday){
+      var lead = (now.getHours()*60 + now.getMinutes()) + 240; // +4h
+      slots = slots.filter(function(hm){ return hmToMin(hm) >= lead; });
+    }
+    return slots;
+  }
+
+  function renderResvTime(dateObj, backScopeIdx){
+    var B = block('Um welche Uhrzeit möchtest du reservieren?'); B.setAttribute('data-block','resv-time');
+
+    var slots = buildSlotsForDate(dateObj);
+
+    if(!slots.length){
+      B.appendChild(line('Für dieses Datum sind aktuell keine Reservierungszeiten verfügbar (geschlossen oder zu kurzfristig).'));
+      B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
+      return;
     }
 
-    var addr = CFG.email || (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) || 'info@example.com';
-    var body = encodeURIComponent('Name: '+name+'\nZeit: '+when+'\nPersonen: '+ppl+'\nTelefon: '+tel+'\n——\nGesendet via Bot');
-    window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body;
+    var G = grid();
+    slots.forEach(function(hm){
+      G.appendChild(chip(hm, function(){
+        RESV.time = hm;
+        renderResvPersons();
+      }, '', '🕒'));
+    });
+    B.appendChild(G);
+    B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
+  }
+
+  // ---- Persons
+  function renderResvPersons(){
+    var scopeIdx = getScopeIndex();
+    var B = block('Super, '+RESV.name+'!'); B.setAttribute('data-block','resv-persons');
+    B.appendChild(line('Für wie viele Personen darf ich den Tisch vorbereiten?'));
+
+    var rowIn = row(); rowIn.className='ppx-input';
+    var inp = el('input',{type:'number', min:'1', max:'20', value:'2'});
+    rowIn.appendChild(inp); B.appendChild(rowIn);
+
+    var r = row();
+    r.appendChild(btn('Weiter', function(){
+      var val = Number(inp.value||0);
+      if(!val || val<1){ alert('Bitte gib eine gültige Anzahl ein.'); inp.focus(); return; }
+      RESV.persons = String(val);
+      renderResvPhone(scopeIdx);
+    }, 'ppx-cta', '➡️'));
+    r.appendChild(backBtnAt(scopeIdx));
+    B.appendChild(r);
+  }
+
+  // ---- Phone (optional)
+  function renderResvPhone(backScopeIdx){
+    var B = block('Magst du mir deine Nummer dalassen? (optional)'); B.setAttribute('data-block','resv-phone');
+
+    var rowIn = row(); rowIn.className='ppx-input';
+    var inp = el('input',{type:'tel',placeholder:'+49 …'});
+    rowIn.appendChild(inp); B.appendChild(rowIn);
+
+    var r = row();
+    r.appendChild(btn('Überspringen', function(){ RESV.phone=''; renderResvEmail(); }, 'ppx-secondary', '⏭️'));
+    r.appendChild(btn('Weiter', function(){ RESV.phone = String(inp.value||'').trim(); renderResvEmail(); }, 'ppx-cta', '➡️'));
+    B.appendChild(r);
+    B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
+  }
+
+  // ---- Email (required)
+  function isValidEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(s||'').trim()); }
+
+  function renderResvEmail(){
+    var scopeIdx = getScopeIndex();
+    var B = block('Und deine E-Mail für die Bestätigung?'); B.setAttribute('data-block','resv-email');
+
+    var rowIn = row(); rowIn.className='ppx-input';
+    var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
+    rowIn.appendChild(inp); B.appendChild(rowIn);
+
+    var r = row();
+    r.appendChild(btn('Anfrage senden', function(){
+      var v = String(inp.value||'').trim();
+      if(!isValidEmail(v)){ alert('Bitte gib eine gültige E-Mail-Adresse ein.'); inp.focus(); return; }
+      RESV.email = v;
+      submitReservation();
+    }, 'ppx-cta', '✉️'));
+    r.appendChild(backBtnAt(scopeIdx));
+    B.appendChild(r);
+  }
+
+  // ---- Submit via EmailJS (+ Fallback mailto)
+  function submitReservation(){
+    var brand = (CFG.brand||'Restaurant');
+    var payload = {
+      brand: brand,
+      name: RESV.name,
+      date_iso: RESV.dateISO,
+      date_readable: RESV.dateReadable + ' ' + RESV.time + ' Uhr',
+      time: RESV.time,
+      persons: RESV.persons,
+      phone: RESV.phone||'',
+      email: RESV.email
+    };
+
+    var svcId = CFG.EMAIL && (CFG.EMAIL.service || CFG.EMAIL.serviceId);
+    var tplTo = CFG.EMAIL && (CFG.EMAIL.toTemplate || CFG.EMAIL.templateId);
+    var tplAuto = CFG.EMAIL && CFG.EMAIL.autoReplyTemplate;
+
+    if (window.emailjs && svcId && tplTo){
+      emailjs.send(svcId, tplTo, payload).then(function(){
+        if (tplAuto){ return emailjs.send(svcId, tplAuto, payload).catch(function(){ /* ignore */ }); }
+      }).then(function(){
+        showReservationSuccess('emailjs');
+      }).catch(function(){
+        fallbackMailto(payload);
+        showReservationSuccess('mailto');
+      });
+      return;
+    }
+
+    fallbackMailto(payload);
     showReservationSuccess('mailto');
+  }
+
+  function fallbackMailto(p){
+    var addr = CFG.email || (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) || 'info@example.com';
+    var body = [
+      'Reservierungsanfrage',
+      'Name: '+p.name,
+      'Datum: '+p.date_readable,
+      'Personen: '+p.persons,
+      'Telefon: '+(p.phone||'-'),
+      'E-Mail: '+p.email,
+      '— gesendet via Bot'
+    ].join('%0A');
+    try{ window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body; }catch(e){}
   }
 
   function showReservationSuccess(kind){
     var B = block('RESERVIERUNG'); B.setAttribute('data-block','reservieren-success');
-    if (kind === 'emailjs') { B.appendChild(line('Danke! Deine Reservierungsanfrage wurde gesendet. Wir melden uns asap. ✅')); }
-    else { B.appendChild(line('Hast du die E-Mail versendet? Falls ja, kannst du hier abschließen. ✉️')); }
-    B.appendChild(nav([ homeBtn(), doneBtn() ])); // „Fertig ✓“ nur hier
+    B.appendChild(line('Danke für deine Anfrage! Schau doch mal in deinem E-Mail-Postfach vorbei! ;)'));
+    B.appendChild(line('Möchtest du noch etwas anderes wissen?'));
+    var r = row();
+    r.appendChild(btn('Ja, zeig mir die Q&As', function(){ stepQAs(); }, 'ppx-cta', '❓'));
+    r.appendChild(btn('Nein, danke', function(){ var X=block(null); X.appendChild(line('Bis bald und buon appetito! 👋')); }, 'ppx-secondary', '✅'));
+    B.appendChild(r);
+    B.appendChild(nav([ homeBtn(), doneBtn() ]));
     jumpBottom();
   }
-
   // 6) ÖFFNUNGSZEITEN (ohne Nav; nach 3.0s Frage)
   function stepHours(){
     var scopeIdx = getScopeIndex();
     var B = block('ÖFFNUNGSZEITEN'); B.setAttribute('data-block','hours');
     var lines = CFG.hoursLines || [];
     if (!lines.length) { B.appendChild(line('Keine Zeiten hinterlegt.')); }
-    else { lines.forEach(function(rowArr){ var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr); B.appendChild(line('• '+txt)); }); }
-
-    // KEINE Nav hier (wunschgemäß)
-    jumpBottom();
-
+    else {
+      lines.forEach(function(rowArr){
+        var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr);
+        B.appendChild(line('• '+txt));
+      });
+    }
     // Nach identischem Delay wie bei Gerichten (3.0 s) die Reservierungsfrage einblenden
     setTimeout(function(){ askReserveAfterHours(scopeIdx); }, 3000);
   }
-
   function askReserveAfterHours(scopeIdx){
     var Q = block(null); Q.setAttribute('data-block','hours-ask');
     Q.appendChild(line('Passen die Zeiten? Wenn du magst, können wir jetzt mit der Reservierung fortfahren.'));
-
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
-
-    // Keine zusätzliche Nav nötig
-    jumpBottom();
   }
 
   // 7) KONTAKT
@@ -363,56 +504,51 @@
     var scopeIdx = getScopeIndex();
     var B = block('KONTAKTDATEN'); B.setAttribute('data-block','kontakt');
 
-    if (CFG.phone) {
+    if (CFG.phone){
       B.appendChild(line('📞 '+CFG.phone));
-      var r1 = row(); r1.style.justifyContent = 'flex-start';
+      var r1=row(); r1.style.justifyContent='flex-start';
       r1.appendChild(btn('Anrufen', function(){ window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,''); }, '', '📞'));
       B.appendChild(r1);
     }
-    if (CFG.email) {
+    if (CFG.email){
       B.appendChild(line('✉️  '+CFG.email));
-      var r2 = row(); r2.style.justifyContent = 'flex-start';
+      var r2=row(); r2.style.justifyContent='flex-start';
       r2.appendChild(btn('E-Mail schreiben', function(){ window.location.href='mailto:'+CFG.email; }, '', '✉️'));
       B.appendChild(r2);
     }
-    if (CFG.address) {
+    if (CFG.address){
       B.appendChild(line('📍 '+CFG.address));
-      var maps = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(CFG.address);
-      var r3 = row(); r3.style.justifyContent = 'flex-start';
-      r3.appendChild(btn('Anfahrt öffnen', function(){ window.open(maps, '_blank'); }, '', '🗺️'));
+      var maps='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(CFG.address);
+      var r3=row(); r3.style.justifyContent='flex-start';
+      r3.appendChild(btn('Anfahrt öffnen', function(){ window.open(maps,'_blank'); }, '', '🗺️'));
       B.appendChild(r3);
     }
 
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-    jumpBottom();
   }
-  // 8) Q&As (zentrierter Header + PDF-Link, 1s-Delay bis Kategorien)
+
+  // 8) Q&As
   function getFaqPdfUrl(){
     return (CFG.faqPdf) ||
            ((isObj(FAQ) && FAQ.pdfUrl) ? FAQ.pdfUrl : null) ||
            (CFG.pdf && (CFG.pdf.faq || CFG.pdf.url)) ||
            'pizza_papa_faq.pdf';
   }
-
-  // Wunsch-Reihenfolge & erlaubte Kategorien
   var FAQ_ORDER = ['Speisekarte','Allergene','Lieferung','Öffnungszeiten','Preise','Bestellung'];
   function orderFaqCats(cats){
-    // Filter auf erlaubte, dann nach ORDER sortieren
     var allow = Object.create(null); FAQ_ORDER.forEach(function(t){ allow[t]=1; });
     var filtered = cats.filter(function(c){
       var t = (c.title||c.name||'').trim();
-      // Normalize: "Speisekarte & Klassiker" -> "Speisekarte"
       if (/speisekarte/i.test(t)) c.title = 'Speisekarte';
       return allow[c.title||c.name];
     });
     var pos = Object.create(null); FAQ_ORDER.forEach(function(t,i){ pos[t]=i; });
     return filtered.sort(function(a,b){
-      var ta = a.title||a.name||''; var tb = b.title||b.name||'';
+      var ta=a.title||a.name||'', tb=b.title||b.name||'';
       var ia = ta in pos ? pos[ta] : 999, ib = tb in pos ? pos[tb] : 999;
       return ia-ib || ta.localeCompare(tb);
     });
   }
-
   function getFaqCats(){
     if (Array.isArray(FAQ)) {
       return orderFaqCats([{ key:'all', title:'Speisekarte', icon:'🍕', items:FAQ }]);
@@ -425,24 +561,19 @@
     }
     return [];
   }
-
   function stepQAs(){
     var scopeIdx = getScopeIndex();
     var B = block('Q&As'); B.setAttribute('data-block','faq-root');
-    // Header zentriert via CSS
+
     var rTop = row(); rTop.className += ' ppx-center';
-    rTop.appendChild(btn('Alle FAQs als PDF', function(){
-      try{ window.open(getFaqPdfUrl(), '_blank','noopener'); }catch(e){}
-    }, '', '📄'));
+    rTop.appendChild(btn('Alle FAQs als PDF', function(){ try{ window.open(getFaqPdfUrl(),'_blank','noopener'); }catch(e){} }, '', '📄'));
     B.appendChild(rTop);
 
-    // Kategorien erst nach 1s
     setTimeout(function(){
       var cats = getFaqCats();
       if (!cats.length){
         B.appendChild(line('Häufige Fragen folgen in Kürze.'));
-        B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-        jumpBottom(); return;
+        B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ])); return;
       }
       B.appendChild(line('Wonach möchtest du schauen?'));
       var G = grid();
@@ -452,10 +583,8 @@
       });
       B.appendChild(G);
       B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-      jumpBottom();
     }, 1000);
   }
-
   function renderFaqCat(ct){
     var scopeIdx = getScopeIndex();
     var title = (ct && (ct.title || ct.name)) || 'Fragen';
@@ -464,12 +593,11 @@
 
     if (!items.length){
       B.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.'));
-      B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-      jumpBottom(); return;
+      B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ])); return;
     }
 
     B.appendChild(line('Wähle eine Frage:'));
-    var L = el('div', { class:'ppx-row' }); // Fragen volle Breite
+    var L = row();
     items.forEach(function(it){
       var q = (it && (it.q || it.question)) || '';
       if (!q) return;
@@ -477,15 +605,11 @@
     });
     B.appendChild(L);
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-    jumpBottom();
   }
-
-  // Spezial-Erkennung: „Wie bestelle ich am schnellsten?“
   function isOrderQuick(it){
     var q = (it && (it.q || it.question) || '').toLowerCase();
     return (it && it.special === 'orderQuick') || /wie\s+bestelle\s+ich\s+am\s+schnellsten/.test(q);
   }
-
   function renderFaqAnswer(ct, it, backScopeIdx){
     var q = (it && (it.q || it.question)) || 'Frage';
     var a = (it && (it.a || it.answer)) || '';
@@ -496,7 +620,6 @@
     if (more) B.appendChild(line(more));
 
     if (isOrderQuick(it)){
-      // Quick-Actions: Lieferando + Anrufen, KEINE Reservierungsfrage
       var r = row(); r.style.justifyContent = 'flex-start';
       var orderUrl = (CFG.orderUrl || (CFG.links && CFG.links.lieferando) || 'https://www.lieferando.de/');
       r.appendChild(btn('Lieferando öffnen', function(){ try{ window.open(orderUrl,'_blank','noopener'); }catch(e){} }, 'ppx-cta', '⚡'));
@@ -504,29 +627,20 @@
         r.appendChild(btn('Anrufen', function(){ window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,''); }, '', '📞'));
       }
       B.appendChild(r);
-      // Nav: Zurück & Hauptmenü (kein Reserve-CTA hier)
       B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
-      jumpBottom();
       return;
     }
 
-    // Standard: CTA nach Delay -> nur Reservieren (wie Speisen-Flow)
     setTimeout(function(){ askAfterFaqAnswer(backScopeIdx); }, 3000);
-    jumpBottom();
   }
-
   function askAfterFaqAnswer(backScopeIdx){
     var Q = block(null); Q.setAttribute('data-block','faq-answer-ask');
     Q.appendChild(line('Hilft dir das? Möchtest du als nächstes reservieren? 🙂'));
-
-    var r = row(); r.style.justifyContent = 'flex-start';
+    var r = row(); r.style.justifyContent='flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
-
-    // Optionaler „← Zurück“ unten wie im Speisen-Flow
     Q.appendChild(nav([ backBtnAt(backScopeIdx) ]));
-    jumpBottom();
   }
 
 })(); // Ende IIFE
