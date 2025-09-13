@@ -1,5 +1,5 @@
 /* ============================================================================
-   PPX Widget (v7.4.4 – Home-Optionen zentriert + Kontaktformular + Delays)
+   PPX Widget (v7.4.6 – EmailJS live + Back-Button compact)
    - Reservierung: Name → Datum → Zeit (Gruppen → Slots) → Personen → Phone? → E-Mail
    - Kontaktformular: Intro → E-Mail → Nachricht → Absenden (EmailJS + Fallback)
    - Delays: D = { tap:260, step:450, sub:550, long:1000 }
@@ -18,7 +18,7 @@
   var D = { tap:260, step:450, sub:550, long:1000 };
   function delay(fn, ms){ setTimeout(fn, ms); }
 
-  // EmailJS init
+  // EmailJS init (braucht publicKey in bot.json)
   (function () {
     try {
       if (W.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
@@ -110,13 +110,13 @@
 /* Fragen volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-cat"] .ppx-row > .ppx-b{ width:100% !important; }
 
-/* Nav */
-#ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
+/* Nav (Back-Button kompakt links) */
+#ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; align-items:center; flex-wrap:wrap; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
+#ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b.ppx-back{ flex:0 0 auto; width:auto !important; min-width:130px; font-size:14px !important; padding:8px 10px !important; }
 `;
     var tag = document.createElement('style'); tag.id = 'ppx-style-v73'; tag.textContent = css; document.head.appendChild(tag);
   })();
-
   // 1) Init
   var $launch, $panel, $close, $view; var BOUND = false;
   function queryDom(){ $launch=document.getElementById('ppx-launch'); $panel=document.getElementById('ppx-panel'); $close=document.getElementById('ppx-close'); $view=document.getElementById('ppx-v'); return !!($launch&&$panel&&$close&&$view); }
@@ -176,8 +176,7 @@
     var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
   }
   function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
-  function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary'); }
-
+  function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary ppx-back'); }
   // Home
   function stepHome(force){
     if (!force && $view && $view.querySelector('[data-block="home"]')) return;
@@ -265,7 +264,6 @@
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
-
   function renderItem(catKey, item){
     var scopeIdx = getScopeIndex();
     var title = (item && item.name) ? item.name : pretty(catKey);
@@ -451,7 +449,6 @@
 
     delay(function(){ B.appendChild(slotWrap); B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ])); }, D.sub);
   }
-
   // Persons
   function renderResvPersons(){
     var scopeIdx = getScopeIndex();
@@ -521,7 +518,7 @@
     B.appendChild(r);
   }
 
-  // Submit Reservation
+  // Submit Reservation (EmailJS → Fallback mailto)
   function submitReservation(){
     var brand = (CFG.brand||'Restaurant');
     var payload = {
@@ -529,10 +526,12 @@
       name: RESV.name,
       date_iso: RESV.dateISO,
       date_readable: RESV.dateReadable + ' ' + RESV.time + ' Uhr',
+      date: RESV.dateReadable,
       time: RESV.time,
       persons: RESV.persons,
       phone: RESV.phone||'',
-      email: RESV.email
+      email: RESV.email,
+      message: "" // optional: Wunschfeld (nicht im Flow)
     };
     var svcId = CFG.EMAIL && (CFG.EMAIL.service || CFG.EMAIL.serviceId);
     var tplTo = CFG.EMAIL && (CFG.EMAIL.toTemplate || CFG.EMAIL.templateId);
@@ -552,7 +551,7 @@
     var bodyLines = [
       'Reservierungsanfrage',
       'Name: '+p.name,
-      'Datum: '+p.date_readable,
+      'Datum: '+p.date+' '+p.time+' Uhr',
       'Personen: '+p.persons,
       'Telefon: '+(p.phone||'-'),
       'E-Mail: '+p.email,
@@ -721,6 +720,7 @@
     r.appendChild(btn('Zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     B.appendChild(r);
   }
+
   // 8) Q&As
   function getFaqPdfUrl(){
     return (CFG.faqPdf) ||
