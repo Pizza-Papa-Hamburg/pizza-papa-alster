@@ -34,7 +34,8 @@
       "autoReplyTemplate": "template_hnwo39i"
     },
     "menuOrder": ["antipasti", "pizza", "pasta", "drinks", "salads", "desserts"],
-    "menuPdf": "speisekarte_test.pdf"
+    "menuPdf": "speisekarte_test.pdf",
+    "faqPdf": "faq_pizzapapa.pdf"
   },
   "dishes": {
     "antipasti": [
@@ -88,6 +89,92 @@
       { "id": "tiramisu",   "name": "Tiramisu",    "price": "6,50 €", "info": "Klassisch, hausgemacht." },
       { "id": "pannacotta", "name": "Panna Cotta", "price": "5,90 €", "info": "Mit Beerensauce." },
       { "id": "gelato",     "name": "Gelato",      "price": "5,50 €", "info": "2 Kugeln nach Wahl." }
+    ]
+  },
+    "faqs": {
+    "title": "Pizza Papa – FAQ",
+    "pdfUrl": "faq_pizzapapa.pdf",
+    "cats": [
+      {
+        "key": "speisekarte",
+        "title": "Speisekarte & Klassiker",
+        "icon": "🍕",
+        "items": [
+          { "q": "Was ist eure beliebteste Pizza?", "a": "Margherita, Diavola und unser „Papa Special“ mit Salsiccia & Paprika gehören zu den Topsellern." },
+          { "q": "Gibt es glutenfreie Pizza?", "a": "Ja – auf Wunsch mit glutenfreiem Boden (+2,00 €). Hinweis: Spuren können produktionsbedingt nicht ausgeschlossen werden." },
+          { "q": "Kann ich halb/halb bestellen?", "a": "Ja. L-Pizzen ohne Aufpreis, XL gegen 1,00 € Aufpreis." }
+        ]
+      },
+      {
+        "key": "allergene",
+        "title": "Allergene & Unverträglichkeiten",
+        "icon": "🧀",
+        "items": [
+          { "q": "Welche Allergene kommen häufig vor?", "a": "Gluten (Weizen), Milch, Ei; Spuren von Schalenfrüchten können vorkommen." },
+          { "q": "Habt ihr laktosefreie Optionen?", "a": "Ja – veganer Käse oder ohne Käse. Buffalo-Mozzarella ist laktoseärmer, aber nicht laktosefrei." },
+          { "q": "Sind eure Produkte nussfrei?", "a": "Wir setzen keine Nüsse als Standard ein; Spuren sind möglich." }
+        ]
+      },
+      {
+        "key": "lieferung",
+        "title": "Lieferung & Abholung",
+        "icon": "🚗",
+        "items": [
+          { "q": "Wie lange dauert die Lieferung?", "a": "In der Regel 30–45 Minuten – abhängig von Auslastung und Wetter." },
+          { "q": "Welche Gebiete beliefert ihr?", "a": "Innenstadt & angrenzende Viertel: Altstadt (20095), St. Georg (20099), Neustadt (20354), HafenCity (20457), Eimsbüttel (20144/20253), Winterhude (20249), Altona-Altstadt (22765) u. a." },
+          { "q": "Mindestbestellwert?", "a": "12,00 € im gesamten Liefergebiet." },
+          { "q": "Lieferkosten?", "a": "Zone A 2,50 € (20095–20459, 20099), Zone B 3,90 € (20144, 20249, 20253, 22765). Ab 25,00 € versandkostenfrei." },
+          { "q": "Bietet ihr Abholung an?", "a": "Ja, jederzeit – ohne Mindestbestellwert." }
+        ]
+      },
+      {
+        "key": "oeffnungszeiten",
+        "title": "Öffnungszeiten & Standort",
+        "icon": "⏰",
+        "items": [
+          { "q": "Wann habt ihr geöffnet?", "a": "Die aktuellen Zeiten siehst du im Bot unter „Öffnungszeiten“ – wir zeigen sie dort direkt an." },
+          { "q": "Wo findet man euch?", "a": "Adresse laut Website unter „Kontaktdaten“. Per Klick öffnest du die Route in Google Maps." },
+          { "q": "Ist die Küche durchgehend geöffnet?", "a": "Unter der Woche bis 22:00 Uhr; am Wochenende bis 24:00 Uhr." }
+        ]
+      },
+      {
+        "key": "preise",
+        "title": "Preise & Zahlung",
+        "icon": "💳",
+        "items": [
+          { "q": "Welche Zahlarten akzeptiert ihr?", "a": "Bar, EC/Kreditkarte, Apple Pay und Google Pay." },
+          { "q": "Gibt es Mittagsdeals?", "a": "Ja – Mo–Fr 12:00–15:00: Pizza oder Pasta + Softdrink ab 9,90 €." },
+          { "q": "Fallen Onlinegebühren an?", "a": "Je nach Plattform können Servicegebühren anfallen – wir zeigen alles transparent vor Abschluss an." }
+        ]
+      },
+      {
+        "key": "bestellung",
+        "title": "Bestellung & Reservierung",
+        "icon": "📞",
+        "items": [
+          { "q": "Wie bestelle ich am schnellsten?", "a": "Direkt hier im Bot über „Bestellen“ oder telefonisch unter +49 40 1234567." },
+          { "q": "Kann ich einen Tisch reservieren?", "a": "Klar – hier im Bot: Personen, Datum, Uhrzeit. Gruppen ab 8 Personen bitte anrufen." },
+          { "q": "Kann ich für später vorbestellen?", "a": "Ja – Wunschzeit im Checkout auswählen, wir backen pünktlich frisch." }
+        ]
+      },
+      {
+        "key": "qualitaet",
+        "title": "Qualität & Herkunft",
+        "icon": "🧑‍🍳",
+        "items": [
+          { "q": "Welche Tomaten & Mehle nutzt ihr?", "a": "San Marzano DOP, Tipo „00“, 48 h Teigruhe, Steinofen – klassisch italienisch." },
+          { "q": "Ist euer Teig vegan?", "a": "Ja. Vegane Pizzen sind mit Gemüse und/oder veganem Käse möglich." }
+        ]
+      },
+      {
+        "key": "catering",
+        "title": "Aktionen & Catering",
+        "icon": "🎉",
+        "items": [
+          { "q": "Gibt es Familien- oder Party-Menüs?", "a": "Family Box: 2 XL Pizzen + Beilagensalat + 1,5 l Softdrink – Paketpreis 34,90 €." },
+          { "q": "Bietet ihr Catering an?", "a": "Ja – für 10–120 Personen, auf Wunsch mit mobiler Pizza-Station. Anfrage gern per Bot oder telefonisch." }
+        ]
+      }
     ]
   }
 }
