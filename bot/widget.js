@@ -1,5 +1,5 @@
 /* ============================================================================
-   PPX Widget (v7.4.6 – EmailJS live + Back-Button compact)
+   PPX Widget (v7.4.9 – EmailJS lazy init + kompakter Back-Button)
    - Reservierung: Name → Datum → Zeit (Gruppen → Slots) → Personen → Phone? → E-Mail
    - Kontaktformular: Intro → E-Mail → Nachricht → Absenden (EmailJS + Fallback)
    - Delays: D = { tap:260, step:450, sub:550, long:1000 }
@@ -14,18 +14,24 @@
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs  || [];
 
+  // Version sichtbar machen
+  try { W.PPX_VERSION = '7.4.9'; console.log('[PPX] widget v'+W.PX_VERSION+' loaded'); } catch(e){}
+
   // Delays
   var D = { tap:260, step:450, sub:550, long:1000 };
   function delay(fn, ms){ setTimeout(fn, ms); }
 
-  // EmailJS init (braucht publicKey in bot.json)
-  (function () {
-    try {
-      if (W.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey) {
+  // EmailJS lazy init → sicher vor jedem Send
+  var EMAIL_INIT_DONE = false;
+  function ensureEmailJsInit(){
+    try{
+      if (!EMAIL_INIT_DONE && W.emailjs && CFG.EMAIL && CFG.EMAIL.publicKey){
         W.emailjs.init({ publicKey: CFG.EMAIL.publicKey });
+        EMAIL_INIT_DONE = true;
       }
-    } catch (e) {}
-  })();
+    }catch(e){}
+    return !!(W.emailjs && EMAIL_INIT_DONE);
+  }
 
   // STYLE (Reservierungsflow & UI)
   (function () {
@@ -87,7 +93,7 @@
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{ min-height:96px; resize:vertical; }
 
-/* >>> Reservierungsflow: volle Breite */
+/* Reservierungsflow volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block^="resv-"]{ max-width:100% !important; margin-left:0 !important; margin-right:0 !important; }
 
 /* Slotgrid & Gruppen */
@@ -97,10 +103,10 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-group{ width:auto !important; min-width:160px; justify-content:center !important; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-slotwrap{ margin-top:8px; }
 
-/* >>> Speisen-Kategorien (zentriert) */
+/* Kategorien zentriert */
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-cat{ justify-content:center !important; text-align:center !important; }
 
-/* >>> HOME: Buttons & Text zentriert */
+/* HOME zentriert */
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-row{ justify-content:center !important; }
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b,
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{
@@ -170,13 +176,7 @@
     if(ic) a['data-ic']=ic;
     var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
   }
-  function chip(label, onClick, extraCls, ic){
-    var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'};
-    if(ic) a['data-ic']=ic;
-    var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
-  }
-  function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
-  function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary ppx-back'); }
+  function chip(label, onClick, extr
   // Home
   function stepHome(force){
     if (!force && $view && $view.querySelector('[data-block="home"]')) return;
@@ -518,7 +518,7 @@
     B.appendChild(r);
   }
 
-  // Submit Reservation (EmailJS → Fallback mailto)
+  // Submit Reservation (EmailJS → Fallback nur bei Fehler)
   function submitReservation(){
     var brand = (CFG.brand||'Restaurant');
     var payload = {
@@ -531,13 +531,13 @@
       persons: RESV.persons,
       phone: RESV.phone||'',
       email: RESV.email,
-      message: "" // optional: Wunschfeld (nicht im Flow)
+      message: ""
     };
     var svcId = CFG.EMAIL && (CFG.EMAIL.service || CFG.EMAIL.serviceId);
     var tplTo = CFG.EMAIL && (CFG.EMAIL.toTemplate || CFG.EMAIL.templateId);
     var tplAuto = CFG.EMAIL && CFG.EMAIL.autoReplyTemplate;
 
-    if (window.emailjs && svcId && tplTo){
+    if (ensureEmailJsInit() && svcId && tplTo){
       emailjs.send(svcId, tplTo, payload).then(function(){
         if (tplAuto){ return emailjs.send(svcId, tplAuto, payload).catch(function(){}); }
       }).then(function(){ showReservationSuccess('emailjs'); })
@@ -689,7 +689,7 @@
     var tplContact = CFG.EMAIL && (CFG.EMAIL.contactTemplate || CFG.EMAIL.contactTemplateId);
     var tplContactAuto = CFG.EMAIL && CFG.EMAIL.contactAutoReplyTemplate;
 
-    if (window.emailjs && svcId && tplContact){
+    if (ensureEmailJsInit() && svcId && tplContact){
       emailjs.send(svcId, tplContact, payload).then(function(){
         if (tplContactAuto){ return emailjs.send(svcId, tplContactAuto, payload).catch(function(){}); }
       }).then(function(){ showContactSuccess('emailjs'); })
@@ -721,7 +721,7 @@
     B.appendChild(r);
   }
 
-  // 8) Q&As
+  // 8) Q&As … (Rest wie gehabt)
   function getFaqPdfUrl(){
     return (CFG.faqPdf) ||
            ((isObj(FAQ) && FAQ.pdfUrl) ? FAQ.pdfUrl : null) ||
