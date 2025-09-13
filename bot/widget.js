@@ -1,11 +1,11 @@
 /* ============================================================================
-   PPX Widget (v6 COMPACT + UX-Update)
-   Änderungen:
-   - Mini Pre-Delay Speisen (0.4s) + 1.0s Delay nach PDF bis Kategorien.
-   - „Zurück“ & „Zurück ins Hauptmenü“ als dezente Secondary-Buttons.
-   - Hauptmenü-Icon jetzt 🏠; „Zurück“ behält ← im Label.
-   - Reservierungsfrage (Gerichte): 🗓️ „Ja“, 🏠 „Nein“ nach 3.0s.
-   - Öffnungszeiten: KEINE Nav, nach 3.0s Frage mit 🗓️/🏠.
+   PPX Widget (v6 COMPACT + UX-Update + Q&A-Flow)
+   Änderungen (dieses Build):
+   - Q&A: Kategorien als Kachel-Grid; Fragen als Vollbreite-Buttons.
+   - Q&A: Sekundärlink "Alle FAQs als PDF" ganz oben; Kategorien erscheinen nach 1.0s.
+   - Q&A: Nach Antwort CTA mit Delay (3.0s): „Bestellen“, „Tisch reservieren“, „Weitere Fragen“.
+   - Speisen: Unverändert (inkl. 0.4s Pre-Delay + PDF zuerst + 1.0s bis Kategorien).
+   - Öffnungszeiten: KEINE Nav; nach 3.0s Reservierungsfrage mit 🗓️/🏠.
    ============================================================================ */
 (function () {
   'use strict';
@@ -15,7 +15,7 @@
   var DATA = W.__PPX_DATA__ || {};
   var CFG = DATA.cfg || {};
   var DISH = DATA.dishes || {};
-  var FAQ = DATA.faqs || [];
+  var FAQ  = DATA.faqs  || [];   // jetzt Kategorie-fähig
   var STICKY = true;
 
   // EmailJS init (optional)
@@ -82,25 +82,29 @@
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
 }
 /* Cat-Icons größer */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before{ width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18); }
-/* 2 Spalten in Speisen */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before,
+#ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-chip.ppx-cat::before{ width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18); }
+/* 2 Spalten in Speisen/FAQ */
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid,
+#ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"]     .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 /* Kachel + 2-Zeilen-Clamp */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b .ppx-label, #ppx-panel.ppx-v5 #ppx-v .ppx-chip .ppx-label{
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; line-height:1.25; text-align:left;
 }
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-chip{ min-height:64px; align-items:center; }
-/* Links-Ausrichtung Speisen */
+/* Links-Ausrichtung */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-b, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip,
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-b,  #ppx-panel.ppx-v5 #ppx-v .ppx-b{ justify-content:flex-start !important; text-align:left !important; }
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-b,  #ppx-panel.ppx-v5 #ppx-v .ppx-b,
+#ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-chip{ justify-content:flex-start !important; text-align:left !important; }
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-label, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-label{ text-align:left !important; }
 /* Nav gleich breit */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
 @media (max-width:380px){
   #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
+  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid,
+  #ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"]     .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 }
 `;
     var tag = document.createElement('style'); tag.id = 'ppx-style-v6'; tag.textContent = css; document.head.appendChild(tag);
@@ -145,6 +149,7 @@
   function chip(label, onClick, extraCls, ic){ var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
   function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
   function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary'); }
+
   // Home (mit echtem Reset)
   function stepHome(force){
     if (!force && $view && $view.querySelector('[data-block="home"]')) return;
@@ -161,7 +166,6 @@
   function goHome(){ popToScope(0); stepHome(true); }
   function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', '🏠'); }
   function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
-
   // 4) SPEISEN
   function stepSpeisen(){
     var scopeIdx = getScopeIndex();
@@ -174,7 +178,8 @@
   }
 
   function orderCats(keys){
-    var pref = ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
+    var pref = Array.isArray(CFG.menuOrder) && CFG.menuOrder.length ? CFG.menuOrder.map(pretty) :
+               ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
     var pos  = Object.create(null);
     pref.forEach(function(k,i){ pos[k]=i; });
     return keys.slice().sort(function(a,b){
@@ -236,6 +241,7 @@
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
+
   function renderItem(catKey, item){
     var scopeIdx = getScopeIndex();
     var title = (item && item.name) ? item.name : pretty(catKey);
@@ -382,14 +388,118 @@
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
+  // 8) Q&As (mit Kategorien, PDF-Link oben, 1s-Delay bis Kategorien)
+  function getFaqPdfUrl(){
+    // Mehrere Fallbacks erlaubt
+    var url = (CFG.faqPdf) ||
+              (isObj(FAQ) && FAQ.pdfUrl) ||
+              (CFG.pdf && (CFG.pdf.faq || CFG.pdf.url)) ||
+              'faq_pizzapapa.pdf';
+    return url;
+  }
 
-  // 8) Q&As
+  function getFaqCats(){
+    // Unterstützt: Array einfacher Q&As, oder Objekt { cats: [...] }
+    if (Array.isArray(FAQ)) {
+      return [{
+        key:'allgemein', title:'Alle Fragen', icon:'❓',
+        items: FAQ
+      }];
+    }
+    if (isObj(FAQ)) {
+      if (Array.isArray(FAQ.cats)) return FAQ.cats;
+      if (Array.isArray(FAQ.items)) {
+        return [{ key:'allgemein', title: (FAQ.title||'Alle Fragen'), icon:(FAQ.icon||'❓'), items:FAQ.items }];
+      }
+    }
+    return [];
+  }
+
   function stepQAs(){
     var scopeIdx = getScopeIndex();
-    var B = block('Q&As'); B.setAttribute('data-block','faq');
-    if (!Array.isArray(FAQ) || !FAQ.length) { B.appendChild(line('Häufige Fragen folgen in Kürze.')); }
-    else { FAQ.forEach(function(f){ var q=(f&&(f.q||f.question))||''; var a=(f&&(f.a||f.answer))||''; if(q) B.appendChild(line('• '+q)); if(a) B.appendChild(line('↳ '+a)); }); }
+    var B = block('Q&As'); B.setAttribute('data-block','faq-root');
+
+    // Sekundärlink ganz oben: PDF direkt
+    var pdfUrl = getFaqPdfUrl();
+    var rTop = row(); rTop.style.justifyContent = 'flex-start';
+    rTop.appendChild(btn('Alle FAQs als PDF', function(){ try{ window.open(pdfUrl,'_blank','noopener'); }catch(e){} }, '', '📄'));
+    B.appendChild(rTop);
+
+    // Nach 1 Sekunde Kategorien anzeigen
+    setTimeout(function(){
+      var cats = getFaqCats();
+      if (!cats.length){
+        B.appendChild(line('Häufige Fragen folgen in Kürze.'));
+        B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+        jumpBottom();
+        return;
+      }
+
+      B.appendChild(line('Wonach möchtest du schauen?'));
+      var G = grid();
+      cats.forEach(function(ct){
+        var label = (ct.icon ? (ct.icon+' ') : '') + (ct.title || 'Kategorie');
+        G.appendChild(chip(label, function(){ renderFaqCat(ct); }, 'ppx-cat'));
+      });
+      B.appendChild(G);
+      B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+      jumpBottom();
+    }, 1000);
+  }
+
+  function renderFaqCat(ct){
+    var scopeIdx = getScopeIndex();
+    var title = (ct && (ct.title || ct.name)) || 'Fragen';
+    var items = (ct && Array.isArray(ct.items)) ? ct.items.slice() : [];
+    var B = block(title); B.setAttribute('data-block','faq-cat');
+
+    if (!items.length){
+      B.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.'));
+      B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+      jumpBottom();
+      return;
+    }
+
+    B.appendChild(line('Wähle eine Frage:'));
+    // Fragen als Vollbreite-Buttons (ganze Zeile)
+    var L = el('div', { class:'ppx-row' });
+    items.forEach(function(it){
+      var q = (it && (it.q || it.question)) || '';
+      if (!q) return;
+      L.appendChild(btn(q, function(){ renderFaqAnswer(ct, it, scopeIdx); }, '', '➜'));
+    });
+    B.appendChild(L);
+
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+    jumpBottom();
+  }
+
+  function renderFaqAnswer(ct, it, backScopeIdx){
+    var q = (it && (it.q || it.question)) || 'Frage';
+    var a = (it && (it.a || it.answer)) || '';
+    var more = it && it.more;
+
+    var B = block(q); B.setAttribute('data-block','faq-answer');
+    if (a)   B.appendChild(line(a));
+    if (more) B.appendChild(line(more));
+
+    // CTA nach Delay (3.0 s): Bestellen / Reservieren / Weitere Fragen
+    setTimeout(function(){ askAfterFaqAnswer(backScopeIdx); }, 3000);
+    jumpBottom();
+  }
+
+  function askAfterFaqAnswer(backScopeIdx){
+    var Q = block(null); Q.setAttribute('data-block','faq-answer-ask');
+    Q.appendChild(line('Hilft dir das? Möchtest du jetzt bestellen oder einen Tisch reservieren?'));
+
+    var r = row(); r.style.justifyContent = 'flex-start';
+    r.appendChild(btn('Bestellen', function(){ stepSpeisen(); }, 'ppx-cta', '🍽️'));
+    r.appendChild(btn('Tisch reservieren', function(){ stepReservieren(); }, '', '🗓️'));
+    r.appendChild(btn('Weitere Fragen', function(){ popToScope(backScopeIdx); }, 'ppx-secondary', '❓'));
+    Q.appendChild(r);
+
+    // Optional: ein einfacher „← Zurück“-Button reicht
+    Q.appendChild(nav([ backBtnAt(backScopeIdx) ]));
     jumpBottom();
   }
 
