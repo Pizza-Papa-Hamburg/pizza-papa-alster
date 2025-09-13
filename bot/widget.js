@@ -1,10 +1,11 @@
 /* ============================================================================
-   PPX Widget (v7.3 – Reservation Flow adaptive)
+   PPX Widget (v7.3.1 – Reservation Flow adaptive + fixes)
    - Reservierung: Name → Datum → Zeit (30-min Slots, adaptive Gruppen) → Personen → Phone? → E-Mail
    - Slots: aus CFG.OPEN (0=So..6=Sa), letzte Stunde ausgenommen, mind. 4h Vorlauf (heute)
    - Gruppenbildung: automatisch 1–3 Gruppen je nach Fensterlänge; min. 2 Slots/Gruppe
    - EmailJS: 2 Sends (Restaurant + Auto-Reply), Fallback: mailto
-   - Reservierungsblöcke nutzen volle Panelbreite; Slotliste ist scrollbar
+   - Reservierungsblöcke volle Breite; Slotliste scrollbar
+   - FIX: pretty() Syntax, Slots < (close-60) statt ≤
    ============================================================================ */
 (function () {
   'use strict';
@@ -25,7 +26,7 @@
     } catch (e) {}
   })();
 
-  // STYLE (inkl. Reservierungsflow-Volle-Breite & Slotgrid)
+  // STYLE (Reservierungsflow-Volle-Breite & Slotgrid)
   (function () {
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
@@ -119,8 +120,22 @@
   // 2) Utils
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
   function jumpBottom(){ if(!$view) return; try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){} }
-  function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){ if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); } else if(k==='text'){ n.textContent=attrs[k]; } else if(k==='html'){ n.innerHTML=attrs[k]; } else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); } else { n.setAttribute(k, attrs[k]); } }); for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); } return n; }
-  function pretty(s){ return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g(function(c){ return c.toUpperCase(); }); }
+  function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){
+    if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); }
+    else if(k==='text'){ n.textContent=attrs[k]; }
+    else if(k==='html'){ n.innerHTML=attrs[k]; }
+    else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); }
+    else { n.setAttribute(k, attrs[k]); }
+  });
+  for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); }
+  return n; }
+  function pretty(s){
+    return String(s||'')
+      .replace(/[_-]+/g,' ')
+      .replace(/\s+/g,' ')
+      .trim()
+      .replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  }
   function block(title,opts){ opts=opts||{}; var w=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}}); if(title) w.appendChild(el('div',{class:'ppx-h'},title)); if($view) $view.appendChild(w); jumpBottom(); return w; }
   function line(txt){ return el('div',{class:'ppx-m'},txt); }
   function row(){ return el('div',{class:'ppx-row'}); }
@@ -150,17 +165,6 @@
   function goHome(){ popToScope(0); stepHome(true); }
   function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', '🏠'); }
   function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
-  // --- kleine Korrektur (pretty) ---
-  // In Part 1 wurde pretty() versehentlich mit Tippfehler eingefügt.
-  // Hier setzen wir es korrekt neu.
-  pretty = function (s) {
-    return String(s || '')
-      .replace(/[_-]+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
-  };
-
   // 4) SPEISEN
   function stepSpeisen(){
     var scopeIdx = getScopeIndex();
@@ -343,7 +347,7 @@
     if (lastStart <= openMin) return [];
 
     var slots = [];
-    for(var t=openMin; t<=lastStart; t+=30){ slots.push(t); }
+    for(var t=openMin; t<lastStart; t+=30){ slots.push(t); } // STRICT < lastStart
 
     // Lead-Time 4h nur für HEUTE
     var now = new Date();
@@ -371,25 +375,24 @@
     var cuts = [];
     for (var i=1; i<G; i++){ cuts.push(start + step*i); }
 
-    // Snap Cuts auf volle Stunde, wenn nah dran (±30)
+    // Snap Cuts auf volle Stunde, wenn nah dran (±30); sonst 30er Raster
     cuts = cuts.map(function(c){
       var onHour = Math.round(c / 60) * 60;
       if (Math.abs(onHour - c) <= 30) return onHour;
-      // ansonsten auf 30er Raster
       return Math.round(c / 30) * 30;
     });
 
-    // Sicherstellen: strikt aufsteigend & im Bereich
+    // gültige, sortierte Schnitte
     cuts = cuts.filter(function(c){ return c>start && c<end; })
                .sort(function(a,b){ return a-b; });
 
-    // Zu Gruppen teilen
+    // Zu Gruppen teilen (min. 2 Slots pro Gruppe)
     var bounds = [start].concat(cuts).concat([end]);
     var groups = [];
     for (var j=0; j<bounds.length-1; j++){
       var a = bounds[j], b = bounds[j+1];
       var gSlots = mins.filter(function(t){ return t>=a && t<=b; });
-      if (gSlots.length >= 2){ // min. zwei Slots (~≥60 min)
+      if (gSlots.length >= 2){
         groups.push({ from:gSlots[0], to:gSlots[gSlots.length-1], slots:gSlots });
       }
     }
@@ -522,7 +525,7 @@
 
   function fallbackMailto(p){
     var addr = CFG.email || (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) || 'info@example.com';
-    var body = [
+    var bodyLines = [
       'Reservierungsanfrage',
       'Name: '+p.name,
       'Datum: '+p.date_readable,
@@ -530,8 +533,9 @@
       'Telefon: '+(p.phone||'-'),
       'E-Mail: '+p.email,
       '— gesendet via Bot'
-    ].join('%0A');
-    try{ window.location.href = 'mailto:'+addr+'?subject=Reservierung&body='+body; }catch(e){}
+    ];
+    var body = encodeURIComponent(bodyLines.join('\n'));
+    try{ window.location.href = 'mailto:'+addr+'?subject='+encodeURIComponent('Reservierung')+'&body='+body; }catch(e){}
   }
 
   function showReservationSuccess(kind){
