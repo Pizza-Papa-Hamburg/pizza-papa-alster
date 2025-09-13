@@ -1,9 +1,10 @@
 /* ============================================================================
-   PPX Widget (v7 – Reservation Flow)
-   - Neuer Reservierungsflow (Name → Datum → Slot 30min → Personen → Phone? → E-Mail)
-   - Slots: aus CFG.OPEN (0=So..6=Sa), 30-min, letzte Stunde ausgenommen, mind. 4h Vorlauf
-   - EmailJS: 2 Sends (toTemplate an Restaurant, autoReplyTemplate an Gast), Fallback: mailto
-   - Bestehende Speisen/FAQ/Öffnungszeiten-Logik bleibt erhalten
+   PPX Widget (v7.3 – Reservation Flow adaptive)
+   - Reservierung: Name → Datum → Zeit (30-min Slots, adaptive Gruppen) → Personen → Phone? → E-Mail
+   - Slots: aus CFG.OPEN (0=So..6=Sa), letzte Stunde ausgenommen, mind. 4h Vorlauf (heute)
+   - Gruppenbildung: automatisch 1–3 Gruppen je nach Fensterlänge; min. 2 Slots/Gruppe
+   - EmailJS: 2 Sends (Restaurant + Auto-Reply), Fallback: mailto
+   - Reservierungsblöcke nutzen volle Panelbreite; Slotliste ist scrollbar
    ============================================================================ */
 (function () {
   'use strict';
@@ -13,7 +14,7 @@
   var DATA = W.__PPX_DATA__ || {};
   var CFG  = DATA.cfg || {};
   var DISH = DATA.dishes || {};
-  var FAQ  = DATA.faqs  || [];   // Objekt mit {cats:[]} oder Array
+  var FAQ  = DATA.faqs  || [];
 
   // EmailJS init
   (function () {
@@ -24,11 +25,11 @@
     } catch (e) {}
   })();
 
-  // STYLE (inkl. Q&A-Zentrierung & Reservierungsflow-Hilfen)
+  // STYLE (inkl. Reservierungsflow-Volle-Breite & Slotgrid)
   (function () {
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
-      'ppx-style-v5','ppx-style-v5-override','ppx-style-v6','ppx-style-v7'
+      'ppx-style-v5','ppx-style-v5-override','ppx-style-v6','ppx-style-v7','ppx-style-v73'
     ].forEach(function(id){ var n=document.getElementById(id); if(n) n.remove(); });
 
     var css = `
@@ -42,10 +43,16 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot{ background:linear-gradient(180deg, rgba(14,59,51,.45), rgba(14,59,51,.30)); border:1px solid var(--ppx-border); border-radius:14px; padding:14px; margin:12px auto; max-width:640px; box-shadow:var(--ppx-shadow); text-align:left !important; }
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"]{ background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important; text-align:center !important; }
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"]{ background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important; }
+
+/* Headings + Body */
 #ppx-panel.ppx-v5 #ppx-v .ppx-h{ background:var(--ppx-green-800); color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:12px; padding:10px 12px; margin:-2px -2px 10px; font-family:"Cinzel", serif; font-weight:600; letter-spacing:.02em; text-transform:uppercase; font-size:18px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-m{ color:var(--ppx-ink); line-height:1.5; margin:6px 0 10px; font-family:"Cormorant Garamond", serif; font-weight:400; font-size:18px; }
+
+/* Rows/Grids */
 #ppx-panel.ppx-v5 #ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start !important; margin-top:8px; width:100%; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:8px; width:100%; }
+
+/* Buttons & Chips */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b, #ppx-panel.ppx-v5 #ppx-v .ppx-chip{
   -webkit-appearance:none; appearance:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:flex-start !important; gap:10px; width:100% !important; text-align:left;
   color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:14px; padding:10px 14px !important; background:var(--ppx-green-650);
@@ -54,37 +61,37 @@
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-600); }
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{
-  background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.22); padding:8px 12px !important; font-size:15px !important; box-shadow:none;
-}
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{ filter:brightness(1.10); box-shadow:0 0 0 2px rgba(230,196,138,.55) inset, 0 2px 8px rgba(0,0,0,.26); }
-#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b, #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{ justify-content:center !important; font-size:18.5px !important; padding:12px 16px !important; }
+#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.22); padding:8px 12px !important; font-size:15px !important; box-shadow:none; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; min-width:26px; border-radius:999px; background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
 }
-/* Cat-Icons größer */
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before,
-#ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-chip.ppx-cat::before{ width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18); }
-/* Nav gleich breit */
-#ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
-/* Q&A Header & PDF-Link zentriert */
+#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{ filter:brightness(1.10); box-shadow:0 0 0 2px rgba(230,196,138,.55) inset, 0 2px 8px rgba(0,0,0,.26); }
+
+/* Q&A Header zentriert */
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-h{ text-align:center; }
-#ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-center{ display:flex; justify-content:center; }
+
 /* Inputs */
 #ppx-panel.ppx-v5 #ppx-v .ppx-input{ display:flex; gap:8px; margin-top:8px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-input input, #ppx-panel.ppx-v5 #ppx-v .ppx-input select, #ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{
   width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.1); color:#fff; font-size:15px; outline:none;
 }
-#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-disabled{ opacity:.45; pointer-events:none; text-decoration:line-through; }
+
+/* >>> Reservierungsflow: volle Breite */
+#ppx-panel.ppx-v5 #ppx-v [data-block^="resv-"]{ max-width:100% !important; margin-left:0 !important; margin-right:0 !important; }
+
+/* Slotgrid: alle Zeiten sichtbar, eigener Scroll */
+#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{ grid-template-columns:repeat(3,minmax(0,1fr)); max-height:280px; overflow:auto; padding-right:4px; }
+@media (max-width:520px){ #ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{ grid-template-columns:repeat(2,minmax(0,1fr)); max-height:260px; } }
+
 /* Fragen volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-cat"] .ppx-row > .ppx-b{ width:100% !important; }
-@media (max-width:380px){
-  #ppx-panel.ppx-v5 #ppx-v .ppx-grid{ grid-template-columns:1fr 1fr !important; }
-}
+
+/* Nav */
+#ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
+#ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
 `;
-    var tag = document.createElement('style'); tag.id = 'ppx-style-v7'; tag.textContent = css; document.head.appendChild(tag);
+    var tag = document.createElement('style'); tag.id = 'ppx-style-v73'; tag.textContent = css; document.head.appendChild(tag);
   })();
 
   // 1) Init
@@ -113,7 +120,7 @@
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
   function jumpBottom(){ if(!$view) return; try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){} }
   function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){ if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); } else if(k==='text'){ n.textContent=attrs[k]; } else if(k==='html'){ n.innerHTML=attrs[k]; } else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); } else { n.setAttribute(k, attrs[k]); } }); for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); } return n; }
-  function pretty(s){ return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g,function(c){ return c.toUpperCase(); }); }
+  function pretty(s){ return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g(function(c){ return c.toUpperCase(); }); }
   function block(title,opts){ opts=opts||{}; var w=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}}); if(title) w.appendChild(el('div',{class:'ppx-h'},title)); if($view) $view.appendChild(w); jumpBottom(); return w; }
   function line(txt){ return el('div',{class:'ppx-m'},txt); }
   function row(){ return el('div',{class:'ppx-row'}); }
@@ -143,6 +150,17 @@
   function goHome(){ popToScope(0); stepHome(true); }
   function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', '🏠'); }
   function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
+  // --- kleine Korrektur (pretty) ---
+  // In Part 1 wurde pretty() versehentlich mit Tippfehler eingefügt.
+  // Hier setzen wir es korrekt neu.
+  pretty = function (s) {
+    return String(s || '')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  };
+
   // 4) SPEISEN
   function stepSpeisen(){
     var scopeIdx = getScopeIndex();
@@ -244,20 +262,19 @@
     Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
     jumpBottom();
   }
+
   // 5) RESERVIEREN – geführter Flow (Name → Datum → Zeit → Personen → Phone? → E-Mail)
   var RESV = null;
 
   function stepReservieren(){
     RESV = { name:'', dateISO:'', dateReadable:'', time:'', persons:'', phone:'', email:'' };
-    var B = block('RESERVIEREN'); B.setAttribute('data-block','resv-name');
+    var B = block('RESERVIEREN', {maxWidth:'100%'}); B.setAttribute('data-block','resv-name');
     B.appendChild(line('Du möchtest gerne reservieren?'));
     B.appendChild(line('Darf ich bitte deinen Namen wissen?'));
 
-    var rowIn = row();
-    var inp = el('input',{type:'text',placeholder:'Dein Name'});
-    rowIn.className = 'ppx-input';
-    rowIn.appendChild(inp);
-    B.appendChild(rowIn);
+    var rowIn = row(); rowIn.className='ppx-input';
+    var inp = el('input',{type:'text',placeholder:'Vor- und Nachname'});
+    rowIn.appendChild(inp); B.appendChild(rowIn);
 
     var r = row();
     r.appendChild(btn('Weiter', function(){
@@ -290,7 +307,7 @@
 
   function renderResvDate(){
     var scopeIdx = getScopeIndex();
-    var B = block('Perfekt, '+RESV.name+'! :)'); B.setAttribute('data-block','resv-date');
+    var B = block('Perfekt, '+RESV.name+'! :)', {maxWidth:'100%'}); B.setAttribute('data-block','resv-date');
     B.appendChild(line('Für welches Datum möchtest du reservieren?'));
 
     var rowIn = row(); rowIn.className='ppx-input';
@@ -300,7 +317,6 @@
     var r = row();
     r.appendChild(btn('Weiter', function(){
       var val = inp.value || '';
-      // Einige Browser liefern lokalisiertes Datum; parse fallback
       var d = val ? parseDateAny(val) : null;
       if(!d){ alert('Bitte wähle ein Datum.'); inp.focus(); return; }
       var iso = d.toISOString().slice(0,10);
@@ -311,8 +327,8 @@
     B.appendChild(r);
   }
 
-  // ---- Slots
-  function hmToMin(s){ var a=s.split(':'); var h=Number(a[0]), m=Number(a[1]||0); if(h===24&&m===0) return 1440; return h*60+m; }
+  // ---- Slot Utils
+  function hmToMin(s){ var a=s.split(':'), h=Number(a[0]), m=Number(a[1]||0); if(h===24&&m===0) return 1440; return h*60+m; }
   function minToHM(n){ var h=Math.floor(n/60), m=n%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
 
   function buildSlotsForDate(d){
@@ -321,47 +337,97 @@
     if(!span || !Array.isArray(span) || span.length<2) return [];
     var openMin = hmToMin(span[0]);
     var closeMin = hmToMin(span[1]);
-    if(closeMin - openMin < 90) return []; // weniger als 1.5h → praktisch zu
-    var lastStart = closeMin - 60; // letzte Stunde ausgenommen
+
+    // letzte Stunde ausnehmen
+    var lastStart = closeMin - 60;
+    if (lastStart <= openMin) return [];
+
     var slots = [];
-    for(var t=openMin; t<=lastStart; t+=30){ slots.push(minToHM(t)); }
+    for(var t=openMin; t<=lastStart; t+=30){ slots.push(t); }
 
     // Lead-Time 4h nur für HEUTE
     var now = new Date();
     var isToday = now.getFullYear()===d.getFullYear() && now.getMonth()===d.getMonth() && now.getDate()===d.getDate();
     if(isToday){
       var lead = (now.getHours()*60 + now.getMinutes()) + 240; // +4h
-      slots = slots.filter(function(hm){ return hmToMin(hm) >= lead; });
+      slots = slots.filter(function(t){ return t >= lead; });
     }
     return slots;
   }
 
+  // Adaptive Gruppierung: 1–3 Gruppen je nach Fensterlänge
+  function groupSlots(mins){
+    if(!mins || !mins.length) return [];
+    var start = mins[0];
+    var end   = mins[mins.length-1]; // letzter Start
+    var L = end - start;
+    if (L <= 0) return [{ from:start, to:end, slots:mins }];
+
+    var G = (L <= 180) ? 1 : (L <= 360 ? 2 : 3);
+    if (G === 1) return [{ from:start, to:end, slots:mins }];
+
+    // Schritt grob (auf 30-Minuten gerundet)
+    var step = Math.max(60, Math.round((L / G) / 30) * 30); // min 60
+    var cuts = [];
+    for (var i=1; i<G; i++){ cuts.push(start + step*i); }
+
+    // Snap Cuts auf volle Stunde, wenn nah dran (±30)
+    cuts = cuts.map(function(c){
+      var onHour = Math.round(c / 60) * 60;
+      if (Math.abs(onHour - c) <= 30) return onHour;
+      // ansonsten auf 30er Raster
+      return Math.round(c / 30) * 30;
+    });
+
+    // Sicherstellen: strikt aufsteigend & im Bereich
+    cuts = cuts.filter(function(c){ return c>start && c<end; })
+               .sort(function(a,b){ return a-b; });
+
+    // Zu Gruppen teilen
+    var bounds = [start].concat(cuts).concat([end]);
+    var groups = [];
+    for (var j=0; j<bounds.length-1; j++){
+      var a = bounds[j], b = bounds[j+1];
+      var gSlots = mins.filter(function(t){ return t>=a && t<=b; });
+      if (gSlots.length >= 2){ // min. zwei Slots (~≥60 min)
+        groups.push({ from:gSlots[0], to:gSlots[gSlots.length-1], slots:gSlots });
+      }
+    }
+    if (!groups.length) groups = [{ from:start, to:end, slots:mins }];
+    return groups;
+  }
+
   function renderResvTime(dateObj, backScopeIdx){
-    var B = block('Um welche Uhrzeit möchtest du reservieren?'); B.setAttribute('data-block','resv-time');
+    var B = block('Um welche Uhrzeit möchtest du reservieren?', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','resv-time');
 
-    var slots = buildSlotsForDate(dateObj);
-
-    if(!slots.length){
+    var minutes = buildSlotsForDate(dateObj);
+    if(!minutes.length){
       B.appendChild(line('Für dieses Datum sind aktuell keine Reservierungszeiten verfügbar (geschlossen oder zu kurzfristig).'));
       B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
       return;
     }
 
-    var G = grid();
-    slots.forEach(function(hm){
-      G.appendChild(chip(hm, function(){
-        RESV.time = hm;
-        renderResvPersons();
-      }, '', '🕒'));
+    var groups = groupSlots(minutes);
+
+    groups.forEach(function(g){
+      var label = minToHM(g.from) + ' – ' + minToHM(Math.min(g.to + 30, 1440));
+      B.appendChild(line(label));
+      var G = grid(); G.classList.add('ppx-slotgrid');
+      g.slots.forEach(function(t){
+        var hm = minToHM(t);
+        G.appendChild(chip(hm, function(){ RESV.time = hm; renderResvPersons(); }, '', '🕒'));
+      });
+      B.appendChild(G);
     });
-    B.appendChild(G);
+
     B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
   }
-
   // ---- Persons
   function renderResvPersons(){
     var scopeIdx = getScopeIndex();
-    var B = block('Super, '+RESV.name+'!'); B.setAttribute('data-block','resv-persons');
+    var B = block('Super, '+RESV.name+'!', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','resv-persons');
     B.appendChild(line('Für wie viele Personen darf ich den Tisch vorbereiten?'));
 
     var rowIn = row(); rowIn.className='ppx-input';
@@ -381,14 +447,15 @@
 
   // ---- Phone (optional)
   function renderResvPhone(backScopeIdx){
-    var B = block('Magst du mir deine Nummer dalassen? (optional)'); B.setAttribute('data-block','resv-phone');
+    var B = block('Magst du mir deine Nummer dalassen? (optional)', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','resv-phone');
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'tel',placeholder:'+49 …'});
     rowIn.appendChild(inp); B.appendChild(rowIn);
 
     var r = row();
-    r.appendChild(btn('Überspringen', function(){ RESV.phone=''; renderResvEmail(); }, 'ppx-secondary', '⏭️'));
+    r.appendChild(btn('Ohne Telefon weiter', function(){ RESV.phone=''; renderResvEmail(); }, 'ppx-secondary', '⏭️'));
     r.appendChild(btn('Weiter', function(){ RESV.phone = String(inp.value||'').trim(); renderResvEmail(); }, 'ppx-cta', '➡️'));
     B.appendChild(r);
     B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
@@ -399,7 +466,10 @@
 
   function renderResvEmail(){
     var scopeIdx = getScopeIndex();
-    var B = block('Und deine E-Mail für die Bestätigung?'); B.setAttribute('data-block','resv-email');
+    var B = block('Und deine E-Mail für die Bestätigung?', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','resv-email');
+
+    B.appendChild(line('Wir schicken dir dort eine kurze Eingangsbestätigung.'));
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
@@ -465,7 +535,8 @@
   }
 
   function showReservationSuccess(kind){
-    var B = block('RESERVIERUNG'); B.setAttribute('data-block','reservieren-success');
+    var B = block('RESERVIERUNG', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','reservieren-success');
     B.appendChild(line('Danke für deine Anfrage! Schau doch mal in deinem E-Mail-Postfach vorbei! ;)'));
     B.appendChild(line('Möchtest du noch etwas anderes wissen?'));
     var r = row();
@@ -478,20 +549,21 @@
   // 6) ÖFFNUNGSZEITEN (ohne Nav; nach 3.0s Frage)
   function stepHours(){
     var scopeIdx = getScopeIndex();
-    var B = block('ÖFFNUNGSZEITEN'); B.setAttribute('data-block','hours');
+    var B = block('ÖFFNUNGSZEITEN', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','hours');
     var lines = CFG.hoursLines || [];
-    if (!lines.length) { B.appendChild(line('Keine Zeiten hinterlegt.')); }
-    else {
+    if (!lines.length) {
+      B.appendChild(line('Keine Zeiten hinterlegt.'));
+    } else {
       lines.forEach(function(rowArr){
         var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr);
         B.appendChild(line('• '+txt));
       });
     }
-    // Nach identischem Delay wie bei Gerichten (3.0 s) die Reservierungsfrage einblenden
     setTimeout(function(){ askReserveAfterHours(scopeIdx); }, 3000);
   }
   function askReserveAfterHours(scopeIdx){
-    var Q = block(null); Q.setAttribute('data-block','hours-ask');
+    var Q = block(null, {maxWidth:'100%'}); Q.setAttribute('data-block','hours-ask');
     Q.appendChild(line('Passen die Zeiten? Wenn du magst, können wir jetzt mit der Reservierung fortfahren.'));
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '🗓️'));
@@ -502,7 +574,8 @@
   // 7) KONTAKT
   function stepKontakt(){
     var scopeIdx = getScopeIndex();
-    var B = block('KONTAKTDATEN'); B.setAttribute('data-block','kontakt');
+    var B = block('KONTAKTDATEN', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','kontakt');
 
     if (CFG.phone){
       B.appendChild(line('📞 '+CFG.phone));
@@ -563,7 +636,7 @@
   }
   function stepQAs(){
     var scopeIdx = getScopeIndex();
-    var B = block('Q&As'); B.setAttribute('data-block','faq-root');
+    var B = block('Q&As', {maxWidth:'100%'}); B.setAttribute('data-block','faq-root');
 
     var rTop = row(); rTop.className += ' ppx-center';
     rTop.appendChild(btn('Alle FAQs als PDF', function(){ try{ window.open(getFaqPdfUrl(),'_blank','noopener'); }catch(e){} }, '', '📄'));
@@ -589,7 +662,7 @@
     var scopeIdx = getScopeIndex();
     var title = (ct && (ct.title || ct.name)) || 'Fragen';
     var items = (ct && Array.isArray(ct.items)) ? ct.items.slice() : [];
-    var B = block(title); B.setAttribute('data-block','faq-cat');
+    var B = block(title, {maxWidth:'100%'}); B.setAttribute('data-block','faq-cat');
 
     if (!items.length){
       B.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.'));
@@ -615,7 +688,7 @@
     var a = (it && (it.a || it.answer)) || '';
     var more = it && it.more;
 
-    var B = block(q); B.setAttribute('data-block','faq-answer');
+    var B = block(q, {maxWidth:'100%'}); B.setAttribute('data-block','faq-answer');
     if (a)   B.appendChild(line(a));
     if (more) B.appendChild(line(more));
 
@@ -634,7 +707,7 @@
     setTimeout(function(){ askAfterFaqAnswer(backScopeIdx); }, 3000);
   }
   function askAfterFaqAnswer(backScopeIdx){
-    var Q = block(null); Q.setAttribute('data-block','faq-answer-ask');
+    var Q = block(null, {maxWidth:'100%'}); Q.setAttribute('data-block','faq-answer-ask');
     Q.appendChild(line('Hilft dir das? Möchtest du als nächstes reservieren? 🙂'));
     var r = row(); r.style.justifyContent='flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '🗓️'));
