@@ -28,7 +28,7 @@
       "spaet": ["21:00", "23:59"]
     },
     "EMAIL": {
-      "publicKey": "YOUR_PUBLIC_KEY_HERE",
+      "publicKey": "J1KTj7-7VJBsV-LHc",
       "service": "service_ais7v5f",
       "toTemplate": "template_m5baprd",
       "autoReplyTemplate": "template_hnwo39i",
