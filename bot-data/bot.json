@@ -39,7 +39,6 @@
     "faqPdf": "pizza_papa_faq.pdf",
     "orderUrl": "https://www.lieferando.de/pizza-papa-hamburg"
   },
-
   "dishes": {
     "antipasti": [
       { "id": "bruschetta",  "name": "Bruschetta Classica", "price": "6,90 €",  "info": "Knuspriges Brot, Tomaten, Basilikum, Knoblauch." },
@@ -48,7 +47,6 @@
       { "id": "misto",       "name": "Antipasto Misto",     "price": "13,90 €", "info": "Gemischte Vorspeisenplatte zum Teilen." },
       { "id": "garlicbread", "name": "Knoblauchbrot",       "price": "5,50 €",  "info": "Warmer Ofenklassiker mit Knoblauch & Kräutern." }
     ],
-
     "pizza": [
       { "id": "margherita", "name": "Margherita",             "price": "9,50 €",  "info": "Tomate, Mozzarella, Basilikum." },
       { "id": "prosciutto", "name": "Prosciutto e Funghi",    "price": "12,50 €", "info": "Kochschinken, Champignons." },
@@ -59,7 +57,6 @@
       { "id": "parma",      "name": "Parma (Rucola & Grana)", "price": "14,90 €", "info": "Parmaschinken, Rucola, Grana Padano." },
       { "id": "calzone",    "name": "Calzone (gefüllt)",      "price": "13,90 €", "info": "Gefüllt, klassisch mit Tomate & Mozzarella." }
     ],
-
     "pasta": [
       { "id": "pomodoro",   "name": "Pomodoro",           "price": "9,90 €",  "info": "Tomatensauce, Basilikum." },
       { "id": "arrabbiata", "name": "Arrabbiata",         "price": "10,50 €", "info": "Tomate, Chili, Knoblauch." },
@@ -72,13 +69,11 @@
       { "id": "alfredo",    "name": "Alfredo",            "price": "12,50 €", "info": "Butter, Parmesan, Sahne." },
       { "id": "puttanesca", "name": "Puttanesca",         "price": "12,90 €", "info": "Oliven, Kapern, Sardellen, Tomate." }
     ],
-
     "salads": [
       { "id": "caesar", "name": "Caesar",         "price": "10,50 €", "info": "Römersalat, Croûtons, Parmesan." },
       { "id": "mista",  "name": "Insalata Mista", "price": "7,90 €",  "info": "Gemischter Salat, Hausdressing." },
       { "id": "rucola", "name": "Rucola e Grana", "price": "9,50 €,", "info": "Rucola, Grana Padano, Balsamico." }
     ],
-
     "drinks": [
       { "id": "water",     "name": "Mineralwasser (still/prickelnd)", "price": "2,90 € / 6,50 €", "info": "0,25 / 0,75 l – Marke je nach Bestand." },
       { "id": "limonata",  "name": "Limonata / Aranciata",            "price": "3,50 €",         "info": "Zitronen- oder Orangenlimo." },
@@ -92,7 +87,6 @@
       { "id": "lager",     "name": "Helles / Lager (Fl.)",            "price": "4,80 €",         "info": "0,5 l" },
       { "id": "nabeer",    "name": "Alkoholfreies Bier",              "price": "3,50 €",         "info": "Flasche 0,33 l" }
     ],
-
     "desserts": [
       { "id": "tiramisu",   "name": "Tiramisu",    "price": "6,50 €", "info": "Klassisch, hausgemacht." },
       { "id": "pannacotta", "name": "Panna Cotta", "price": "5,90 €", "info": "Mit Beerensauce." },
@@ -160,11 +154,7 @@
         "title": "Bestellung",
         "icon": "📞",
         "items": [
-          {
-            "q": "Wie bestelle ich am schnellsten?",
-            "a": "Du kannst unter dieser Nummer anrufen oder direkt über Lieferando bestellen.",
-            "special": "orderQuick"
-          }
+          { "q": "Wie bestelle ich am schnellsten?", "a": "Du kannst unter dieser Nummer anrufen oder direkt über Lieferando bestellen.", "special": "orderQuick" }
         ]
       }
     ]
