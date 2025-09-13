@@ -35,7 +35,8 @@
     },
     "menuOrder": ["antipasti", "pizza", "pasta", "drinks", "salads", "desserts"],
     "menuPdf": "speisekarte_test.pdf",
-    "faqPdf": "faq_pizzapapa.pdf"
+    "faqPdf": "pizza_papa_faq.pdf",
+    "orderUrl": "https://www.lieferando.de/pizza-papa-hamburg"
   },
   "dishes": {
     "antipasti": [
@@ -70,7 +71,7 @@
     "salads": [
       { "id": "caesar", "name": "Caesar",          "price": "10,50 €", "info": "Römersalat, Croûtons, Parmesan." },
       { "id": "mista",  "name": "Insalata Mista",  "price": "7,90 €",  "info": "Gemischter Salat, Hausdressing." },
-      { "id": "rucola", "name": "Rucola e Grana",  "price": "9,50 €",  "info": "Rucola, Grana Padano, Balsamico." }
+      { "id": "rucola", "name": "Rucola e Grana",  "price": "9,50 €,", "info": "Rucola, Grana Padano, Balsamico." }
     ],
     "drinks": [
       { "id": "water",     "name": "Mineralwasser (still/prickelnd)", "price": "2,90 € / 6,50 €", "info": "0,25 / 0,75 l – Marke je nach Bestand." },
@@ -78,10 +79,10 @@
       { "id": "cola",      "name": "Cola / Zero",                      "price": "3,20 €",         "info": "0,33 l" },
       { "id": "espresso",  "name": "Espresso",                         "price": "2,40 €",         "info": "Einfach oder doppio." },
       { "id": "cappuccino","name": "Cappuccino",                       "price": "3,20 €",         "info": "Mit Milchschaum." },
-      { "id": "whitewine", "name": "Hauswein Weiß (Glas/Fl.)",         "price": "6,90 € / 26,00 €","info": "Trocken, fruchtig." },
-      { "id": "redwine",   "name": "Hauswein Rot (Glas/Fl.)",          "price": "6,90 € / 26,00 €","info": "Feinherb bis trocken." },
+      { "id": "whitewine", "name": "Hauswein Weiß (Glas/Fl.)",         "price": "6,90 € / 26,00 €", "info": "Trocken, fruchtig." },
+      { "id": "redwine",   "name": "Hauswein Rot (Glas/Fl.)",          "price": "6,90 € / 26,00 €", "info": "Feinherb bis trocken." },
       { "id": "prosecco",  "name": "Prosecco (Glas)",                  "price": "6,50 €",         "info": "Perlend." },
-      { "id": "pils",      "name": "Pils (0,3 / 0,5)",                 "price": "3,90 € / 5,20 €","info": "Vom Fass (sofern verfügbar)." },
+      { "id": "pils",      "name": "Pils (0,3 / 0,5)",                 "price": "3,90 € / 5,20 €", "info": "Vom Fass (sofern verfügbar)." },
       { "id": "lager",     "name": "Helles / Lager (Fl.)",             "price": "4,80 €",         "info": "0,5 l" },
       { "id": "nabeer",    "name": "Alkoholfreies Bier",               "price": "3,50 €",         "info": "Flasche 0,33 l" }
     ],
@@ -91,13 +92,13 @@
       { "id": "gelato",     "name": "Gelato",      "price": "5,50 €", "info": "2 Kugeln nach Wahl." }
     ]
   },
-    "faqs": {
+  "faqs": {
     "title": "Pizza Papa – FAQ",
-    "pdfUrl": "faq_pizzapapa.pdf",
+    "pdfUrl": "pizza_papa_faq.pdf",
     "cats": [
       {
         "key": "speisekarte",
-        "title": "Speisekarte & Klassiker",
+        "title": "Speisekarte",
         "icon": "🍕",
         "items": [
           { "q": "Was ist eure beliebteste Pizza?", "a": "Margherita, Diavola und unser „Papa Special“ mit Salsiccia & Paprika gehören zu den Topsellern." },
@@ -107,7 +108,7 @@
       },
       {
         "key": "allergene",
-        "title": "Allergene & Unverträglichkeiten",
+        "title": "Allergene",
         "icon": "🧀",
         "items": [
           { "q": "Welche Allergene kommen häufig vor?", "a": "Gluten (Weizen), Milch, Ei; Spuren von Schalenfrüchten können vorkommen." },
@@ -117,7 +118,7 @@
       },
       {
         "key": "lieferung",
-        "title": "Lieferung & Abholung",
+        "title": "Lieferung",
         "icon": "🚗",
         "items": [
           { "q": "Wie lange dauert die Lieferung?", "a": "In der Regel 30–45 Minuten – abhängig von Auslastung und Wetter." },
@@ -129,7 +130,7 @@
       },
       {
         "key": "oeffnungszeiten",
-        "title": "Öffnungszeiten & Standort",
+        "title": "Öffnungszeiten",
         "icon": "⏰",
         "items": [
           { "q": "Wann habt ihr geöffnet?", "a": "Die aktuellen Zeiten siehst du im Bot unter „Öffnungszeiten“ – wir zeigen sie dort direkt an." },
@@ -139,7 +140,7 @@
       },
       {
         "key": "preise",
-        "title": "Preise & Zahlung",
+        "title": "Preise",
         "icon": "💳",
         "items": [
           { "q": "Welche Zahlarten akzeptiert ihr?", "a": "Bar, EC/Kreditkarte, Apple Pay und Google Pay." },
@@ -149,30 +150,10 @@
       },
       {
         "key": "bestellung",
-        "title": "Bestellung & Reservierung",
+        "title": "Bestellung",
         "icon": "📞",
         "items": [
-          { "q": "Wie bestelle ich am schnellsten?", "a": "Direkt hier im Bot über „Bestellen“ oder telefonisch unter +49 40 1234567." },
-          { "q": "Kann ich einen Tisch reservieren?", "a": "Klar – hier im Bot: Personen, Datum, Uhrzeit. Gruppen ab 8 Personen bitte anrufen." },
-          { "q": "Kann ich für später vorbestellen?", "a": "Ja – Wunschzeit im Checkout auswählen, wir backen pünktlich frisch." }
-        ]
-      },
-      {
-        "key": "qualitaet",
-        "title": "Qualität & Herkunft",
-        "icon": "🧑‍🍳",
-        "items": [
-          { "q": "Welche Tomaten & Mehle nutzt ihr?", "a": "San Marzano DOP, Tipo „00“, 48 h Teigruhe, Steinofen – klassisch italienisch." },
-          { "q": "Ist euer Teig vegan?", "a": "Ja. Vegane Pizzen sind mit Gemüse und/oder veganem Käse möglich." }
-        ]
-      },
-      {
-        "key": "catering",
-        "title": "Aktionen & Catering",
-        "icon": "🎉",
-        "items": [
-          { "q": "Gibt es Familien- oder Party-Menüs?", "a": "Family Box: 2 XL Pizzen + Beilagensalat + 1,5 l Softdrink – Paketpreis 34,90 €." },
-          { "q": "Bietet ihr Catering an?", "a": "Ja – für 10–120 Personen, auf Wunsch mit mobiler Pizza-Station. Anfrage gern per Bot oder telefonisch." }
+          { "q": "Wie bestelle ich am schnellsten?", "a": "Du kannst unter dieser Nummer anrufen oder direkt über Lieferando bestellen.", "special": "orderQuick" }
         ]
       }
     ]
