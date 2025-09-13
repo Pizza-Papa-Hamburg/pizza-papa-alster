@@ -1,8 +1,10 @@
 /* ============================================================================
    PPX Widget (v6 COMPACT + UX-Update)
-   Änderungen: längere Delays (Cats 1.4s, Item-Ask 3.0s),
-               Item-Ask nur „← Zurück“ (kein Hauptmenü in der Nav),
-               Secondary-Nav-Buttons dezent, Hauptmenü-Icon = weißer Ring.
+   Änderungen:
+   - Mini Pre-Delay Speisen (0.4s) + 1.0s Delay nach PDF bis Kategorien.
+   - „Zurück“ & „Zurück ins Hauptmenü“ als dezente Secondary-Buttons.
+   - Hauptmenü-Icon jetzt 🏠 (statt Ring); „Zurück“ behält ← im Label.
+   - Reservierungsfrage: 🗓️ für „Ja, bitte reservieren“, 🏠 für „Nein, zurück ins Hauptmenü“ (secondary).
    ============================================================================ */
 (function () {
   'use strict';
@@ -65,21 +67,21 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{
   background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.22); padding:8px 12px !important; font-size:15px !important; box-shadow:none;
 }
+/* Secondary: Icon dezent (kein Gold-Badge) */
+#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary[data-ic]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary[data-ic]::before{
+  content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; min-width:22px; border-radius:999px; background:transparent; color:inherit; box-shadow:none; border:none; font-size:16px; line-height:1;
+}
 /* Selected */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{ filter:brightness(1.10); box-shadow:0 0 0 2px rgba(230,196,138,.55) inset, 0 2px 8px rgba(0,0,0,.26); }
 /* Home größer */
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b, #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{ justify-content:center !important; font-size:18.5px !important; padding:12px 16px !important; }
-/* Badges */
+/* Badges (Default: Gold) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
   content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; min-width:26px; border-radius:999px; background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
 }
 /* Cat-Icons größer */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip.ppx-cat::before{ width:34px; height:34px; min-width:34px; background:#E9D18B; color:#111; font-size:18px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 1px 0 rgba(0,0,0,.18); }
-/* Weißer Ring für Hauptmenü */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary[data-ic="ring"]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary[data-ic="ring"]::before{
-  content:""; width:22px; height:22px; min-width:22px; border-radius:999px; background:transparent; color:transparent; border:2px solid rgba(255,255,255,.9); box-shadow:none;
-}
 /* 2 Spalten in Speisen */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
@@ -90,16 +92,14 @@
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-chip{ min-height:64px; align-items:center; }
 /* Links-Ausrichtung Speisen */
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-b, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-chip,
-#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-b,  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-chip{
-  justify-content:flex-start !important; text-align:left !important;
-}
+#ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-b,  #ppx-panel.ppx-v5 #ppx-v .ppx-b{ justify-content:flex-start !important; text-align:left !important; }
 #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-label, #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"] .ppx-label{ text-align:left !important; }
 /* Nav gleich breit */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
 @media (max-width:380px){
   #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
+  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !inent; }
 }
 `;
     var tag = document.createElement('style'); tag.id = 'ppx-style-v6'; tag.textContent = css; document.head.appendChild(tag);
@@ -144,7 +144,6 @@
   function chip(label, onClick, extraCls, ic){ var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
   function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
   function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary'); }
-
   // Home (mit echtem Reset)
   function stepHome(force){
     if (!force && $view && $view.querySelector('[data-block="home"]')) return;
@@ -159,17 +158,18 @@
     var r5=row(); r5.appendChild(btn('Q&As',function(){ stepQAs(); },'','❓')); B.appendChild(r5);
   }
   function goHome(){ popToScope(0); stepHome(true); }
-  function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', 'ring'); }
+  function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', '🏠'); }
   function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
-  // 3) HOME ist oben; 4) SPEISEN
+
+  // 4) SPEISEN
   function stepSpeisen(){
     var scopeIdx = getScopeIndex();
     var M = block(null);
     M.setAttribute('data-block','speisen-info');
     M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
     jumpBottom();
-    // LÄNGERER Delay bis die Kategorien erscheinen (1.4 s)
-    setTimeout(function(){ renderSpeisenRoot(scopeIdx); jumpBottom(); }, 1400);
+    // Mini-Pre-Delay bis die Speisen-Root aufgebaut wird (0.4 s)
+    setTimeout(function(){ renderSpeisenRoot(scopeIdx); jumpBottom(); }, 400);
   }
 
   function orderCats(keys){
@@ -186,31 +186,33 @@
   function renderSpeisenRoot(scopeIdx){
     var B = block('SPEISEN'); B.setAttribute('data-block','speisen-root');
 
-    // PDF Button
+    // PDF Button sofort
     var pdfUrl = CFG.menuPdf || (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) || CFG.menuPDF || 'speisekarte.pdf';
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Speisekarte als PDF', function(){ try{ window.open(pdfUrl,'_blank','noopener'); }catch(e){} }, '', '📄'));
     B.appendChild(r);
 
-    B.appendChild(line('…oder wähle eine Kategorie:'));
+    // Kategorien + Nav erst nach 1.0 s, damit der PDF-Hinweis nicht „überfahren“ wird
+    setTimeout(function(){
+      B.appendChild(line('…oder wähle eine Kategorie:'));
 
-    var cats = Object.keys(DISH);
-    cats = cats.length ? orderCats(cats.map(function(k){ return pretty(k); })) :
-                         ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
-    var map = {}; Object.keys(DISH).forEach(function(k){ map[pretty(k)] = k; });
+      var cats = Object.keys(DISH);
+      cats = cats.length ? orderCats(cats.map(function(k){ return pretty(k); })) :
+                           ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
+      var map = {}; Object.keys(DISH).forEach(function(k){ map[pretty(k)] = k; });
 
-    var G = grid();
-    cats.forEach(function(catPretty){
-      var rawKey = map[catPretty] || catPretty.toLowerCase();
-      G.appendChild(chip(catPretty, function(){ renderCategory(rawKey); }, 'ppx-cat', '►'));
-    });
-    B.appendChild(G);
+      var G = grid();
+      cats.forEach(function(catPretty){
+        var rawKey = map[catPretty] || catPretty.toLowerCase();
+        G.appendChild(chip(catPretty, function(){ renderCategory(rawKey); }, 'ppx-cat', '►'));
+      });
+      B.appendChild(G);
 
-    // Nav: Zurück + Hauptmenü (Secondary)
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
-    jumpBottom();
+      // Nav: Zurück + Hauptmenü (Secondary, Haus-Icon)
+      B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+      jumpBottom();
+    }, 1000);
   }
-
   function renderCategory(catKey){
     var scopeIdx = getScopeIndex();
     var B = block('Gern! Hier ist die Auswahl für '+pretty(catKey)+':');
@@ -253,14 +255,15 @@
 
     // Primär/sekundär-CTAs
     var r = row(); r.style.justifyContent = 'flex-start';
-    r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '✅'));
-    r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, '', '↩️'));
+    r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '🗓️'));
+    r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
 
-    // HINWEIS: Hier nur „← Zurück“ (kein Hauptmenü in der Nav, da oben vorhanden)
+    // HINWEIS: Hier nur „← Zurück“ in der Nav (kein Hauptmenü, da oben vorhanden)
     Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
     jumpBottom();
   }
+
   // 5) RESERVIEREN
   function stepReservieren(){
     var scopeIdx = getScopeIndex();
