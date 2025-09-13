@@ -3,8 +3,9 @@
    Änderungen:
    - Mini Pre-Delay Speisen (0.4s) + 1.0s Delay nach PDF bis Kategorien.
    - „Zurück“ & „Zurück ins Hauptmenü“ als dezente Secondary-Buttons.
-   - Hauptmenü-Icon jetzt 🏠 (statt Ring); „Zurück“ behält ← im Label.
-   - Reservierungsfrage: 🗓️ für „Ja, bitte reservieren“, 🏠 für „Nein, zurück ins Hauptmenü“ (secondary).
+   - Hauptmenü-Icon jetzt 🏠; „Zurück“ behält ← im Label.
+   - Reservierungsfrage (Gerichte): 🗓️ „Ja“, 🏠 „Nein“ nach 3.0s.
+   - NEU: Öffnungszeiten → nach 3.0s dieselbe Reservierungsfrage.
    ============================================================================ */
 (function () {
   'use strict';
@@ -99,7 +100,7 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
 @media (max-width:380px){
   #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-root"] .ppx-grid,
-  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !inent; }
+  #ppx-panel.ppx-v5 #ppx-v [data-block="speisen-cat"]  .ppx-grid{ grid-template-columns:1fr 1fr !important; }
 }
 `;
     var tag = document.createElement('style'); tag.id = 'ppx-style-v6'; tag.textContent = css; document.head.appendChild(tag);
@@ -192,7 +193,7 @@
     r.appendChild(btn('Speisekarte als PDF', function(){ try{ window.open(pdfUrl,'_blank','noopener'); }catch(e){} }, '', '📄'));
     B.appendChild(r);
 
-    // Kategorien + Nav erst nach 1.0 s, damit der PDF-Hinweis nicht „überfahren“ wird
+    // Kategorien + Nav erst nach 1.0 s
     setTimeout(function(){
       B.appendChild(line('…oder wähle eine Kategorie:'));
 
@@ -208,11 +209,12 @@
       });
       B.appendChild(G);
 
-      // Nav: Zurück + Hauptmenü (Secondary, Haus-Icon)
+      // Nav: Zurück + Hauptmenü
       B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
       jumpBottom();
     }, 1000);
   }
+
   function renderCategory(catKey){
     var scopeIdx = getScopeIndex();
     var B = block('Gern! Hier ist die Auswahl für '+pretty(catKey)+':');
@@ -234,7 +236,6 @@
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
     jumpBottom();
   }
-
   function renderItem(catKey, item){
     var scopeIdx = getScopeIndex();
     var title = (item && item.name) ? item.name : pretty(catKey);
@@ -253,13 +254,12 @@
     var Q = block(null); Q.setAttribute('data-block','speisen-item-ask');
     Q.appendChild(line('Na, Appetit bekommen? 😍 Soll ich dir gleich einen Tisch reservieren, damit du das bald probieren kannst?'));
 
-    // Primär/sekundär-CTAs
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
 
-    // HINWEIS: Hier nur „← Zurück“ in der Nav (kein Hauptmenü, da oben vorhanden)
+    // Hier nur „← Zurück“ in der Nav (kein Hauptmenü, da oben vorhanden)
     Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
     jumpBottom();
   }
@@ -326,14 +326,33 @@
     jumpBottom();
   }
 
-  // 6) ÖFFNUNGSZEITEN
+  // 6) ÖFFNUNGSZEITEN (+ Reservierungsfrage nach 3.0s)
   function stepHours(){
     var scopeIdx = getScopeIndex();
     var B = block('ÖFFNUNGSZEITEN'); B.setAttribute('data-block','hours');
     var lines = CFG.hoursLines || [];
     if (!lines.length) { B.appendChild(line('Keine Zeiten hinterlegt.')); }
     else { lines.forEach(function(rowArr){ var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr); B.appendChild(line('• '+txt)); }); }
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ])); jumpBottom();
+
+    // Gewohnte Nav bei den Zeiten
+    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+    jumpBottom();
+
+    // Nach identischem Delay wie bei Gerichten (3.0 s) die Reservierungsfrage einblenden
+    setTimeout(function(){ askReserveAfterHours(scopeIdx); }, 3000);
+  }
+
+  function askReserveAfterHours(scopeIdx){
+    var Q = block(null); Q.setAttribute('data-block','hours-ask');
+    Q.appendChild(line('Passen die Zeiten? Wenn du magst, können wir jetzt mit der Reservierung fortfahren.'));
+
+    var r = row(); r.style.justifyContent = 'flex-start';
+    r.appendChild(btn('Ja, bitte reservieren', function(){ stepReservieren(); }, 'ppx-cta', '🗓️'));
+    r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
+    Q.appendChild(r);
+
+    // Keine zusätzliche Nav nötig (oben schon vorhanden)
+    jumpBottom();
   }
 
   // 7) KONTAKT
