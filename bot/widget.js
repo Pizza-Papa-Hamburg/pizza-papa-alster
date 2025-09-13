@@ -5,7 +5,7 @@
    - „Zurück“ & „Zurück ins Hauptmenü“ als dezente Secondary-Buttons.
    - Hauptmenü-Icon jetzt 🏠; „Zurück“ behält ← im Label.
    - Reservierungsfrage (Gerichte): 🗓️ „Ja“, 🏠 „Nein“ nach 3.0s.
-   - NEU: Öffnungszeiten → nach 3.0s dieselbe Reservierungsfrage.
+   - Öffnungszeiten: KEINE Nav, nach 3.0s Frage mit 🗓️/🏠.
    ============================================================================ */
 (function () {
   'use strict';
@@ -326,7 +326,7 @@
     jumpBottom();
   }
 
-  // 6) ÖFFNUNGSZEITEN (+ Reservierungsfrage nach 3.0s)
+  // 6) ÖFFNUNGSZEITEN (ohne Nav; nach 3.0s Frage)
   function stepHours(){
     var scopeIdx = getScopeIndex();
     var B = block('ÖFFNUNGSZEITEN'); B.setAttribute('data-block','hours');
@@ -334,8 +334,7 @@
     if (!lines.length) { B.appendChild(line('Keine Zeiten hinterlegt.')); }
     else { lines.forEach(function(rowArr){ var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr); B.appendChild(line('• '+txt)); }); }
 
-    // Gewohnte Nav bei den Zeiten
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+    // KEINE Nav hier (wunschgemäß)
     jumpBottom();
 
     // Nach identischem Delay wie bei Gerichten (3.0 s) die Reservierungsfrage einblenden
@@ -351,7 +350,7 @@
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
 
-    // Keine zusätzliche Nav nötig (oben schon vorhanden)
+    // Keine zusätzliche Nav nötig
     jumpBottom();
   }
 
