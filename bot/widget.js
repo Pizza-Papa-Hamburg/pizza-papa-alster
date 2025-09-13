@@ -1,6 +1,6 @@
 /* ============================================================================
-   PPX Widget (v7.4.9 – EmailJS lazy init + kompakter Back-Button)
-   - Reservierung: Name → Datum → Zeit (Gruppen → Slots) → Personen → Phone? → E-Mail
+   PPX Widget (v7.5.0 – EmailJS stabil + kompakter Back-Button)
+   - Reservierung: Name → Datum → Zeit(Gruppen→Slots) → Personen → Phone? → E-Mail
    - Kontaktformular: Intro → E-Mail → Nachricht → Absenden (EmailJS + Fallback)
    - Delays: D = { tap:260, step:450, sub:550, long:1000 }
    ============================================================================ */
@@ -14,14 +14,14 @@
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs  || [];
 
-  // Version sichtbar machen
-  try { W.PPX_VERSION = '7.4.9'; console.log('[PPX] widget v'+W.PX_VERSION+' loaded'); } catch(e){}
+  // Version (log nur informativ)
+  try { W.PPX_VERSION = '7.5.0'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
 
   // Delays
   var D = { tap:260, step:450, sub:550, long:1000 };
   function delay(fn, ms){ setTimeout(fn, ms); }
 
-  // EmailJS lazy init → sicher vor jedem Send
+  // EmailJS: lazy + sicher initialisieren, bevor gesendet wird
   var EMAIL_INIT_DONE = false;
   function ensureEmailJsInit(){
     try{
@@ -35,9 +35,10 @@
 
   // STYLE (Reservierungsflow & UI)
   (function () {
+    // Alte Styles entfernen
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
-      'ppx-style-v5','ppx-style-v5-override','ppx-style-v6','ppx-style-v7','ppx-style-v73'
+      'ppx-style-v5','ppx-style-v5-override','ppx-style-v6','ppx-style-v7','ppx-style-v73','ppx-style-v74'
     ].forEach(function(id){ var n=document.getElementById(id); if(n) n.remove(); });
 
     var css = `
@@ -109,9 +110,7 @@
 /* HOME zentriert */
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-row{ justify-content:center !important; }
 #ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b,
-#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{
-  justify-content:center !important; text-align:center !important;
-}
+#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{ justify-content:center !important; text-align:center !important; }
 
 /* Fragen volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-cat"] .ppx-row > .ppx-b{ width:100% !important; }
@@ -121,42 +120,78 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b.ppx-back{ flex:0 0 auto; width:auto !important; min-width:130px; font-size:14px !important; padding:8px 10px !important; }
 `;
-    var tag = document.createElement('style'); tag.id = 'ppx-style-v73'; tag.textContent = css; document.head.appendChild(tag);
+    var tag = document.createElement('style'); tag.id = 'ppx-style-v74'; tag.textContent = css; document.head.appendChild(tag);
   })();
   // 1) Init
   var $launch, $panel, $close, $view; var BOUND = false;
-  function queryDom(){ $launch=document.getElementById('ppx-launch'); $panel=document.getElementById('ppx-panel'); $close=document.getElementById('ppx-close'); $view=document.getElementById('ppx-v'); return !!($launch&&$panel&&$close&&$view); }
-  function openPanel(){ if(!queryDom())return; $panel.classList.add('ppx-open','ppx-v5'); if(!$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); } }
+  function queryDom(){
+    $launch=document.getElementById('ppx-launch');
+    $panel =document.getElementById('ppx-panel');
+    $close =document.getElementById('ppx-close');
+    $view  =document.getElementById('ppx-v');
+    return !!($launch&&$panel&&$close&&$view);
+  }
+  function openPanel(){
+    if(!queryDom())return;
+    $panel.classList.add('ppx-open','ppx-v5');
+    if(!$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); }
+  }
   function closePanel(){ if(!queryDom())return; $panel.classList.remove('ppx-open'); }
   function bindOnce(){
-    if(BOUND) return true; if(!queryDom()) return false;
+    if(BOUND) return true;
+    if(!queryDom()) return false;
     $panel.classList.add('ppx-v5');
     $launch.addEventListener('click', openPanel);
     $close.addEventListener('click', closePanel);
     window.addEventListener('keydown', function(e){ if(e.key==='Escape') closePanel(); });
     $panel.addEventListener('click', function(ev){
       var t=ev.target&&ev.target.closest?ev.target.closest('.ppx-b, .ppx-chip'):null;
-      if(t&&$view&&$view.contains(t)){ t.classList.add('ppx-selected'); jumpBottom(); delay(jumpBottom,140); delay(jumpBottom,700); }
+      if(t&&$view&&$view.contains(t)){
+        t.classList.add('ppx-selected'); jumpBottom(); delay(jumpBottom,140); delay(jumpBottom,700);
+      }
     });
-    document.addEventListener('click', function(ev){ var t=ev.target&&ev.target.closest?ev.target.closest('#ppx-launch'):null; if(t) openPanel(); });
+    document.addEventListener('click', function(ev){
+      var t=ev.target&&ev.target.closest?ev.target.closest('#ppx-launch'):null;
+      if(t) openPanel();
+    });
     if($panel.classList.contains('ppx-open') && !$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); }
     BOUND=true; return true;
   }
-  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', bindOnce, {once:true}); } else { bindOnce(); }
-  if(!BOUND){ var mo=new MutationObserver(function(){ if(bindOnce()) mo.disconnect(); }); mo.observe(document.documentElement||document.body,{childList:true,subtree:true}); setTimeout(function(){ try{mo.disconnect();}catch(e){} },5000); }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', bindOnce, {once:true});
+  } else {
+    bindOnce();
+  }
+  if(!BOUND){
+    var mo=new MutationObserver(function(){ if(bindOnce()) mo.disconnect(); });
+    mo.observe(document.documentElement||document.body,{childList:true,subtree:true});
+    setTimeout(function(){ try{mo.disconnect();}catch(e){} },5000);
+  }
 
   // 2) Utils
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
-  function jumpBottom(){ if(!$view) return; try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){} }
-  function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){
-    if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); }
-    else if(k==='text'){ n.textContent=attrs[k]; }
-    else if(k==='html'){ n.innerHTML=attrs[k]; }
-    else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); }
-    else { n.setAttribute(k, attrs[k]); }
-  });
-  for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); }
-  return n; }
+  function jumpBottom(){
+    if(!$view) return;
+    try{
+      $view.scrollTop=$view.scrollHeight;
+      requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; });
+    }catch(e){}
+  }
+  function el(tag, attrs){
+    var n=document.createElement(tag); attrs=attrs||{};
+    Object.keys(attrs).forEach(function(k){
+      if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); }
+      else if(k==='text'){ n.textContent=attrs[k]; }
+      else if(k==='html'){ n.innerHTML=attrs[k]; }
+      else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); }
+      else { n.setAttribute(k, attrs[k]); }
+    });
+    for(var i=2;i<arguments.length;i++){
+      var c=arguments[i]; if(c==null) continue;
+      n.appendChild(typeof c==='string'?document.createTextNode(c):c);
+    }
+    return n;
+  }
   function pretty(s){
     return String(s||'')
       .replace(/[_-]+/g,' ')
@@ -164,19 +199,34 @@
       .trim()
       .replace(/\b\w/g, function(c){ return c.toUpperCase(); });
   }
-  function block(title,opts){ opts=opts||{}; var w=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}}); if(title) w.appendChild(el('div',{class:'ppx-h'},title)); if($view) $view.appendChild(w); jumpBottom(); return w; }
+  function block(title,opts){
+    opts=opts||{};
+    var w=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}});
+    if(title) w.appendChild(el('div',{class:'ppx-h'},title));
+    if($view) $view.appendChild(w); jumpBottom(); return w;
+  }
   function line(txt){ return el('div',{class:'ppx-m'},txt); }
   function row(){ return el('div',{class:'ppx-row'}); }
   function grid(){ return el('div',{class:'ppx-grid'}); }
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
-  function popToScope(idx){ if(!$view) return; while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); } jumpBottom(); }
+  function popToScope(idx){
+    if(!$view) return;
+    while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); }
+    jumpBottom();
+  }
   // Buttons/Chips/Nav
   function btn(label, onClick, extraCls, ic){
     var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'};
     if(ic) a['data-ic']=ic;
     var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
   }
-  function chip(label, onClick, extr
+  function chip(label, onClick, extraCls, ic){
+    var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'};
+    if(ic) a['data-ic']=ic;
+    var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
+  }
+  function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
+  function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary ppx-back'); }
   // Home
   function stepHome(force){
     if (!force && $view && $view.querySelector('[data-block="home"]')) return;
@@ -561,7 +611,7 @@
     try{ window.location.href = 'mailto:'+addr+'?subject='+encodeURIComponent('Reservierung')+'&body='+body; }catch(e){}
   }
 
-  function showReservationSuccess(kind){
+  function showReservationSuccess(){
     var B = block('RESERVIERUNG', {maxWidth:'100%'}); 
     B.setAttribute('data-block','reservieren-success');
     B.appendChild(line('Danke für deine Anfrage! Schau doch mal in deinem E-Mail-Postfach vorbei! ;)'));
@@ -712,7 +762,7 @@
     try{ window.location.href='mailto:'+addr+'?subject='+encodeURIComponent('Kontaktformular')+'&body='+body; }catch(e){}
   }
 
-  function showContactSuccess(kind){
+  function showContactSuccess(){
     var B = block('NACHRICHT GESENDET', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-success');
     B.appendChild(line('Danke – deine Nachricht ist bei uns eingegangen. Wir melden uns so schnell wie möglich!'));
@@ -721,7 +771,7 @@
     B.appendChild(r);
   }
 
-  // 8) Q&As … (Rest wie gehabt)
+  // 8) Q&As (unverändert)
   function getFaqPdfUrl(){
     return (CFG.faqPdf) ||
            ((isObj(FAQ) && FAQ.pdfUrl) ? FAQ.pdfUrl : null) ||
