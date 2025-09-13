@@ -1,11 +1,9 @@
 /* ============================================================================
-   PPX Widget (v7.3.1 – Reservation Flow adaptive + fixes)
-   - Reservierung: Name → Datum → Zeit (30-min Slots, adaptive Gruppen) → Personen → Phone? → E-Mail
+   PPX Widget (v7.4.0 – Reservieren: kleinere Headlines + Gruppenwahl ohne Overlap)
+   - Reservierung: Name → Datum → Zeit (Gruppen-Auswahl → Slots) → Personen → Phone? → E-Mail
    - Slots: aus CFG.OPEN (0=So..6=Sa), letzte Stunde ausgenommen, mind. 4h Vorlauf (heute)
-   - Gruppenbildung: automatisch 1–3 Gruppen je nach Fensterlänge; min. 2 Slots/Gruppe
-   - EmailJS: 2 Sends (Restaurant + Auto-Reply), Fallback: mailto
-   - Reservierungsblöcke volle Breite; Slotliste scrollbar
-   - FIX: pretty() Syntax, Slots < (close-60) statt ≤
+   - Gruppenwahl: 1–3 Zeitfenster (halb-offene Intervalle) → nur Slots der gewählten Gruppe anzeigen
+   - FIX: keine überlappenden Labels/Slots zwischen Gruppen
    ============================================================================ */
 (function () {
   'use strict';
@@ -26,7 +24,7 @@
     } catch (e) {}
   })();
 
-  // STYLE (Reservierungsflow-Volle-Breite & Slotgrid)
+  // STYLE (Reservierungsflow-Volle-Breite, Slotgrid, kompakte Headlines in Resv-Schritten)
   (function () {
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
@@ -48,6 +46,15 @@
 /* Headings + Body */
 #ppx-panel.ppx-v5 #ppx-v .ppx-h{ background:var(--ppx-green-800); color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:12px; padding:10px 12px; margin:-2px -2px 10px; font-family:"Cinzel", serif; font-weight:600; letter-spacing:.02em; text-transform:uppercase; font-size:18px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-m{ color:var(--ppx-ink); line-height:1.5; margin:6px 0 10px; font-family:"Cormorant Garamond", serif; font-weight:400; font-size:18px; }
+
+/* >>> Kompaktere Headlines NUR in den gewünschten Reservieren-Schritten */
+#ppx-panel.ppx-v5 #ppx-v [data-block="resv-date"]  .ppx-h,
+#ppx-panel.ppx-v5 #ppx-v [data-block="resv-time"]  .ppx-h,
+#ppx-panel.ppx-v5 #ppx-v [data-block="resv-persons"] .ppx-h,
+#ppx-panel.ppx-v5 #ppx-v [data-block="resv-phone"] .ppx-h,
+#ppx-panel.ppx-v5 #ppx-v [data-block="resv-email"] .ppx-h{
+  font-size:16px; padding:8px 10px; letter-spacing:.01em;
+}
 
 /* Rows/Grids */
 #ppx-panel.ppx-v5 #ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start !important; margin-top:8px; width:100%; }
@@ -84,6 +91,11 @@
 /* Slotgrid: alle Zeiten sichtbar, eigener Scroll */
 #ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{ grid-template-columns:repeat(3,minmax(0,1fr)); max-height:280px; overflow:auto; padding-right:4px; }
 @media (max-width:520px){ #ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{ grid-template-columns:repeat(2,minmax(0,1fr)); max-height:260px; } }
+
+/* Gruppen-Auswahl (zentriert, Buttons nicht full-width) */
+#ppx-panel.ppx-v5 #ppx-v .ppx-grouprow{ justify-content:center !important; }
+#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-group{ width:auto !important; min-width:160px; justify-content:center !important; }
+#ppx-panel.ppx-v5 #ppx-v .ppx-slotwrap{ margin-top:8px; }
 
 /* Fragen volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-cat"] .ppx-row > .ppx-b{ width:100% !important; }
@@ -142,10 +154,17 @@
   function grid(){ return el('div',{class:'ppx-grid'}); }
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
   function popToScope(idx){ if(!$view) return; while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); } jumpBottom(); }
-
   // Buttons/Chips/Nav
-  function btn(label, onClick, extraCls, ic){ var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
-  function chip(label, onClick, extraCls, ic){ var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
+  function btn(label, onClick, extraCls, ic){
+    var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'};
+    if(ic) a['data-ic']=ic;
+    var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
+  }
+  function chip(label, onClick, extraCls, ic){
+    var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'};
+    if(ic) a['data-ic']=ic;
+    var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
+  }
   function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
   function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary'); }
 
@@ -165,6 +184,7 @@
   function goHome(){ popToScope(0); stepHome(true); }
   function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', '🏠'); }
   function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
+
   // 4) SPEISEN
   function stepSpeisen(){
     var scopeIdx = getScopeIndex();
@@ -266,8 +286,7 @@
     Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
     jumpBottom();
   }
-
-  // 5) RESERVIEREN – geführter Flow (Name → Datum → Zeit → Personen → Phone? → E-Mail)
+  // 5) RESERVIEREN – geführter Flow (Name → Datum → Zeit(Gruppen→Slots) → Personen → Phone? → E-Mail)
   var RESV = null;
 
   function stepReservieren(){
@@ -342,12 +361,12 @@
     var openMin = hmToMin(span[0]);
     var closeMin = hmToMin(span[1]);
 
-    // letzte Stunde ausnehmen
-    var lastStart = closeMin - 60;
-    if (lastStart <= openMin) return [];
+    // letzte Stunde ausnehmen → letzter zulässiger Start ist < (closeMin - 60)
+    var lastStartExclusive = closeMin - 60;
+    if (lastStartExclusive <= openMin) return [];
 
     var slots = [];
-    for(var t=openMin; t<lastStart; t+=30){ slots.push(t); } // STRICT < lastStart
+    for(var t=openMin; t<lastStartExclusive; t+=30){ slots.push(t); } // STRICT <
 
     // Lead-Time 4h nur für HEUTE
     var now = new Date();
@@ -359,44 +378,47 @@
     return slots;
   }
 
-  // Adaptive Gruppierung: 1–3 Gruppen je nach Fensterlänge
+  // Adaptive Gruppierung (1–3 Gruppen) – HALB-OFFEN: [from, to)
   function groupSlots(mins){
     if(!mins || !mins.length) return [];
     var start = mins[0];
-    var end   = mins[mins.length-1]; // letzter Start
-    var L = end - start;
-    if (L <= 0) return [{ from:start, to:end, slots:mins }];
+    var lastStart = mins[mins.length-1];     // letzter Slot-START
+    var endExclusive = lastStart + 30;       // exklusives Ende für Label/Abgrenzung
+    var L = endExclusive - start;
+    if (L <= 0) return [{ from:start, to:endExclusive, slots:mins }];
 
     var G = (L <= 180) ? 1 : (L <= 360 ? 2 : 3);
-    if (G === 1) return [{ from:start, to:end, slots:mins }];
+    if (G === 1) return [{ from:start, to:endExclusive, slots:mins }];
 
-    // Schritt grob (auf 30-Minuten gerundet)
-    var step = Math.max(60, Math.round((L / G) / 30) * 30); // min 60
+    // Grobe Schnitte (≥60, auf 30 gerundet)
+    var step = Math.max(60, Math.round((L / G) / 30) * 30);
     var cuts = [];
     for (var i=1; i<G; i++){ cuts.push(start + step*i); }
 
-    // Snap Cuts auf volle Stunde, wenn nah dran (±30); sonst 30er Raster
+    // Snap Cuts: volle Stunde wenn nah (±30), sonst 30er Raster
     cuts = cuts.map(function(c){
       var onHour = Math.round(c / 60) * 60;
       if (Math.abs(onHour - c) <= 30) return onHour;
       return Math.round(c / 30) * 30;
     });
 
-    // gültige, sortierte Schnitte
-    cuts = cuts.filter(function(c){ return c>start && c<end; })
+    // gültige, sortierte Schnitte in (start, endExclusive)
+    cuts = cuts.filter(function(c){ return c>start && c<endExclusive; })
                .sort(function(a,b){ return a-b; });
 
-    // Zu Gruppen teilen (min. 2 Slots pro Gruppe)
-    var bounds = [start].concat(cuts).concat([end]);
+    // Bounds inkl. exklusivem Ende
+    var bounds = [start].concat(cuts).concat([endExclusive]);
+
+    // Gruppen bilden: HALB-OFFEN [a,b) → Slots mit t>=a && t<b
     var groups = [];
     for (var j=0; j<bounds.length-1; j++){
       var a = bounds[j], b = bounds[j+1];
-      var gSlots = mins.filter(function(t){ return t>=a && t<=b; });
+      var gSlots = mins.filter(function(t){ return t>=a && t<b; });
       if (gSlots.length >= 2){
-        groups.push({ from:gSlots[0], to:gSlots[gSlots.length-1], slots:gSlots });
+        groups.push({ from:a, to:b, slots:gSlots });
       }
     }
-    if (!groups.length) groups = [{ from:start, to:end, slots:mins }];
+    if (!groups.length) groups = [{ from:start, to:endExclusive, slots:mins }];
     return groups;
   }
 
@@ -413,17 +435,38 @@
 
     var groups = groupSlots(minutes);
 
-    groups.forEach(function(g){
-      var label = minToHM(g.from) + ' – ' + minToHM(Math.min(g.to + 30, 1440));
-      B.appendChild(line(label));
+    // Wenn nur 1 Gruppe → direkt Slots zeigen (kein Gruppen-UI)
+    if (groups.length === 1){
+      var only = groups[0];
+      B.appendChild(line(minToHM(only.from) + ' – ' + minToHM(only.to)));
       var G = grid(); G.classList.add('ppx-slotgrid');
-      g.slots.forEach(function(t){
+      only.slots.forEach(function(t){
         var hm = minToHM(t);
         G.appendChild(chip(hm, function(){ RESV.time = hm; renderResvPersons(); }, '', '🕒'));
       });
       B.appendChild(G);
-    });
+      B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
+      return;
+    }
 
+    // Mehrere Gruppen → erst Auswahlfelder (zentriert), danach Slots der gewählten Gruppe
+    var groupRow = row(); groupRow.classList.add('ppx-grouprow');
+    var slotWrap = el('div', {class:'ppx-slotwrap'});
+    groups.forEach(function(g, idx){
+      var label = minToHM(g.from) + ' – ' + minToHM(g.to);
+      groupRow.appendChild(chip(label, function(){
+        // Slots der gewählten Gruppe rendern (exklusiv)
+        slotWrap.innerHTML = '';
+        var G = grid(); G.classList.add('ppx-slotgrid');
+        g.slots.forEach(function(t){
+          var hm = minToHM(t);
+          G.appendChild(chip(hm, function(){ RESV.time = hm; renderResvPersons(); }, '', '🕒'));
+        });
+        slotWrap.appendChild(G);
+      }, 'ppx-group'));
+    });
+    B.appendChild(groupRow);
+    B.appendChild(slotWrap);
     B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
   }
   // ---- Persons
@@ -550,6 +593,7 @@
     B.appendChild(nav([ homeBtn(), doneBtn() ]));
     jumpBottom();
   }
+
   // 6) ÖFFNUNGSZEITEN (ohne Nav; nach 3.0s Frage)
   function stepHours(){
     var scopeIdx = getScopeIndex();
@@ -603,7 +647,6 @@
 
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
   }
-
   // 8) Q&As
   function getFaqPdfUrl(){
     return (CFG.faqPdf) ||
@@ -721,3 +764,4 @@
   }
 
 })(); // Ende IIFE
+/* ======================================================================= */
