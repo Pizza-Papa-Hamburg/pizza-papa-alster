@@ -1,9 +1,8 @@
 /* ============================================================================
-   PPX Widget (v7.4.2 – natürliche Delays + kleinere Headlines + vertikale Gruppen)
+   PPX Widget (v7.4.3 – zentrierte Menü-Kategorien + Kontaktformular + Copy)
    - Reservierung: Name → Datum → Zeit (Gruppen → Slots) → Personen → Phone? → E-Mail
+   - Kontaktformular: Intro → E-Mail → Nachricht → Absenden (EmailJS + Fallback)
    - Delays: D = { tap:260, step:450, sub:550, long:1000 }
-   - Slots: aus CFG.OPEN (0=So..6=Sa), letzte Stunde ausgenommen, mind. 4h Vorlauf (heute)
-   - Gruppenwahl: 1–3 Zeitfenster (halb-offen), Buttons vertikal zentriert, keine Overlaps
    ============================================================================ */
 (function () {
   'use strict';
@@ -28,7 +27,7 @@
     } catch (e) {}
   })();
 
-  // STYLE (Reservierungsflow-Volle-Breite, Slotgrid, kompakte Headlines in Resv-Schritten)
+  // STYLE (Reservierungsflow & UI)
   (function () {
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
@@ -51,12 +50,13 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-h{ background:var(--ppx-green-800); color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:12px; padding:10px 12px; margin:-2px -2px 10px; font-family:"Cinzel", serif; font-weight:600; letter-spacing:.02em; text-transform:uppercase; font-size:18px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-m{ color:var(--ppx-ink); line-height:1.5; margin:6px 0 10px; font-family:"Cormorant Garamond", serif; font-weight:400; font-size:18px; }
 
-/* >>> Kompaktere Headlines nur in diesen Reservieren-Schritten */
-#ppx-panel.ppx-v5 #ppx-v [data-block="resv-date"]  .ppx-h,
-#ppx-panel.ppx-v5 #ppx-v [data-block="resv-time"]  .ppx-h,
+/* Kompaktere Headlines in Resv + Kontaktformular */
+#ppx-panel.ppx-v5 #ppx-v [data-block="resv-date"] .ppx-h,
+#ppx-panel.ppx-v5 #ppx-v [data-block="resv-time"] .ppx-h,
 #ppx-panel.ppx-v5 #ppx-v [data-block="resv-persons"] .ppx-h,
 #ppx-panel.ppx-v5 #ppx-v [data-block="resv-phone"] .ppx-h,
-#ppx-panel.ppx-v5 #ppx-v [data-block="resv-email"] .ppx-h{
+#ppx-panel.ppx-v5 #ppx-v [data-block="resv-email"] .ppx-h,
+#ppx-panel.ppx-v5 #ppx-v [data-block^="cf-"] .ppx-h{
   font-size:16px; padding:8px 10px; letter-spacing:.01em;
 }
 
@@ -80,26 +80,25 @@
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{ filter:brightness(1.10); box-shadow:0 0 0 2px rgba(230,196,138,.55) inset, 0 2px 8px rgba(0,0,0,.26); }
 
-/* Q&A Header zentriert */
-#ppx-panel.ppx-v5 #ppx-v [data-block="faq-root"] .ppx-h{ text-align:center; }
-
 /* Inputs */
 #ppx-panel.ppx-v5 #ppx-v .ppx-input{ display:flex; gap:8px; margin-top:8px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-input input, #ppx-panel.ppx-v5 #ppx-v .ppx-input select, #ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{
   width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.1); color:#fff; font-size:15px; outline:none;
 }
+#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{ min-height:96px; resize:vertical; }
 
 /* >>> Reservierungsflow: volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block^="resv-"]{ max-width:100% !important; margin-left:0 !important; margin-right:0 !important; }
 
-/* Slotgrid: alle Zeiten sichtbar, eigener Scroll */
+/* Slotgrid & Gruppen */
 #ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{ grid-template-columns:repeat(3,minmax(0,1fr)); max-height:280px; overflow:auto; padding-right:4px; }
 @media (max-width:520px){ #ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{ grid-template-columns:repeat(2,minmax(0,1fr)); max-height:260px; } }
-
-/* Gruppen-Auswahl (zentriert, Buttons nicht full-width) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-grouprow{ justify-content:center !important; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-group{ width:auto !important; min-width:160px; justify-content:center !important; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-slotwrap{ margin-top:8px; }
+
+/* >>> Speisen-Kategorien (wieder zentriert) */
+#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-cat{ justify-content:center !important; text-align:center !important; }
 
 /* Fragen volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-cat"] .ppx-row > .ppx-b{ width:100% !important; }
@@ -179,10 +178,12 @@
     var B=block(brand.toUpperCase()); B.setAttribute('data-block','home');
     B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
     B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
+
     var r1=row(); r1.appendChild(btn('Speisen',function(){ stepSpeisen(); },'ppx-cta','🍽️')); B.appendChild(r1);
     var r2=row(); r2.appendChild(btn('Reservieren',function(){ stepReservieren(); },'','📅')); B.appendChild(r2);
-    var r3=row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(); },'','⏰')); B.appendChild(r3);
+    var r2b=row(); r2b.appendChild(btn('Kontaktformular',function(){ stepContactForm(); },'','📝')); B.appendChild(r2b);
     var r4=row(); r4.appendChild(btn('Kontaktdaten',function(){ stepKontakt(); },'','☎️')); B.appendChild(r4);
+    var r3=row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(); },'','⏰')); B.appendChild(r3);
     var r5=row(); r5.appendChild(btn('Q&As',function(){ stepQAs(); },'','❓')); B.appendChild(r5);
   }
   function goHome(){ popToScope(0); stepHome(true); }
@@ -213,13 +214,11 @@
   function renderSpeisenRoot(scopeIdx){
     var B = block('SPEISEN'); B.setAttribute('data-block','speisen-root');
 
-    // PDF Button sofort
     var pdfUrl = CFG.menuPdf || (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) || CFG.menuPDF || 'speisekarte.pdf';
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Speisekarte als PDF', function(){ try{ window.open(pdfUrl,'_blank','noopener'); }catch(e){} }, '', '📄'));
     B.appendChild(r);
 
-    // Kategorien + Nav nach D.long
     delay(function(){
       B.appendChild(line('…oder wähle eine Kategorie:'));
 
@@ -234,13 +233,10 @@
         G.appendChild(chip(catPretty, function(){ renderCategory(rawKey); }, 'ppx-cat', '►'));
       });
       B.appendChild(G);
-
-      // Nav: Zurück + Hauptmenü
       B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
       jumpBottom();
     }, D.long);
   }
-
   function renderCategory(catKey){
     var scopeIdx = getScopeIndex();
     var B = block('Gern! Hier ist die Auswahl für '+pretty(catKey)+':');
@@ -272,7 +268,6 @@
     if (item && item.price) B.appendChild(line('Preis: ' + String(item.price)));
     if (item && item.hinweis) B.appendChild(line('ℹ️ ' + item.hinweis));
 
-    // längerer Delay bis zur Reservierungsfrage (3.0 s)
     setTimeout(function(){ askReserveAfterItem(scopeIdx); }, 3000);
     jumpBottom();
   }
@@ -285,11 +280,10 @@
     r.appendChild(btn('Ja, bitte reservieren', function(){ delay(stepReservieren, D.step); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
-
-    // Nur „← Zurück“ in der Nav
     Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
     jumpBottom();
   }
+
   // 5) RESERVIEREN – Flow (Name → Datum → Zeit(Gruppen→Slots) → Personen → Phone? → E-Mail)
   var RESV = null;
 
@@ -314,7 +308,6 @@
     B.appendChild(r);
   }
 
-  // ---- Date → Time
   function todayISO(){
     var d=new Date(); var m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
     return d.getFullYear()+'-'+m+'-'+day;
@@ -353,61 +346,45 @@
     r.appendChild(backBtnAt(scopeIdx));
     B.appendChild(r);
   }
-
-  // ---- Slot Utils
   function hmToMin(s){ var a=s.split(':'), h=Number(a[0]), m=Number(a[1]||0); if(h===24&&m===0) return 1440; return h*60+m; }
   function minToHM(n){ var h=Math.floor(n/60), m=n%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
 
   function buildSlotsForDate(d){
-    var wd = d.getDay(); // 0=So..6=Sa
+    var wd = d.getDay();
     var span = (CFG.OPEN && CFG.OPEN[String(wd)]) || null;
     if(!span || !Array.isArray(span) || span.length<2) return [];
     var openMin = hmToMin(span[0]);
     var closeMin = hmToMin(span[1]);
-
-    // letzte Stunde ausnehmen → letzter zulässiger Start ist < (closeMin - 60)
     var lastStartExclusive = closeMin - 60;
     if (lastStartExclusive <= openMin) return [];
-
     var slots = [];
-    for(var t=openMin; t<lastStartExclusive; t+=30){ slots.push(t); } // STRICT <
-
-    // Lead-Time 4h nur für HEUTE
+    for(var t=openMin; t<lastStartExclusive; t+=30){ slots.push(t); }
     var now = new Date();
     var isToday = now.getFullYear()===d.getFullYear() && now.getMonth()===d.getMonth() && now.getDate()===d.getDate();
     if(isToday){
-      var lead = (now.getHours()*60 + now.getMinutes()) + 240; // +4h
+      var lead = (now.getHours()*60 + now.getMinutes()) + 240;
       slots = slots.filter(function(t){ return t >= lead; });
     }
     return slots;
   }
 
-  // Adaptive Gruppierung (1–3 Gruppen) – HALB-OFFEN: [from, to)
   function groupSlots(mins){
     if(!mins || !mins.length) return [];
     var start = mins[0];
-    var lastStart = mins[mins.length-1];   // letzter Slot-Start
-    var endExclusive = lastStart + 30;     // exklusives Ende zur Abgrenzung und Beschriftung
+    var lastStart = mins[mins.length-1];
+    var endExclusive = lastStart + 30;
     var L = endExclusive - start;
     if (L <= 0) return [{ from:start, to:endExclusive, slots:mins }];
-
     var G = (L <= 180) ? 1 : (L <= 360 ? 2 : 3);
     if (G === 1) return [{ from:start, to:endExclusive, slots:mins }];
-
-    // Grobe Schnitte (mind. 60, auf 30 gerundet)
     var step = Math.max(60, Math.round((L / G) / 30) * 30);
     var cuts = [];
     for (var i=1; i<G; i++){ cuts.push(start + step*i); }
-
-    // Snap auf volle Stunde, falls nahe (±30), sonst 30er Raster
     cuts = cuts.map(function(c){
       var onHour = Math.round(c / 60) * 60;
       if (Math.abs(onHour - c) <= 30) return onHour;
       return Math.round(c / 30) * 30;
-    });
-
-    cuts = cuts.filter(function(c){ return c>start && c<endExclusive; }).sort(function(a,b){ return a-b; });
-
+    }).filter(function(c){ return c>start && c<endExclusive; }).sort(function(a,b){ return a-b; });
     var bounds = [start].concat(cuts).concat([endExclusive]);
     var groups = [];
     for (var j=0; j<bounds.length-1; j++){
@@ -432,7 +409,6 @@
 
     var groups = groupSlots(minutes);
 
-    // 1 Gruppe → direkt Slots zeigen (ohne Gruppen-UI)
     if (groups.length === 1){
       var only = groups[0];
       B.appendChild(line(minToHM(only.from) + ' – ' + minToHM(only.to)));
@@ -448,9 +424,7 @@
       return;
     }
 
-    // Mehrere Gruppen → vertikal untereinander, zentriert; Slots erscheinen nach Klick
     var slotWrap = el('div', {class:'ppx-slotwrap'});
-
     groups.forEach(function(g){
       var label = minToHM(g.from) + ' – ' + minToHM(g.to);
       var r = row(); r.classList.add('ppx-grouprow');
@@ -470,7 +444,8 @@
 
     delay(function(){ B.appendChild(slotWrap); B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ])); }, D.sub);
   }
-  // ---- Persons
+
+  // Persons
   function renderResvPersons(){
     var scopeIdx = getScopeIndex();
     var B = block('Super, '+RESV.name+'!', {maxWidth:'100%'}); 
@@ -492,7 +467,7 @@
     B.appendChild(r);
   }
 
-  // ---- Phone (optional)
+  // Phone (optional)
   function renderResvPhone(backScopeIdx){
     var B = block('Magst du mir deine Nummer dalassen? (optional)', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-phone');
@@ -514,7 +489,7 @@
     B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
   }
 
-  // ---- Email (required)
+  // Email (required)
   function isValidEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(s||'').trim()); }
 
   function renderResvEmail(){
@@ -539,7 +514,7 @@
     B.appendChild(r);
   }
 
-  // ---- Submit via EmailJS (+ Fallback mailto)
+  // Submit Reservation
   function submitReservation(){
     var brand = (CFG.brand||'Restaurant');
     var payload = {
@@ -552,27 +527,19 @@
       phone: RESV.phone||'',
       email: RESV.email
     };
-
     var svcId = CFG.EMAIL && (CFG.EMAIL.service || CFG.EMAIL.serviceId);
     var tplTo = CFG.EMAIL && (CFG.EMAIL.toTemplate || CFG.EMAIL.templateId);
     var tplAuto = CFG.EMAIL && CFG.EMAIL.autoReplyTemplate;
 
     if (window.emailjs && svcId && tplTo){
       emailjs.send(svcId, tplTo, payload).then(function(){
-        if (tplAuto){ return emailjs.send(svcId, tplAuto, payload).catch(function(){ /* ignore */ }); }
-      }).then(function(){
-        showReservationSuccess('emailjs');
-      }).catch(function(){
-        fallbackMailto(payload);
-        showReservationSuccess('mailto');
-      });
+        if (tplAuto){ return emailjs.send(svcId, tplAuto, payload).catch(function(){}); }
+      }).then(function(){ showReservationSuccess('emailjs'); })
+        .catch(function(){ fallbackMailto(payload); showReservationSuccess('mailto'); });
       return;
     }
-
-    fallbackMailto(payload);
-    showReservationSuccess('mailto');
+    fallbackMailto(payload); showReservationSuccess('mailto');
   }
-
   function fallbackMailto(p){
     var addr = CFG.email || (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) || 'info@example.com';
     var bodyLines = [
@@ -601,7 +568,7 @@
     jumpBottom();
   }
 
-  // 6) ÖFFNUNGSZEITEN (ohne Nav; nach 3.0s Frage)
+  // 6) ÖFFNUNGSZEITEN
   function stepHours(){
     var scopeIdx = getScopeIndex();
     var B = block('ÖFFNUNGSZEITEN', {maxWidth:'100%'}); 
@@ -619,14 +586,14 @@
   }
   function askReserveAfterHours(scopeIdx){
     var Q = block(null, {maxWidth:'100%'}); Q.setAttribute('data-block','hours-ask');
-    Q.appendChild(line('Passen die Zeiten? Wenn du magst, können wir jetzt mit der Reservierung fortfahren.'));
+    Q.appendChild(line('Samstagabend ist meistens richtig voll – willst du dir jetzt schon einen Platz sichern?'));
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ delay(stepReservieren, D.step); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
   }
 
-  // 7) KONTAKT
+  // 7) KONTAKTDATEN
   function stepKontakt(){
     var scopeIdx = getScopeIndex();
     var B = block('KONTAKTDATEN', {maxWidth:'100%'}); 
@@ -651,8 +618,101 @@
       r3.appendChild(btn('Anfahrt öffnen', function(){ window.open(maps,'_blank'); }, '', '🗺️'));
       B.appendChild(r3);
     }
-
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+  }
+
+  // 7b) KONTAKTFORMULAR (EmailJS + Fallback)
+  var CF = null;
+
+  function stepContactForm(){
+    CF = { email:'', message:'' };
+    var B = block('KONTAKTFORMULAR', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','cf-intro');
+    B.appendChild(line('Du möchtest uns gerne eine Nachricht da lassen?'));
+    delay(renderContactEmail, D.step);
+  }
+
+  function renderContactEmail(){
+    var scopeIdx = getScopeIndex();
+    var B = block('Alles klar – dann brauche ich erstmal deine E-Mail-Adresse.', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','cf-email');
+
+    var rowIn = row(); rowIn.className='ppx-input';
+    var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
+    rowIn.appendChild(inp); B.appendChild(rowIn);
+
+    var r = row();
+    r.appendChild(btn('Weiter', function(){
+      var v = String(inp.value||'').trim();
+      if(!isValidEmail(v)){ alert('Bitte gib eine gültige E-Mail-Adresse ein.'); inp.focus(); return; }
+      CF.email = v;
+      delay(renderContactMessage, D.step);
+    }, 'ppx-cta', '➡️'));
+    r.appendChild(backBtnAt(scopeIdx));
+    B.appendChild(r);
+  }
+
+  function renderContactMessage(){
+    var scopeIdx = getScopeIndex();
+    var B = block('Worum geht’s?', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','cf-msg');
+
+    var rowIn = row(); rowIn.className='ppx-input';
+    var ta = el('textarea',{placeholder:'Hier kannst du dein Anliegen äußern. Wir freuen uns über deine Nachricht! :)'});
+    rowIn.appendChild(ta); B.appendChild(rowIn);
+
+    var r = row();
+    r.appendChild(btn('Absenden', function(){
+      var msg = String(ta.value||'').trim();
+      if(!msg){ alert('Bitte schreib kurz, worum es geht.'); ta.focus(); return; }
+      CF.message = msg;
+      delay(submitContactForm, D.tap);
+    }, 'ppx-cta', '✉️'));
+    r.appendChild(backBtnAt(scopeIdx));
+    B.appendChild(r);
+  }
+
+  function submitContactForm(){
+    var brand = (CFG.brand||'Restaurant');
+    var payload = {
+      brand: brand,
+      email: CF.email,
+      message: CF.message
+    };
+    var svcId = CFG.EMAIL && (CFG.EMAIL.service || CFG.EMAIL.serviceId);
+    var tplContact = CFG.EMAIL && (CFG.EMAIL.contactTemplate || CFG.EMAIL.contactTemplateId);
+    var tplContactAuto = CFG.EMAIL && CFG.EMAIL.contactAutoReplyTemplate;
+
+    if (window.emailjs && svcId && tplContact){
+      emailjs.send(svcId, tplContact, payload).then(function(){
+        if (tplContactAuto){ return emailjs.send(svcId, tplContactAuto, payload).catch(function(){}); }
+      }).then(function(){ showContactSuccess('emailjs'); })
+        .catch(function(){ fallbackMailtoContact(payload); showContactSuccess('mailto'); });
+      return;
+    }
+    fallbackMailtoContact(payload); showContactSuccess('mailto');
+  }
+
+  function fallbackMailtoContact(p){
+    var addr = CFG.email || (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) || 'info@example.com';
+    var body = encodeURIComponent(
+      ['Kontaktformular',
+       'E-Mail: '+p.email,
+       '',
+       p.message,
+       '',
+       '— gesendet via Bot'].join('\n')
+    );
+    try{ window.location.href='mailto:'+addr+'?subject='+encodeURIComponent('Kontaktformular')+'&body='+body; }catch(e){}
+  }
+
+  function showContactSuccess(kind){
+    var B = block('NACHRICHT GESENDET', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','cf-success');
+    B.appendChild(line('Danke – deine Nachricht ist bei uns eingegangen. Wir melden uns so schnell wie möglich!'));
+    var r = row();
+    r.appendChild(btn('Zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
+    B.appendChild(r);
   }
   // 8) Q&As
   function getFaqPdfUrl(){
