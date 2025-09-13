@@ -1,5 +1,5 @@
 /* ============================================================================
-   PPX Widget (v7.4.3 – zentrierte Menü-Kategorien + Kontaktformular + Copy)
+   PPX Widget (v7.4.4 – Home-Optionen zentriert + Kontaktformular + Delays)
    - Reservierung: Name → Datum → Zeit (Gruppen → Slots) → Personen → Phone? → E-Mail
    - Kontaktformular: Intro → E-Mail → Nachricht → Absenden (EmailJS + Fallback)
    - Delays: D = { tap:260, step:450, sub:550, long:1000 }
@@ -97,8 +97,15 @@
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-group{ width:auto !important; min-width:160px; justify-content:center !important; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-slotwrap{ margin-top:8px; }
 
-/* >>> Speisen-Kategorien (wieder zentriert) */
+/* >>> Speisen-Kategorien (zentriert) */
 #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-cat{ justify-content:center !important; text-align:center !important; }
+
+/* >>> HOME: Buttons & Text zentriert */
+#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-row{ justify-content:center !important; }
+#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b,
+#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{
+  justify-content:center !important; text-align:center !important;
+}
 
 /* Fragen volle Breite */
 #ppx-panel.ppx-v5 #ppx-v [data-block="faq-cat"] .ppx-row > .ppx-b{ width:100% !important; }
@@ -732,8 +739,7 @@
     var pos = Object.create(null); FAQ_ORDER.forEach(function(t,i){ pos[t]=i; });
     return filtered.sort(function(a,b){
       var ta=a.title||a.name||'', tb=b.title||b.name||'';
-      var ia = ta in pos ? pos[ta] : 999, ib = tb in pos ? pos[tb] : 999;
-      return ia-ib || ta.localeCompare(tb);
+      return (ta in pos ? pos[ta] : 999) - (tb in pos ? pos[tb] : 999) || ta.localeCompare(tb);
     });
   }
   function getFaqCats(){
