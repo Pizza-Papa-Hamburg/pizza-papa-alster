@@ -1,5 +1,5 @@
 /* ============================================================================
-   PPX Widget (v7.5.3 – EmailJS + kompakter Back + Home zentriert + Hours-Fallback)
+   PPX Widget (v7.5.4 – EmailJS + kompakter Back + Home zentriert + solide Hours)
    - Reservieren: Name → Datum → Zeit → Personen → Phone? → E-Mail
    - Kontaktformular: E-Mail → Nachricht → Absenden (EmailJS + Fallback)
    ============================================================================ */
@@ -13,7 +13,7 @@
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs  || [];
 
-  try { W.PPX_VERSION = '7.5.3'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
+  try { W.PPX_VERSION = '7.5.4'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
 
   // Delays
   var D = { tap:260, step:450, sub:550, long:1000 };
@@ -32,7 +32,8 @@
   (function () {
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
-      'ppx-style-v5','ppx-style-v5-override','ppx-style-v6','ppx-style-v7','ppx-style-v73','ppx-style-v752','ppx-style-v753'
+      'ppx-style-v5','ppx-style-v5-override','ppx-style-v6','ppx-style-v7',
+      'ppx-style-v73','ppx-style-v752','ppx-style-v753','ppx-style-v754'
     ].forEach(function(id){ var n=document.getElementById(id); if(n) n.remove(); });
 
     var css = `
@@ -100,7 +101,7 @@
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b.ppx-back{ flex:0 0 auto !important; }
 `;
-    var tag = document.createElement('style'); tag.id = 'ppx-style-v753'; tag.textContent = css; document.head.appendChild(tag);
+    var tag = document.createElement('style'); tag.id = 'ppx-style-v754'; tag.textContent = css; document.head.appendChild(tag);
   })();
 
   // 1) Init
@@ -540,19 +541,37 @@
     B.appendChild(nav([ homeBtn(), doneBtn() ]));
     jumpBottom();
   }
-  // ==== Öffnungszeiten (mit Fallback aus CFG.OPEN) ====
+  // ==== Öffnungszeiten (robust: hoursLines bevorzugt, sonst aus OPEN) ====
+  function normalizeHoursLines(v){
+    var out = [];
+    if (Array.isArray(v)){
+      v.forEach(function(it){
+        if (Array.isArray(it) && it.length >= 2){
+          out.push([ String(it[0]), String(it[1]) ]);
+        } else if (isObj(it)){
+          var day = it.day || it.name || it.title || it[0];
+          var time = it.time || it.hours || it[1];
+          if (day && time) out.push([ String(day), String(time) ]);
+        }
+      });
+      return out;
+    }
+    if (isObj(v)){
+      var order = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+      order.forEach(function(d){ if (v[d]) out.push([d, String(v[d])]); });
+    }
+    return out;
+  }
+
   function hoursFromOpen(){
     var dnames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
     var out = [];
-    if (!CFG.OPEN) return out;
-    for (var i=1;i<=6;i++){ // Mo–Sa
-      var span = CFG.OPEN[String(i)];
-      var txt = (Array.isArray(span) && span.length>=2) ? (span[0]+' – '+span[1]+' Uhr') : 'geschlossen';
-      out.push([dnames[i], txt]);
+    var O = CFG.OPEN || {};
+    function spanToTxt(span){
+      return (Array.isArray(span) && span.length>=2) ? (span[0]+' – '+span[1]+' Uhr') : 'geschlossen';
     }
-    var s0 = CFG.OPEN['0']; // So
-    var txt0 = (Array.isArray(s0) && s0.length>=2) ? (s0[0]+' – '+s0[1]+' Uhr') : 'geschlossen';
-    out.push([dnames[0], txt0]);
+    for (var i=1;i<=6;i++){ out.push([dnames[i], spanToTxt(O[String(i)])]); } // Mo–Sa
+    out.push([dnames[0], spanToTxt(O['0'])]); // So
     return out;
   }
 
@@ -560,8 +579,10 @@
     var scopeIdx = getScopeIndex();
     var B = block('ÖFFNUNGSZEITEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','hours');
-    var lines = CFG.hoursLines || [];
-    if (!Array.isArray(lines) || !lines.length) { lines = hoursFromOpen(); }
+
+    var lines = normalizeHoursLines(CFG.hoursLines);
+    if (!lines.length) lines = hoursFromOpen();
+
     if (!Array.isArray(lines) || !lines.length) {
       B.appendChild(line('Keine Zeiten hinterlegt.'));
     } else {
