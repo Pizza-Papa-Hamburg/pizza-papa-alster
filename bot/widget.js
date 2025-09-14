@@ -1,7 +1,5 @@
 /* ============================================================================
-   PPX Widget (v7.5.4 – EmailJS + kompakter Back + Home zentriert + solide Hours)
-   - Reservieren: Name → Datum → Zeit → Personen → Phone? → E-Mail
-   - Kontaktformular: E-Mail → Nachricht → Absenden (EmailJS + Fallback)
+   PPX Widget (v7.6.0 – volle Breite Resv/CF + EmailJS + kompakter Back + Hours robust)
    ============================================================================ */
 (function () {
   'use strict';
@@ -13,7 +11,7 @@
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs  || [];
 
-  try { W.PPX_VERSION = '7.5.4'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
+  try { W.PPX_VERSION = '7.6.0'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
 
   // Delays
   var D = { tap:260, step:450, sub:550, long:1000 };
@@ -28,12 +26,12 @@
     } catch (e) {}
   })();
 
-  // STYLE (inkl. kompakter Back-Button + Home/Kategorien zentriert)
+  // STYLE (Home zentriert, kompakter Back, Resv/CF volle Breite)
   (function () {
     [
       'ppx-style-100w','ppx-style-100w-v2','ppx-style-100w-v3','ppx-style-100w-v4',
       'ppx-style-v5','ppx-style-v5-override','ppx-style-v6','ppx-style-v7',
-      'ppx-style-v73','ppx-style-v752','ppx-style-v753','ppx-style-v754'
+      'ppx-style-v73','ppx-style-v754','ppx-style-v760'
     ].forEach(function(id){ var n=document.getElementById(id); if(n) n.remove(); });
 
     var css = `
@@ -45,7 +43,12 @@
 }
 #ppx-panel.ppx-v5 #ppx-v{ overflow-y:auto; max-height:calc(100vh - 120px); -webkit-overflow-scrolling:touch; padding:10px 10px 16px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-bot{ background:linear-gradient(180deg, rgba(14,59,51,.45), rgba(14,59,51,.30)); border:1px solid var(--ppx-border); border-radius:14px; padding:14px; margin:12px auto; max-width:640px; box-shadow:var(--ppx-shadow); text-align:left !important; }
-#ppx-panel.ppx-v5 #ppx-v [data-block="home"]{ background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; max-width:100% !important; margin-left:0 !important; margin-right:0 !important; }
+
+/* >>> volle Breite für Reservierung & Kontaktformular */
+#ppx-panel.ppx-v5 #ppx-v [data-block^="resv-"],
+#ppx-panel.ppx-v5 #ppx-v [data-block^="cf-"]{
+  max-width:100% !important; margin-left:0 !important; margin-right:0 !important;
+}
 
 /* Headings + Body */
 #ppx-panel.ppx-v5 #ppx-v .ppx-h{ background:var(--ppx-green-800); color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:12px; padding:10px 12px; margin:-2px -2px 10px; font-family:"Cinzel", serif; font-weight:600; letter-spacing:.02em; text-transform:uppercase; font-size:18px; }
@@ -92,7 +95,7 @@
   justify-content:center !important; text-align:center !important;
 }
 
-/* Nav + kompakter Zurück-Button */
+/* >>> Nav + kompakter Zurück-Button */
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
 #ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-back{
@@ -101,7 +104,7 @@
 }
 #ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b.ppx-back{ flex:0 0 auto !important; }
 `;
-    var tag = document.createElement('style'); tag.id = 'ppx-style-v754'; tag.textContent = css; document.head.appendChild(tag);
+    var tag = document.createElement('style'); tag.id = 'ppx-style-v760'; tag.textContent = css; document.head.appendChild(tag);
   })();
 
   // 1) Init
@@ -137,7 +140,10 @@
   });
   for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); }
   return n; }
-  function pretty(s){ return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g, function(c){ return c.toUpperCase(); }); }
+  function pretty(s){
+    return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim()
+      .replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  }
   function block(title,opts){ opts=opts||{}; var w=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}}); if(title) w.appendChild(el('div',{class:'ppx-h'},title)); if($view) $view.appendChild(w); jumpBottom(); return w; }
   function line(txt){ return el('div',{class:'ppx-m'},txt); }
   function row(){ return el('div',{class:'ppx-row'}); }
@@ -272,7 +278,7 @@
     Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
     jumpBottom();
   }
-  // 5) RESERVIEREN – Flow (Name → Datum → Zeit(Gruppen→Slots) → Personen → Phone? → E-Mail)
+  // 5) RESERVIEREN – Flow (Name → Datum → Zeit → Personen → Phone? → E-Mail)
   var RESV = null;
 
   function stepReservieren(){
@@ -327,19 +333,27 @@
     r.appendChild(backBtnAt(scopeIdx));
     B.appendChild(r);
   }
-  function hmToMin(s){ var a=s.split(':'), h=Number(a[0]), m=Number(a[1]||0); if(h===24&&m===0) return 1440; return h*60+m; }
+  function hmToMin(s){ var a=String(s||'').trim().replace(/\s/g,''); var m=a.match(/^(\d{1,2}):(\d{2})$/); if(!m) return NaN; var h=+m[1], mi=+m[2]; if(h===24&&mi===0) return 1440; return h*60+mi; }
   function minToHM(n){ var h=Math.floor(n/60), m=n%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
 
   function buildSlotsForDate(d){
     var wd = d.getDay();
     var span = (CFG.OPEN && CFG.OPEN[String(wd)]) || null;
-    if(!span || !Array.isArray(span) || span.length<2) return [];
-    var openMin = hmToMin(span[0]);
-    var closeMin = hmToMin(span[1]);
+    if(!span) return [];
+    // span kann Array ["11:00","22:00"], String "11:00–22:00" oder Obj {from,to} sein
+    var from,to;
+    if (Array.isArray(span)){ from=span[0]; to=span[1]; }
+    else if (isObj(span)){ from=span.from||span.start; to=span.to||span.end; }
+    else if (typeof span==='string'){
+      var m = span.match(/(\d{1,2}:\d{2}).*?(\d{1,2}:\d{2})/);
+      if (m){ from=m[1]; to=m[2]; }
+    }
+    if(!from||!to) return [];
+    var openMin = hmToMin(from), closeMin = hmToMin(to);
+    if (isNaN(openMin)||isNaN(closeMin)) return [];
     var lastStartExclusive = closeMin - 60;
     if (lastStartExclusive <= openMin) return [];
-    var slots = [];
-    for(var t=openMin; t<lastStartExclusive; t+=30){ slots.push(t); }
+    var slots = []; for(var t=openMin; t<lastStartExclusive; t+=30){ slots.push(t); }
     var now = new Date();
     var isToday = now.getFullYear()===d.getFullYear() && now.getMonth()===d.getMonth() && now.getDate()===d.getDate();
     if(isToday){
@@ -563,15 +577,25 @@
     return out;
   }
 
+  function parseSpanToText(span){
+    // erlaubt ["11:00","22:00"] | "11:00 – 22:00" | {from:"11:00",to:"22:00"}
+    var from,to;
+    if (Array.isArray(span)){ from=span[0]; to=span[1]; }
+    else if (isObj(span)){ from=span.from||span.start; to=span.to||span.end; }
+    else if (typeof span==='string'){
+      var m = span.match(/(\d{1,2}:\d{2}).*?(\d{1,2}:\d{2})/);
+      if (m){ from=m[1]; to=m[2]; }
+    }
+    if (!from || !to) return 'geschlossen';
+    return from+' – '+to+' Uhr';
+  }
+
   function hoursFromOpen(){
     var dnames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
     var out = [];
     var O = CFG.OPEN || {};
-    function spanToTxt(span){
-      return (Array.isArray(span) && span.length>=2) ? (span[0]+' – '+span[1]+' Uhr') : 'geschlossen';
-    }
-    for (var i=1;i<=6;i++){ out.push([dnames[i], spanToTxt(O[String(i)])]); } // Mo–Sa
-    out.push([dnames[0], spanToTxt(O['0'])]); // So
+    for (var i=1;i<=6;i++){ out.push([dnames[i], parseSpanToText(O[String(i)])]); } // Mo–Sa
+    out.push([dnames[0], parseSpanToText(O['0'])]); // So
     return out;
   }
 
@@ -716,7 +740,10 @@
 
   // ==== FAQ (unverändert) ====
   function getFaqPdfUrl(){
-    return (CFG.faqPdf) || ((isObj(FAQ) && FAQ.pdfUrl) ? FAQ.pdfUrl : null) || (CFG.pdf && (CFG.pdf.faq || CFG.pdf.url)) || 'pizza_papa_faq.pdf';
+    return (CFG.faqPdf) ||
+           ((isObj(FAQ) && FAQ.pdfUrl) ? FAQ.pdfUrl : null) ||
+           (CFG.pdf && (CFG.pdf.faq || CFG.pdf.url)) ||
+           'pizza_papa_faq.pdf';
   }
   var FAQ_ORDER = ['Speisekarte','Allergene','Lieferung','Öffnungszeiten','Preise','Bestellung'];
   function orderFaqCats(cats){
@@ -750,7 +777,10 @@
 
     delay(function(){
       var cats = getFaqCats();
-      if (!cats.length){ B.appendChild(line('Häufige Fragen folgen in Kürze.')); B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ])); return; }
+      if (!cats.length){
+        B.appendChild(line('Häufige Fragen folgen in Kürze.'));
+        B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ])); return;
+      }
       B.appendChild(line('Wonach möchtest du schauen?'));
       var G = grid();
       cats.forEach(function(ct){
@@ -767,7 +797,10 @@
     var items = (ct && Array.isArray(ct.items)) ? ct.items.slice() : [];
     var B = block(title, {maxWidth:'100%'}); B.setAttribute('data-block','faq-cat');
 
-    if (!items.length){ B.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.')); B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ])); return; }
+    if (!items.length){
+      B.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.'));
+      B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ])); return;
+    }
 
     B.appendChild(line('Wähle eine Frage:'));
     var L = row();
