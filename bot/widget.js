@@ -1,136 +1,48 @@
 /* ============================================================================
-   PPX Widget (v7.8.0 – EmailJS robust, kein Auto-mailto, Retry + manueller Fallback)
-   - Bewahrt dein Layout/Flows (Home zentriert, Back kompakt etc.)
-   - EmailJS: init-once, superset payload, echte Fehleranzeige, Retry + "E-Mail manuell öffnen"
+   PPX Widget (v7.6.1 – EmailJS fix: user_id als String + 4th param)
    ============================================================================ */
 (function () {
   'use strict';
 
-  // ==== 0) Daten & Setup =====================================================
+  // 0) Daten & Setup
   var W = window;
   var DATA = W.__PPX_DATA__ || {};
   var CFG  = DATA.cfg || {};
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs  || [];
 
-  try { W.PPX_VERSION = '7.8.0'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
+  try { W.PPX_VERSION = '7.6.1'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
 
   // Delays
   var D = { tap:260, step:450, sub:550, long:1000 };
   function delay(fn, ms){ setTimeout(fn, ms); }
 
-  // ==== EmailJS: init-once + helpers ========================================
-  var EMAIL_INIT_DONE = false;
+  // EmailJS: immer String-Init + 4th param beim Senden
+  function getPublicKey(){ return (CFG.EMAIL && CFG.EMAIL.publicKey) ? String(CFG.EMAIL.publicKey).trim() : ''; }
   function ensureEmailJSReady(){
     try{
-      if (!W.emailjs) return false;
-      if (EMAIL_INIT_DONE) return true;
-      if (CFG.EMAIL && CFG.EMAIL.publicKey){
-        W.emailjs.init({ publicKey: CFG.EMAIL.publicKey });
-        EMAIL_INIT_DONE = true;
-        console.log('[PPX] EmailJS init OK');
-        return true;
-      }
-    }catch(e){ console.warn('[PPX] EmailJS init failed', e); }
-    return !!(W.emailjs);
+      if(!W.emailjs || typeof W.emailjs.send!=='function') return false;
+      var key = getPublicKey(); if(!key) return false;
+      try{ W.emailjs.init(key); }catch(e){ try{ W.emailjs.init({ publicKey:key }); }catch(e2){} }
+      return true;
+    }catch(e){ return false; }
+  }
+  function sendEmailJS(serviceId, templateId, params){
+    var key = getPublicKey();
+    if(!W.emailjs) throw new Error('emailjs not loaded');
+    if(!key) throw new Error('public key missing');
+    // WICHTIG: 4. Parameter = Key -> erzwingt user_id als STRING
+    return W.emailjs.send(serviceId, templateId, params, key);
   }
 
-  function sendEmailJS(serviceId, templateId, payload){
-    return new Promise(function(resolve, reject){
-      if(!ensureEmailJSReady()){
-        return reject(new Error('EmailJS not ready'));
-      }
-      try{
-        // Superset Felder, um Template-Unterschiede abzufangen
-        var p = Object.assign({}, payload || {});
-        if (p.name && !p.from_name)  p.from_name  = p.name;
-        if (p.email && !p.from_email) p.from_email = p.email;
-        if (p.email && !p.reply_to)   p.reply_to   = p.email;
-
-        W.emailjs.send(serviceId, templateId, p).then(function(res){
-          resolve(res);
-        }).catch(function(err){
-          // EmailJS liefert oft err.text
-          var msg = (err && (err.text || err.message)) || 'Unknown EmailJS error';
-          reject(new Error(msg));
-        });
-      }catch(e){ reject(e); }
-    });
-  }
-
-  // ==== STYLE (Home zentriert, kompakter Back, volle Breite Resv/CF) ========
+  // STYLE (kompakt injiziert)
   (function () {
-    // Duplikate entfernen
-    [
-      'ppx-style-v760','ppx-style-100w','ppx-style-v7x-robust'
-    ].forEach(function(id){ var n=document.getElementById(id); if(n) n.remove(); });
-
-    var css = `
-:root{
-  --ppx-green-850:#0f3b33; --ppx-green-800:#114136; --ppx-green-700:#154a3e;
-  --ppx-green-650:#1a5044; --ppx-green-600:#195446;
-  --ppx-ink:#f1f7f4; --ppx-gold:#e6c48a; --ppx-gold-ink:#2a2a1f;
-  --ppx-border:rgba(255,255,255,.10); --ppx-shadow:0 4px 12px rgba(0,0,0,.20);
-}
-#ppx-panel.ppx-v5 #ppx-v{ overflow-y:auto; max-height:calc(100vh - 120px); -webkit-overflow-scrolling:touch; padding:10px 10px 16px; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-bot{ background:linear-gradient(180deg, rgba(14,59,51,.45), rgba(14,59,51,.30)); border:1px solid var(--ppx-border); border-radius:14px; padding:14px; margin:12px auto; max-width:640px; box-shadow:var(--ppx-shadow); text-align:left !important; }
-
-/* volle Breite für Reservierung & Kontaktformular */
-#ppx-panel.ppx-v5 #ppx-v [data-block^="resv-"],
-#ppx-panel.ppx-v5 #ppx-v [data-block^="cf-"]{ max-width:100% !important; margin-left:0 !important; margin-right:0 !important; }
-
-/* Headings + Body */
-#ppx-panel.ppx-v5 #ppx-v .ppx-h{ background:var(--ppx-green-800); color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:12px; padding:10px 12px; margin:-2px -2px 10px; font-family:"Cinzel", serif; font-weight:600; letter-spacing:.02em; text-transform:uppercase; font-size:18px; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-m{ color:var(--ppx-ink); line-height:1.5; margin:6px 0 10px; font-family:"Cormorant Garamond", serif; font-weight:400; font-size:18px; }
-
-/* Rows/Grids */
-#ppx-panel.ppx-v5 #ppx-v .ppx-row{ display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-start !important; margin-top:8px; width:100%; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:8px; width:100%; }
-
-/* Buttons & Chips */
-#ppx-panel.ppx-v5 #ppx-v .ppx-b, #ppx-panel.ppx-v5 #ppx-v .ppx-chip{
-  -webkit-appearance:none; appearance:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:flex-start !important; gap:10px; width:100% !important; text-align:left;
-  color:var(--ppx-ink); border:1px solid var(--ppx-border); border-radius:14px; padding:10px 14px !important; background:var(--ppx-green-650);
-  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 2px 8px rgba(0,0,0,.20); transition:transform .06s ease, filter .2s ease, box-shadow .2s ease, background .2s ease;
-  font-family:"Cormorant Garamond", serif; font-size:17px !important;
-}
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{ background:var(--ppx-green-600); }
-#ppx-panel.ppx-v5 #ppx-v .ppx-chip{ background:var(--ppx-green-700); }
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.22); padding:8px 12px !important; font-size:15px !important; box-shadow:none; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before, #ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{
-  content:attr(data-ic); display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; min-width:26px; border-radius:999px; background:var(--ppx-gold); color:var(--ppx-gold-ink); font-size:15px; line-height:1;
-  box-shadow:inset 0 0 0 2px rgba(0,0,0,.08), 0 1px 0 rgba(255,255,255,.22) inset;
-}
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected, #ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{ filter:brightness(1.10); box-shadow:0 0 0 2px rgba(230,196,138,.55) inset, 0 2px 8px rgba(0,0,0,.26); }
-
-/* Inputs */
-#ppx-panel.ppx-v5 #ppx-v .ppx-input{ display:flex; gap:8px; margin-top:8px; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-input input, #ppx-panel.ppx-v5 #ppx-v .ppx-input select, #ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{
-  width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.1); color:#fff; font-size:15px; outline:none;
-}
-#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{ min-height:96px; resize:vertical; }
-
-/* Slotgrid */
-#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{ grid-template-columns:repeat(3,minmax(0,1fr)); max-height:280px; overflow:auto; padding-right:4px; }
-@media (max-width:520px){ #ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{ grid-template-columns:repeat(2,minmax(0,1fr)); max-height:260px; } }
-
-/* SPEISEN-Kategorien (zentriert) */
-#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-cat{ justify-content:center !important; text-align:center !important; }
-
-/* HOME: Buttons & Text zentriert */
-#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-row{ justify-content:center !important; }
-#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-b,
-#ppx-panel.ppx-v5 #ppx-v [data-block="home"] .ppx-chip{ justify-content:center !important; text-align:center !important; }
-
-/* Nav + kompakter Zurück-Button */
-#ppx-panel.ppx-v5 #ppx-v .ppx-nav{ display:flex; gap:10px; width:100%; justify-content:flex-start !important; margin-top:10px; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{ flex:1 1 0; }
-#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-back{ width:auto !important; min-width:130px !important; flex:0 0 auto !important; font-size:14px !important; padding:8px 10px !important; }
-`;
-    var tag = document.createElement('style'); tag.id = 'ppx-style-v7x-robust'; tag.textContent = css; document.head.appendChild(tag);
+    var old = document.getElementById('ppx-style-v760'); if(old) old.remove();
+    var css = ":root{--ppx-green-850:#0f3b33;--ppx-green-800:#114136;--ppx-green-700:#154a3e;--ppx-green-650:#1a5044;--ppx-green-600:#195446;--ppx-ink:#f1f7f4;--ppx-gold:#e6c48a;--ppx-gold-ink:#2a2a1f;--ppx-border:rgba(255,255,255,.10);--ppx-shadow:0 4px 12px rgba(0,0,0,.20);}#ppx-panel.ppx-v5 #ppx-v{overflow-y:auto;max-height:calc(100vh - 120px);-webkit-overflow-scrolling:touch;padding:10px 10px 16px;}#ppx-panel.ppx-v5 #ppx-v .ppx-bot{background:linear-gradient(180deg,rgba(14,59,51,.45),rgba(14,59,51,.30));border:1px solid var(--ppx-border);border-radius:14px;padding:14px;margin:12px auto;max-width:640px;box-shadow:var(--ppx-shadow);text-align:left!important}#ppx-panel.ppx-v5 #ppx-v [data-block^=resv-],#ppx-panel.ppx-v5 #ppx-v [data-block^=cf-]{max-width:100%!important;margin-left:0!important;margin-right:0!important}#ppx-panel.ppx-v5 #ppx-v .ppx-h{background:var(--ppx-green-800);color:var(--ppx-ink);border:1px solid var(--ppx-border);border-radius:12px;padding:10px 12px;margin:-2px -2px 10px;font-family:Cinzel,serif;font-weight:600;letter-spacing:.02em;text-transform:uppercase;font-size:18px}#ppx-panel.ppx-v5 #ppx-v .ppx-m{color:var(--ppx-ink);line-height:1.5;margin:6px 0 10px;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:18px}#ppx-panel.ppx-v5 #ppx-v .ppx-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start!important;margin-top:8px;width:100%}#ppx-panel.ppx-v5 #ppx-v .ppx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px;width:100%}#ppx-panel.ppx-v5 #ppx-v .ppx-b,#ppx-panel.ppx-v5 #ppx-v .ppx-chip{-webkit-appearance:none;appearance:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:flex-start!important;gap:10px;width:100%!important;text-align:left;color:var(--ppx-ink);border:1px solid var(--ppx-border);border-radius:14px;padding:10px 14px!important;background:var(--ppx-green-650);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 2px 8px rgba(0,0,0,.20);transition:transform .06s,filter .2s,box-shadow .2s,background .2s;font-family:'Cormorant Garamond',serif;font-weight:400!important;font-size:17px!important}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{background:var(--ppx-green-600)}#ppx-panel.ppx-v5 #ppx-v .ppx-chip{background:var(--ppx-green-700)}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary,#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.22);padding:8px 12px!important;font-size:15px!important;box-shadow:none}#ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,#ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{content:attr(data-ic);display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;min-width:26px;border-radius:999px;background:var(--ppx-gold);color:var(--ppx-gold-ink);font-size:15px;line-height:1;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08),0 1px 0 rgba(255,255,255,.22) inset}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected,#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{filter:brightness(1.10);box-shadow:0 0 0 2px rgba(230,196,138,.55) inset,0 2px 8px rgba(0,0,0,.26)}#ppx-panel.ppx-v5 #ppx-v .ppx-input{display:flex;gap:8px;margin-top:8px}#ppx-panel.ppx-v5 #ppx-v .ppx-input input,#ppx-panel.ppx-v5 #ppx-v .ppx-input select,#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#fff;font-size:15px;outline:none}#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{min-height:96px;resize:vertical}#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:280px;overflow:auto;padding-right:4px}@media (max-width:520px){#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:260px}}#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-row{justify-content:center!important}#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-b,#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-chip{justify-content:center!important;text-align:center!important}#ppx-panel.ppx-v5 #ppx-v .ppx-nav{display:flex;gap:10px;width:100%;justify-content:flex-start!important;margin-top:10px}#ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{flex:1 1 0}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-back{width:auto!important;min-width:130px!important;flex:0 0 auto!important;font-size:14px!important;padding:8px 10px!important}";
+    var tag = document.createElement('style'); tag.id = 'ppx-style-v760'; tag.textContent = css; document.head.appendChild(tag);
   })();
 
-  // ==== 1) Init / DOM / Utils ===============================================
+  // 1) Init UI
   var $launch, $panel, $close, $view; var BOUND = false;
   function queryDom(){ $launch=document.getElementById('ppx-launch'); $panel=document.getElementById('ppx-panel'); $close=document.getElementById('ppx-close'); $view=document.getElementById('ppx-v'); return !!($launch&&$panel&&$close&&$view); }
   function openPanel(){ if(!queryDom())return; $panel.classList.add('ppx-open','ppx-v5'); if(!$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); } }
@@ -145,13 +57,14 @@
       var t=ev.target&&ev.target.closest?ev.target.closest('.ppx-b, .ppx-chip'):null;
       if(t&&$view&&$view.contains(t)){ t.classList.add('ppx-selected'); jumpBottom(); delay(jumpBottom,140); delay(jumpBottom,700); }
     });
+    document.addEventListener('click', function(ev){ var t=ev.target&&ev.target.closest?ev.target.closest('#ppx-launch'):null; if(t) openPanel(); });
     if($panel.classList.contains('ppx-open') && !$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); }
     BOUND=true; return true;
   }
   if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', bindOnce, {once:true}); } else { bindOnce(); }
   if(!BOUND){ var mo=new MutationObserver(function(){ if(bindOnce()) mo.disconnect(); }); mo.observe(document.documentElement||document.body,{childList:true,subtree:true}); setTimeout(function(){ try{mo.disconnect();}catch(e){} },5000); }
 
-  // Utils
+  // 2) Utils
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
   function jumpBottom(){ if(!$view) return; try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){} }
   function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){
@@ -171,24 +84,20 @@
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
   function popToScope(idx){ if(!$view) return; while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); } jumpBottom(); }
 
-  function btn(label, onClick, extraCls, ic){
-    var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'};
-    if(ic) a['data-ic']=ic;
-    var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
-  }
-  function chip(label, onClick, extraCls, ic){
-    var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'};
-    if(ic) a['data-ic']=ic;
-    var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n;
-  }
+  // Buttons/Chips/Nav
+  function btn(label, onClick, extraCls, ic){ var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
+  function chip(label, onClick, extraCls, ic){ var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
   function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
   function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary ppx-back'); }
-  // ==== 2) Home & Navigation =================================================
+
+  // Platzhalter – die folgenden Steps kommen in Part 2–5
+  function stepHome(force){ /* wird in Part 2 überschrieben */ }
+
+  // ==== 3) Home & Navigation =================================================
   function stepHome(force){
-    if (!$view) return;
-    if (!force && $view.querySelector('[data-block="home"]')) return;
-    var brand = (CFG.brand || 'Pizza Papa Hamburg');
-    var B = block(brand.toUpperCase()); B.setAttribute('data-block','home');
+    if (!force && $view && $view.querySelector('[data-block="home"]')) return;
+    var brand=(CFG.brand||'Pizza Papa Hamburg');
+    var B=block(brand.toUpperCase()); B.setAttribute('data-block','home');
     B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
     B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
 
@@ -201,9 +110,17 @@
   }
   function goHome(){ popToScope(0); stepHome(true); }
   function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', '🏠'); }
-  function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); jumpBottom(); setTimeout(closePanel,1100); }); }
+  function doneBtn(){ return btn('Fertig ✓', function(){ var B=block(null); B.appendChild(line('Danke dir bis zum nächsten Mal! 👋')); setTimeout(closePanel,1100); }, ''); }
 
-  // ==== 3) Speisen ===========================================================
+  // ==== 3b) SPEISEN ==========================================================
+  function stepSpeisen(){
+    var scopeIdx = getScopeIndex();
+    var M = block(null);
+    M.setAttribute('data-block','speisen-info');
+    M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
+    delay(function(){ renderSpeisenRoot(scopeIdx); }, D.step);
+  }
+
   function orderCats(keys){
     var pref = Array.isArray(CFG.menuOrder) && CFG.menuOrder.length ? CFG.menuOrder.map(pretty) :
                ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
@@ -214,14 +131,6 @@
       var ib = (b in pos)? pos[b] : 999;
       return ia-ib || a.localeCompare(b);
     });
-  }
-
-  function stepSpeisen(){
-    var scopeIdx = getScopeIndex();
-    var M = block(null);
-    M.setAttribute('data-block','speisen-info');
-    M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
-    delay(function(){ renderSpeisenRoot(scopeIdx); }, D.step);
   }
 
   function renderSpeisenRoot(scopeIdx){
@@ -235,9 +144,10 @@
     delay(function(){
       B.appendChild(line('…oder wähle eine Kategorie:'));
 
-      var map = {}; var catsRaw = Object.keys(DISH);
-      var cats = catsRaw.length ? orderCats(catsRaw.map(function(k){ map[pretty(k)] = k; return pretty(k); })) :
-                                  ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
+      var cats = Object.keys(DISH);
+      cats = cats.length ? orderCats(cats.map(function(k){ return pretty(k); })) :
+                           ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
+      var map = {}; Object.keys(DISH).forEach(function(k){ map[pretty(k)] = k; });
 
       var G = grid();
       cats.forEach(function(catPretty){
@@ -296,7 +206,7 @@
     Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
     jumpBottom();
   }
-  // ==== 4) Reservieren – Flow ===============================================
+  // ==== 4) RESERVIEREN – Flow ===============================================
   var RESV = null;
 
   function stepReservieren(){
@@ -329,8 +239,6 @@
     return null;
   }
   function fmtDateReadable(d){ var wd=['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()]; var dd=String(d.getDate()).padStart(2,'0'), mm=String(d.getMonth()+1).padStart(2,'0'); return wd+', '+dd+'.'+mm+'.'; }
-  function hmToMin(s){ var a=String(s||'').trim().replace(/\s/g,''); var m=a.match(/^(\d{1,2}):(\d{2})$/); if(!m) return NaN; var h=+m[1], mi=+m[2]; if(h===24&&mi===0) return 1440; return h*60+mi; }
-  function minToHM(n){ var h=Math.floor(n/60), m=n%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
 
   function renderResvDate(){
     var scopeIdx = getScopeIndex();
@@ -354,6 +262,9 @@
     B.appendChild(r);
   }
 
+  function hmToMin(s){ var a=String(s||'').trim().replace(/\s/g,''); var m=a.match(/^(\d{1,2}):(\d{2})$/); if(!m) return NaN; var h=+m[1], mi=+m[2]; if(h===24&&mi===0) return 1440; return h*60+mi; }
+  function minToHM(n){ var h=Math.floor(n/60), m=n%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
+
   function buildSlotsForDate(d){
     var wd = d.getDay();
     var span = (CFG.OPEN && CFG.OPEN[String(wd)]) || null;
@@ -368,13 +279,13 @@
     if(!from||!to) return [];
     var openMin = hmToMin(from), closeMin = hmToMin(to);
     if (isNaN(openMin)||isNaN(closeMin)) return [];
-    var lastStartExclusive = closeMin - 60;
+    var lastStartExclusive = closeMin - 60; // 1h Puffer
     if (lastStartExclusive <= openMin) return [];
     var slots = []; for(var t=openMin; t<lastStartExclusive; t+=30){ slots.push(t); }
     var now = new Date();
     var isToday = now.getFullYear()===d.getFullYear() && now.getMonth()===d.getMonth() && now.getDate()===d.getDate();
     if(isToday){
-      var lead = (now.getHours()*60 + now.getMinutes()) + 240; // 4h Vorlauf
+      var lead = (now.getHours()*60 + now.getMinutes()) + 240; // +4h Vorlauf
       slots = slots.filter(function(t){ return t >= lead; });
     }
     return slots;
@@ -448,6 +359,7 @@
     delay(function(){ B.appendChild(slotWrap); B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ])); }, D.sub);
   }
 
+  // Persons
   function renderResvPersons(){
     var scopeIdx = getScopeIndex();
     var B = block('Super, '+RESV.name+'!', {maxWidth:'100%'}); 
@@ -469,6 +381,7 @@
     B.appendChild(r);
   }
 
+  // Phone (optional)
   function renderResvPhone(backScopeIdx){
     var B = block('Magst du mir deine Nummer dalassen? (optional)', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-phone');
@@ -490,12 +403,14 @@
     B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
   }
 
+  // Email (required)
   function isValidEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(s||'').trim()); }
 
   function renderResvEmail(){
     var scopeIdx = getScopeIndex();
     var B = block('Und deine E-Mail für die Bestätigung?', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-email');
+
     B.appendChild(line('Wir schicken dir dort eine kurze Eingangsbestätigung.'));
 
     var rowIn = row(); rowIn.className='ppx-input';
@@ -513,40 +428,34 @@
     B.appendChild(r);
   }
 
-  // Submit Reservation (EmailJS robust → kein Auto-mailto)
+  // Submit Reservation (EmailJS → Fehleranzeige + optionaler Mailto-Button)
   function submitReservation(){
     var brand = (CFG.brand||'Restaurant');
     var payload = {
       brand: brand,
       name: RESV.name,
-      email: RESV.email,
-      phone: RESV.phone||'',
       date: RESV.dateReadable,
       time: RESV.time,
       persons: RESV.persons,
+      phone: RESV.phone||'',
+      email: RESV.email,
       message: ''
     };
-
     var svcId   = CFG.EMAIL && (CFG.EMAIL.service || CFG.EMAIL.serviceId);
     var tplTo   = CFG.EMAIL && (CFG.EMAIL.toTemplate || CFG.EMAIL.templateId);
     var tplAuto = CFG.EMAIL && CFG.EMAIL.autoReplyTemplate;
 
     var B = block('SENDE ANFRAGE …', {maxWidth:'100%'}); 
-    B.setAttribute('data-block','reservieren-sending');
-    B.appendChild(line('Bitte kurz warten – wir übermitteln deine Reservierung.'));
+    B.setAttribute('data-block','resv-sending');
+    B.appendChild(line('Bitte kurz warten – wir übermitteln deine Anfrage.'));
 
     if (svcId && tplTo && ensureEmailJSReady()){
       sendEmailJS(svcId, tplTo, payload).then(function(){
         if (tplAuto){ return sendEmailJS(svcId, tplAuto, payload).catch(function(e){ console.warn('[PPX] auto-reply failed:', e.message); }); }
-      }).then(function(){
-        showReservationSuccess('emailjs');
-      }).catch(function(err){
-        console.warn('[PPX] send reservation failed:', err && err.message);
-        showReservationError(err && err.message, payload);
-      });
+      }).then(function(){ showReservationSuccess('emailjs'); })
+        .catch(function(err){ console.warn('[PPX] reservation send failed:', err && err.message); showReservationError(err && err.message, payload); });
       return;
     }
-    // Wenn EmailJS nicht ready → sofort Fehleranzeige (kein Auto-mailto)
     showReservationError('EmailJS nicht verfügbar', payload);
   }
 
@@ -569,17 +478,19 @@
   function showReservationSuccess(kind){
     var B = block('RESERVIERUNG', {maxWidth:'100%'}); 
     B.setAttribute('data-block','reservieren-success');
-    B.appendChild(line('Danke für deine Anfrage! Schau bitte in deinem E-Mail-Postfach vorbei (und ggf. im Spam).'));
+    B.appendChild(line('Danke für deine Anfrage! Schau doch mal in deinem E-Mail-Postfach vorbei! ;)'));
+    B.appendChild(line('Möchtest du noch etwas anderes wissen?'));
     var r = row();
     r.appendChild(btn('Ja, zeig mir die Q&As', function(){ delay(stepQAs, D.step); }, 'ppx-cta', '❓'));
-    r.appendChild(btn('Zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
+    r.appendChild(btn('Nein, danke', function(){ var X=block(null); X.appendChild(line('Bis bald und buon appetito! 👋')); }, 'ppx-secondary', '✅'));
     B.appendChild(r);
+    B.appendChild(nav([ homeBtn(), doneBtn() ]));
     jumpBottom();
   }
 
   function showReservationError(msg, payload){
     var B = block('SENDEN FEHLGESCHLAGEN', {maxWidth:'100%'}); 
-    B.setAttribute('data-block','reservieren-error');
+    B.setAttribute('data-block','resv-error');
     B.appendChild(line('Uff, das hat gerade nicht geklappt. Grund (technisch): '+(msg||'unbekannt')));
     B.appendChild(line('Du kannst es nochmal versuchen oder deine E-Mail-App manuell öffnen.'));
     var r = row();
@@ -588,7 +499,7 @@
     r.appendChild(homeBtn());
     B.appendChild(r);
   }
-  // ==== 5) Öffnungszeiten (robust) ==========================================
+  // ==== 5) ÖFFNUNGSZEITEN ====================================================
   function normalizeHoursLines(v){
     var out = [];
     if (Array.isArray(v)){
@@ -609,7 +520,6 @@
     }
     return out;
   }
-
   function parseSpanToText(span){
     var from,to;
     if (Array.isArray(span)){ from=span[0]; to=span[1]; }
@@ -621,24 +531,19 @@
     if (!from || !to) return 'geschlossen';
     return from+' – '+to+' Uhr';
   }
-
   function hoursFromOpen(){
     var dnames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-    var out = [];
-    var O = CFG.OPEN || {};
+    var out = []; var O = (CFG.OPEN||{});
     for (var i=1;i<=6;i++){ out.push([dnames[i], parseSpanToText(O[String(i)])]); }
     out.push([dnames[0], parseSpanToText(O['0'])]);
     return out;
   }
-
   function stepHours(){
     var scopeIdx = getScopeIndex();
     var B = block('ÖFFNUNGSZEITEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','hours');
-
     var lines = normalizeHoursLines(CFG.hoursLines);
     if (!lines.length) lines = hoursFromOpen();
-
     if (!Array.isArray(lines) || !lines.length) {
       B.appendChild(line('Keine Zeiten hinterlegt.'));
     } else {
@@ -647,20 +552,18 @@
         B.appendChild(line('• '+txt));
       });
     }
-    setTimeout(function(){ askReserveAfterHours(scopeIdx); }, 3000);
+    setTimeout(function(){ askReserveAfterHours(scopeIdx); }, 2000);
   }
-
   function askReserveAfterHours(scopeIdx){
     var Q = block(null, {maxWidth:'100%'}); Q.setAttribute('data-block','hours-ask');
-    Q.appendChild(line('Samstagabend ist meistens richtig voll – willst du dir jetzt schon einen Platz sichern?'));
-    var r = row(); r.style.justifyContent = 'flex-start';
+    Q.appendChild(line('Samstagabend ist meist voll – möchtest du dir jetzt schon einen Platz sichern?'));
+    var r = row(); r.style.justifyContent='flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ delay(stepReservieren, D.step); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
-    Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
   }
 
-  // ==== 6) Kontaktdaten ======================================================
+  // ==== 6) KONTAKTDATEN ======================================================
   function stepKontakt(){
     var scopeIdx = getScopeIndex();
     var B = block('KONTAKTDATEN', {maxWidth:'100%'}); 
@@ -675,15 +578,8 @@
     if (CFG.email){
       B.appendChild(line('✉️  '+CFG.email));
       var r2=row(); r2.style.justifyContent='flex-start';
-      // Mailto hier ist okay – es ist eine bewusste, manuelle Aktion des Users
       r2.appendChild(btn('E-Mail schreiben', function(){ window.location.href='mailto:'+CFG.email; }, '', '✉️'));
       B.appendChild(r2);
-    } else if (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)){
-      var addr = CFG.EMAIL.to || CFG.EMAIL.toEmail;
-      B.appendChild(line('✉️  '+addr));
-      var r2b=row(); r2b.style.justifyContent='flex-start';
-      r2b.appendChild(btn('E-Mail schreiben', function(){ window.location.href='mailto:'+addr; }, '', '✉️'));
-      B.appendChild(r2b);
     }
     if (CFG.address){
       B.appendChild(line('📍 '+CFG.address));
@@ -695,7 +591,7 @@
     B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
   }
 
-  // ==== 7) Kontaktformular – robust =========================================
+  // ==== 7) KONTAKTFORMULAR ===================================================
   var CF = null;
 
   function stepContactForm(){
@@ -705,7 +601,6 @@
     B.appendChild(line('Du möchtest uns gerne eine Nachricht da lassen?'));
     delay(renderContactEmail, D.step);
   }
-
   function renderContactEmail(){
     var scopeIdx = getScopeIndex();
     var B = block('Alles klar – dann brauche ich erstmal deine E-Mail-Adresse.', {maxWidth:'100%'}); 
@@ -725,7 +620,6 @@
     r.appendChild(backBtnAt(scopeIdx));
     B.appendChild(r);
   }
-
   function renderContactMessage(){
     var scopeIdx = getScopeIndex();
     var B = block('Worum geht’s?', {maxWidth:'100%'}); 
@@ -760,12 +654,8 @@
     if (svcId && tplContact && ensureEmailJSReady()){
       sendEmailJS(svcId, tplContact, payload).then(function(){
         if (tplContactAuto){ return sendEmailJS(svcId, tplContactAuto, payload).catch(function(e){ console.warn('[PPX] cf auto-reply failed:', e.message); }); }
-      }).then(function(){
-        showContactSuccess('emailjs');
-      }).catch(function(err){
-        console.warn('[PPX] send contact failed:', err && err.message);
-        showContactError(err && err.message, payload);
-      });
+      }).then(function(){ showContactSuccess('emailjs'); })
+        .catch(function(err){ console.warn('[PPX] cf send failed:', err && err.message); showContactError(err && err.message, payload); });
       return;
     }
     showContactError('EmailJS nicht verfügbar', payload);
@@ -776,7 +666,6 @@
     var body = encodeURIComponent(['Kontaktformular','E-Mail: '+p.email,'',p.message,'','— gesendet via Bot'].join('\n'));
     return 'mailto:'+addr+'?subject='+encodeURIComponent('Kontaktformular')+'&body='+body;
   }
-
   function showContactSuccess(kind){
     var B = block('NACHRICHT GESENDET', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-success');
@@ -785,11 +674,10 @@
     r.appendChild(btn('Zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     B.appendChild(r);
   }
-
   function showContactError(msg, payload){
     var B = block('SENDEN FEHLGESCHLAGEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-error');
-    B.appendChild(line('Uff, das hat gerade nicht geklappt. Grund (technisch): '+(msg||'unbekannt')));
+    B.appendChild(line('Uff, das hat leider nicht geklappt. Grund (technisch): '+(msg||'unbekannt')));
     B.appendChild(line('Du kannst es nochmal versuchen oder deine E-Mail-App manuell öffnen.'));
     var r = row();
     r.appendChild(btn('Nochmal senden', function(){ delay(submitContactForm, D.tap); }, 'ppx-cta', '⤴️'));
@@ -888,7 +776,7 @@
     var more = it && it.more;
 
     var B = block(q, {maxWidth:'100%'}); B.setAttribute('data-block','faq-answer');
-    if (a)   B.appendChild(line(a));
+    if (a)    B.appendChild(line(a));
     if (more) B.appendChild(line(more));
 
     if (isOrderQuick(it)){
@@ -899,7 +787,7 @@
       B.appendChild(r); B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ])); return;
     }
 
-    setTimeout(function(){ askAfterFaqAnswer(backScopeIdx); }, 3000);
+    setTimeout(function(){ askAfterFaqAnswer(backScopeIdx); }, 2000);
   }
 
   function askAfterFaqAnswer(backScopeIdx){
