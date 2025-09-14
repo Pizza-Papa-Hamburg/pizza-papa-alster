@@ -1,5 +1,12 @@
 /* ============================================================================
-   PPX Widget (v7.6.1 – EmailJS fix: user_id als String + 4th param)
+   PPX Widget (v7.7.0 – Layout & Nav-Update)
+   - Hauptmenü-Header zentriert
+   - Vollbreite Grids/Buttons (2 Spalten)
+   - Q&As: Auto-Scroll zu Kategorien
+   - Nav: "Zurück" & "Zurück ins Hauptmenü" immer ohne Delay + symmetrisch
+   - Reservieren: Home-Button in Datum/Personen/E-Mail
+   - Kontakt: Home-Button bei "Worum geht’s?"
+   - FAQ-Followup: Kontaktformular statt Reservieren
    ============================================================================ */
 (function () {
   'use strict';
@@ -11,7 +18,7 @@
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs  || [];
 
-  try { W.PPX_VERSION = '7.6.1'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
+  try { W.PPX_VERSION = '7.7.0'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
 
   // Delays
   var D = { tap:260, step:450, sub:550, long:1000 };
@@ -31,14 +38,13 @@
     var key = getPublicKey();
     if(!W.emailjs) throw new Error('emailjs not loaded');
     if(!key) throw new Error('public key missing');
-    // WICHTIG: 4. Parameter = Key -> erzwingt user_id als STRING
     return W.emailjs.send(serviceId, templateId, params, key);
   }
 
   // STYLE (kompakt injiziert)
   (function () {
     var old = document.getElementById('ppx-style-v760'); if(old) old.remove();
-    var css = ":root{--ppx-green-850:#0f3b33;--ppx-green-800:#114136;--ppx-green-700:#154a3e;--ppx-green-650:#1a5044;--ppx-green-600:#195446;--ppx-ink:#f1f7f4;--ppx-gold:#e6c48a;--ppx-gold-ink:#2a2a1f;--ppx-border:rgba(255,255,255,.10);--ppx-shadow:0 4px 12px rgba(0,0,0,.20);}#ppx-panel.ppx-v5 #ppx-v{overflow-y:auto;max-height:calc(100vh - 120px);-webkit-overflow-scrolling:touch;padding:10px 10px 16px;}#ppx-panel.ppx-v5 #ppx-v .ppx-bot{background:linear-gradient(180deg,rgba(14,59,51,.45),rgba(14,59,51,.30));border:1px solid var(--ppx-border);border-radius:14px;padding:14px;margin:12px auto;max-width:640px;box-shadow:var(--ppx-shadow);text-align:left!important}#ppx-panel.ppx-v5 #ppx-v [data-block^=resv-],#ppx-panel.ppx-v5 #ppx-v [data-block^=cf-]{max-width:100%!important;margin-left:0!important;margin-right:0!important}#ppx-panel.ppx-v5 #ppx-v .ppx-h{background:var(--ppx-green-800);color:var(--ppx-ink);border:1px solid var(--ppx-border);border-radius:12px;padding:10px 12px;margin:-2px -2px 10px;font-family:Cinzel,serif;font-weight:600;letter-spacing:.02em;text-transform:uppercase;font-size:18px}#ppx-panel.ppx-v5 #ppx-v .ppx-m{color:var(--ppx-ink);line-height:1.5;margin:6px 0 10px;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:18px}#ppx-panel.ppx-v5 #ppx-v .ppx-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start!important;margin-top:8px;width:100%}#ppx-panel.ppx-v5 #ppx-v .ppx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px;width:100%}#ppx-panel.ppx-v5 #ppx-v .ppx-b,#ppx-panel.ppx-v5 #ppx-v .ppx-chip{-webkit-appearance:none;appearance:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:flex-start!important;gap:10px;width:100%!important;text-align:left;color:var(--ppx-ink);border:1px solid var(--ppx-border);border-radius:14px;padding:10px 14px!important;background:var(--ppx-green-650);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 2px 8px rgba(0,0,0,.20);transition:transform .06s,filter .2s,box-shadow .2s,background .2s;font-family:'Cormorant Garamond',serif;font-weight:400!important;font-size:17px!important}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{background:var(--ppx-green-600)}#ppx-panel.ppx-v5 #ppx-v .ppx-chip{background:var(--ppx-green-700)}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary,#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.22);padding:8px 12px!important;font-size:15px!important;box-shadow:none}#ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,#ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{content:attr(data-ic);display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;min-width:26px;border-radius:999px;background:var(--ppx-gold);color:var(--ppx-gold-ink);font-size:15px;line-height:1;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08),0 1px 0 rgba(255,255,255,.22) inset}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected,#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{filter:brightness(1.10);box-shadow:0 0 0 2px rgba(230,196,138,.55) inset,0 2px 8px rgba(0,0,0,.26)}#ppx-panel.ppx-v5 #ppx-v .ppx-input{display:flex;gap:8px;margin-top:8px}#ppx-panel.ppx-v5 #ppx-v .ppx-input input,#ppx-panel.ppx-v5 #ppx-v .ppx-input select,#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#fff;font-size:15px;outline:none}#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{min-height:96px;resize:vertical}#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:280px;overflow:auto;padding-right:4px}@media (max-width:520px){#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:260px}}#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-row{justify-content:center!important}#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-b,#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-chip{justify-content:center!important;text-align:center!important}#ppx-panel.ppx-v5 #ppx-v .ppx-nav{display:flex;gap:10px;width:100%;justify-content:flex-start!important;margin-top:10px}#ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{flex:1 1 0}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-back{width:auto!important;min-width:130px!important;flex:0 0 auto!important;font-size:14px!important;padding:8px 10px!important}";
+    var css = ":root{--ppx-green-850:#0f3b33;--ppx-green-800:#114136;--ppx-green-700:#154a3e;--ppx-green-650:#1a5044;--ppx-green-600:#195446;--ppx-ink:#f1f7f4;--ppx-gold:#e6c48a;--ppx-gold-ink:#2a2a1f;--ppx-border:rgba(255,255,255,.10);--ppx-shadow:0 4px 12px rgba(0,0,0,.20);}#ppx-panel.ppx-v5 #ppx-v{overflow-y:auto;max-height:calc(100vh - 120px);-webkit-overflow-scrolling:touch;padding:10px 10px 16px;}#ppx-panel.ppx-v5 #ppx-v .ppx-bot{background:linear-gradient(180deg,rgba(14,59,51,.45),rgba(14,59,51,.30));border:1px solid var(--ppx-border);border-radius:14px;padding:14px;margin:12px auto;max-width:640px;box-shadow:var(--ppx-shadow);text-align:left!important}#ppx-panel.ppx-v5 #ppx-v [data-block^=resv-],#ppx-panel.ppx-v5 #ppx-v [data-block^=cf-],#ppx-panel.ppx-v5 #ppx-v [data-block^=speisen-],#ppx-panel.ppx-v5 #ppx-v [data-block^=faq-],#ppx-panel.ppx-v5 #ppx-v [data-block=kontakt],#ppx-panel.ppx-v5 #ppx-v [data-block=hours]{max-width:100%!important;margin-left:0!important;margin-right:0!important}#ppx-panel.ppx-v5 #ppx-v .ppx-h{background:var(--ppx-green-800);color:var(--ppx-ink);border:1px solid var(--ppx-border);border-radius:12px;padding:10px 12px;margin:-2px -2px 10px;font-family:Cinzel,serif;font-weight:600;letter-spacing:.02em;text-transform:uppercase;font-size:18px}#ppx-panel.ppx-v5 #ppx-v .ppx-m{color:var(--ppx-ink);line-height:1.5;margin:6px 0 10px;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:18px}#ppx-panel.ppx-v5 #ppx-v .ppx-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start!important;margin-top:8px;width:100%}#ppx-panel.ppx-v5 #ppx-v .ppx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px;width:100%}#ppx-panel.ppx-v5 #ppx-v .ppx-b,#ppx-panel.ppx-v5 #ppx-v .ppx-chip{-webkit-appearance:none;appearance:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:flex-start!important;gap:10px;width:100%!important;text-align:left;color:var(--ppx-ink);border:1px solid var(--ppx-border);border-radius:14px;padding:10px 14px!important;background:var(--ppx-green-650);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 2px 8px rgba(0,0,0,.20);transition:transform .06s,filter .2s,box-shadow .2s,background .2s;font-family:'Cormorant Garamond',serif;font-weight:400!important;font-size:17px!important}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{background:var(--ppx-green-600)}#ppx-panel.ppx-v5 #ppx-v .ppx-chip{background:var(--ppx-green-700)}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary,#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.22);padding:8px 12px!important;font-size:15px!important;box-shadow:none}#ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,#ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{content:attr(data-ic);display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;min-width:26px;border-radius:999px;background:var(--ppx-gold);color:var(--ppx-gold-ink);font-size:15px;line-height:1;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08),0 1px 0 rgba(255,255,255,.22) inset}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected,#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{filter:brightness(1.10);box-shadow:0 0 0 2px rgba(230,196,138,.55) inset,0 2px 8px rgba(0,0,0,.26)}#ppx-panel.ppx-v5 #ppx-v .ppx-input{display:flex;gap:8px;margin-top:8px}#ppx-panel.ppx-v5 #ppx-v .ppx-input input,#ppx-panel.ppx-v5 #ppx-v .ppx-input select,#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#fff;font-size:15px;outline:none}#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{min-height:96px;resize:vertical}#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:280px;overflow:auto;padding-right:4px}@media (max-width:520px){#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:260px}}#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-row{justify-content:center!important}#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-b,#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-chip{justify-content:center!important;text-align:center!important}#ppx-panel.ppx-v5 #ppx-v .ppx-nav{display:flex;gap:10px;width:100%;justify-content:flex-start!important;margin-top:10px}#ppx-panel.ppx-v5 #ppx-v .ppx-nav .ppx-b{flex:1 1 0}";
     var tag = document.createElement('style'); tag.id = 'ppx-style-v760'; tag.textContent = css; document.head.appendChild(tag);
   })();
 
@@ -77,7 +83,15 @@
   for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); }
   return n; }
   function pretty(s){ return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g, function(c){ return c.toUpperCase(); }); }
-  function block(title,opts){ opts=opts||{}; var w=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}}); if(title) w.appendChild(el('div',{class:'ppx-h'},title)); if($view) $view.appendChild(w); jumpBottom(); return w; }
+  function block(title,opts){
+    opts=opts||{};
+    var w=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}});
+    if(title){
+      var h=el('div',{class:'ppx-h',style:opts.hCenter?{textAlign:'center'}:null},title);
+      w.appendChild(h);
+    }
+    if($view) $view.appendChild(w); jumpBottom(); return w;
+  }
   function line(txt){ return el('div',{class:'ppx-m'},txt); }
   function row(){ return el('div',{class:'ppx-row'}); }
   function grid(){ return el('div',{class:'ppx-grid'}); }
@@ -88,16 +102,16 @@
   function btn(label, onClick, extraCls, ic){ var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
   function chip(label, onClick, extraCls, ic){ var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
   function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
-  function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary ppx-back'); }
-
-  // Platzhalter – die folgenden Steps kommen in Part 2–5
-  function stepHome(force){ /* wird in Part 2 überschrieben */ }
+  function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary'); }
 
   // ==== 3) Home & Navigation =================================================
   function stepHome(force){
     if (!force && $view && $view.querySelector('[data-block="home"]')) return;
     var brand=(CFG.brand||'Pizza Papa Hamburg');
-    var B=block(brand.toUpperCase()); B.setAttribute('data-block','home');
+
+    // (1) Hauptmenü-Header zentriert
+    var B=block('Hauptmenü', {hCenter:true}); B.setAttribute('data-block','home');
+
     B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
     B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
 
@@ -115,9 +129,13 @@
   // ==== 3b) SPEISEN ==========================================================
   function stepSpeisen(){
     var scopeIdx = getScopeIndex();
-    var M = block(null);
+    var M = block(null,{maxWidth:'100%'}); // Vollbreite
     M.setAttribute('data-block','speisen-info');
     M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
+
+    // Nav sofort ohne Delay (symmetrisch)
+    M.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+
     delay(function(){ renderSpeisenRoot(scopeIdx); }, D.step);
   }
 
@@ -134,13 +152,14 @@
   }
 
   function renderSpeisenRoot(scopeIdx){
-    var B = block('SPEISEN'); B.setAttribute('data-block','speisen-root');
+    var B = block('SPEISEN',{maxWidth:'100%'}); B.setAttribute('data-block','speisen-root');
 
     var pdfUrl = CFG.menuPdf || (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) || CFG.menuPDF || 'speisekarte.pdf';
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Speisekarte als PDF', function(){ try{ window.open(pdfUrl,'_blank','noopener'); }catch(e){} }, '', '📄'));
     B.appendChild(r);
 
+    // Kategorien ohne Zentrierung, volle Zellbreite (2 Spalten)
     delay(function(){
       B.appendChild(line('…oder wähle eine Kategorie:'));
 
@@ -155,15 +174,16 @@
         G.appendChild(chip(catPretty, function(){ renderCategory(rawKey); }, 'ppx-cat', '►'));
       });
       B.appendChild(G);
-      B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
       jumpBottom();
     }, D.long);
   }
-
   function renderCategory(catKey){
     var scopeIdx = getScopeIndex();
-    var B = block('Gern! Hier ist die Auswahl für '+pretty(catKey)+':');
+    var B = block('Gern! Hier ist die Auswahl für '+pretty(catKey)+':', {maxWidth:'100%'});
     B.setAttribute('data-block','speisen-cat');
+
+    // Nav sofort & symmetrisch
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
 
     var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
     if (!list.length) list = [
@@ -171,21 +191,23 @@
       { name: pretty(catKey)+' Special', price:'12,90 €' }
     ];
 
-    var L = grid();
+    var G = grid();
     list.forEach(function(it){
       var label = (it && it.name) ? it.name : 'Artikel';
-      L.appendChild(chip(label, function(){ renderItem(catKey, it); }, '', '➜'));
+      G.appendChild(chip(label, function(){ renderItem(catKey, it); }, '', '➜'));
     });
-    B.appendChild(L);
-
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+    B.appendChild(G);
     jumpBottom();
   }
 
   function renderItem(catKey, item){
     var scopeIdx = getScopeIndex();
     var title = (item && item.name) ? item.name : pretty(catKey);
-    var B = block(title); B.setAttribute('data-block','speisen-item');
+    var B = block(title, {maxWidth:'100%'}); 
+    B.setAttribute('data-block','speisen-item');
+
+    // Nav sofort
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
 
     if (item && (item.info || item.desc)) B.appendChild(line(item.info || item.desc));
     if (item && item.price) B.appendChild(line('Preis: ' + String(item.price)));
@@ -196,24 +218,28 @@
   }
 
   function askReserveAfterItem(scopeIdx){
-    var Q = block(null); Q.setAttribute('data-block','speisen-item-ask');
+    var Q = block(null, {maxWidth:'100%'}); Q.setAttribute('data-block','speisen-item-ask');
     Q.appendChild(line('Na, Appetit bekommen? 😍 Soll ich dir gleich einen Tisch reservieren?'));
-
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ delay(stepReservieren, D.step); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
-    Q.appendChild(nav([ backBtnAt(scopeIdx) ]));
-    jumpBottom();
+    // Back bleibt ohne Delay (vom Item-Block)
   }
+
   // ==== 4) RESERVIEREN – Flow ===============================================
   var RESV = null;
 
   function stepReservieren(){
     RESV = { name:'', dateISO:'', dateReadable:'', time:'', persons:'', phone:'', email:'' };
-    var B = block('RESERVIEREN', {maxWidth:'100%'}); B.setAttribute('data-block','resv-name');
+    var B = block('RESERVIEREN', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','resv-name');
     B.appendChild(line('Du möchtest gerne reservieren?'));
     B.appendChild(line('Darf ich bitte deinen Namen wissen?'));
+
+    // Nav sofort & symmetrisch (zur Sicherheit)
+    var scopeIdx = getScopeIndex()-1; // zeigt auf den RESV-Block
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'text',placeholder:'Vor- und Nachname'});
@@ -242,7 +268,9 @@
 
   function renderResvDate(){
     var scopeIdx = getScopeIndex();
-    var B = block('Perfekt, '+RESV.name+'! :)', {maxWidth:'100%'}); B.setAttribute('data-block','resv-date');
+    var B = block('Perfekt, '+RESV.name+'! :)', {maxWidth:'100%'}); 
+    B.setAttribute('data-block','resv-date');
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn())); // ohne Delay
     B.appendChild(line('Für welches Datum möchtest du reservieren?'));
 
     var rowIn = row(); rowIn.className='ppx-input';
@@ -258,7 +286,6 @@
       RESV.dateReadable = fmtDateReadable(d);
       delay(function(){ renderResvTime(d, scopeIdx); }, D.step);
     }, 'ppx-cta', '🗓️'));
-    r.appendChild(backBtnAt(scopeIdx));
     B.appendChild(r);
   }
 
@@ -290,6 +317,13 @@
     }
     return slots;
   }
+  // Equal-width nav: links/rechts symmetrisch & ohne Delay
+  function navSym(leftBtn, rightBtn){
+    var r = el('div',{class:'ppx-nav'});
+    if(leftBtn){ leftBtn.style.flex = '1 1 0'; r.appendChild(leftBtn); }
+    if(rightBtn){ rightBtn.style.flex = '1 1 0'; r.appendChild(rightBtn); }
+    return r;
+  }
 
   function groupSlots(mins){
     if(!mins || !mins.length) return [];
@@ -314,10 +348,12 @@
     var B = block('Um welche Uhrzeit möchtest du reservieren?', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-time');
 
+    // Nav sofort & symmetrisch
+    B.appendChild(navSym(backBtnAt(backScopeIdx), homeBtn()));
+
     var minutes = buildSlotsForDate(dateObj);
     if(!minutes.length){
       B.appendChild(line('Für dieses Datum sind aktuell keine Reservierungszeiten verfügbar (geschlossen oder zu kurzfristig).'));
-      B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
       return;
     }
 
@@ -333,7 +369,6 @@
           G.appendChild(chip(hm, function(){ RESV.time = hm; delay(renderResvPersons, D.step); }, '', '🕒'));
         });
         B.appendChild(G);
-        B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
       }, D.sub);
       return;
     }
@@ -356,7 +391,7 @@
       B.appendChild(r);
     });
 
-    delay(function(){ B.appendChild(slotWrap); B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ])); }, D.sub);
+    delay(function(){ B.appendChild(slotWrap); }, D.sub);
   }
 
   // Persons
@@ -364,6 +399,10 @@
     var scopeIdx = getScopeIndex();
     var B = block('Super, '+RESV.name+'!', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-persons');
+
+    // Nav sofort
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
+
     B.appendChild(line('Für wie viele Personen darf ich den Tisch vorbereiten?'));
 
     var rowIn = row(); rowIn.className='ppx-input';
@@ -377,14 +416,16 @@
       RESV.persons = String(val);
       delay(function(){ renderResvPhone(scopeIdx); }, D.step);
     }, 'ppx-cta', '➡️'));
-    r.appendChild(backBtnAt(scopeIdx));
     B.appendChild(r);
   }
 
-  // Phone (optional)
+  // Phone (optional) – (hatte bereits Home in Nav)
   function renderResvPhone(backScopeIdx){
     var B = block('Magst du mir deine Nummer dalassen? (optional)', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-phone');
+
+    // Nav sofort
+    B.appendChild(navSym(backBtnAt(backScopeIdx), homeBtn()));
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'tel',placeholder:'+49 …'});
@@ -400,7 +441,6 @@
       delay(renderResvEmail, D.step);
     }, 'ppx-cta', '➡️'));
     B.appendChild(r);
-    B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ]));
   }
 
   // Email (required)
@@ -410,6 +450,9 @@
     var scopeIdx = getScopeIndex();
     var B = block('Und deine E-Mail für die Bestätigung?', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-email');
+
+    // Nav sofort
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
 
     B.appendChild(line('Wir schicken dir dort eine kurze Eingangsbestätigung.'));
 
@@ -424,10 +467,8 @@
       RESV.email = v;
       delay(submitReservation, D.tap);
     }, 'ppx-cta', '✉️'));
-    r.appendChild(backBtnAt(scopeIdx));
     B.appendChild(r);
   }
-
   // Submit Reservation (EmailJS → Fehleranzeige + optionaler Mailto-Button)
   function submitReservation(){
     var brand = (CFG.brand||'Restaurant');
@@ -447,7 +488,6 @@
 
     var B = block('SENDE ANFRAGE …', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-sending');
-    B.appendChild(line('Bitte kurz warten – wir übermitteln deine Anfrage.'));
 
     if (svcId && tplTo && ensureEmailJSReady()){
       sendEmailJS(svcId, tplTo, payload).then(function(){
@@ -482,9 +522,9 @@
     B.appendChild(line('Möchtest du noch etwas anderes wissen?'));
     var r = row();
     r.appendChild(btn('Ja, zeig mir die Q&As', function(){ delay(stepQAs, D.step); }, 'ppx-cta', '❓'));
-    r.appendChild(btn('Nein, danke', function(){ var X=block(null); X.appendChild(line('Bis bald und buon appetito! 👋')); }, 'ppx-secondary', '✅'));
+    r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     B.appendChild(r);
-    B.appendChild(nav([ homeBtn(), doneBtn() ]));
+    B.appendChild(navSym(null, homeBtn()));
     jumpBottom();
   }
 
@@ -499,6 +539,7 @@
     r.appendChild(homeBtn());
     B.appendChild(r);
   }
+
   // ==== 5) ÖFFNUNGSZEITEN ====================================================
   function normalizeHoursLines(v){
     var out = [];
@@ -542,6 +583,10 @@
     var scopeIdx = getScopeIndex();
     var B = block('ÖFFNUNGSZEITEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','hours');
+
+    // Nav sofort
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
+
     var lines = normalizeHoursLines(CFG.hoursLines);
     if (!lines.length) lines = hoursFromOpen();
     if (!Array.isArray(lines) || !lines.length) {
@@ -569,6 +614,9 @@
     var B = block('KONTAKTDATEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','kontakt');
 
+    // Nav sofort
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
+
     if (CFG.phone){
       B.appendChild(line('📞 '+CFG.phone));
       var r1=row(); r1.style.justifyContent='flex-start';
@@ -588,7 +636,6 @@
       r3.appendChild(btn('Anfahrt öffnen', function(){ window.open(maps,'_blank'); }, '', '🗺️'));
       B.appendChild(r3);
     }
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
   }
 
   // ==== 7) KONTAKTFORMULAR ===================================================
@@ -598,6 +645,11 @@
     CF = { email:'', message:'' };
     var B = block('KONTAKTFORMULAR', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-intro');
+
+    // Nav sofort
+    var scopeIdx = getScopeIndex()-1;
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
+
     B.appendChild(line('Du möchtest uns gerne eine Nachricht da lassen?'));
     delay(renderContactEmail, D.step);
   }
@@ -605,6 +657,9 @@
     var scopeIdx = getScopeIndex();
     var B = block('Alles klar – dann brauche ich erstmal deine E-Mail-Adresse.', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-email');
+
+    // Nav sofort
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
@@ -617,13 +672,15 @@
       CF.email = v;
       delay(renderContactMessage, D.step);
     }, 'ppx-cta', '➡️'));
-    r.appendChild(backBtnAt(scopeIdx));
     B.appendChild(r);
   }
   function renderContactMessage(){
     var scopeIdx = getScopeIndex();
     var B = block('Worum geht’s?', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-msg');
+
+    // Nav sofort (inkl. Home – Anforderung #7)
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
 
     var rowIn = row(); rowIn.className='ppx-input';
     var ta = el('textarea',{placeholder:'Hier kannst du dein Anliegen äußern. Wir freuen uns über deine Nachricht! :)'});
@@ -636,7 +693,6 @@
       CF.message = msg;
       delay(submitContactForm, D.tap);
     }, 'ppx-cta', '✉️'));
-    r.appendChild(backBtnAt(scopeIdx));
     B.appendChild(r);
   }
 
@@ -649,7 +705,6 @@
 
     var B = block('SENDE NACHRICHT …', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-sending');
-    B.appendChild(line('Bitte kurz warten – wir übermitteln deine Nachricht.'));
 
     if (svcId && tplContact && ensureEmailJSReady()){
       sendEmailJS(svcId, tplContact, payload).then(function(){
@@ -685,7 +740,8 @@
     r.appendChild(homeBtn());
     B.appendChild(r);
   }
-  // ==== 8) FAQ ===============================================================
+
+  // ==== 8) FAQ – Helpers & Root =============================================
   function getFaqPdfUrl(){
     return (CFG.faqPdf) ||
            ((isObj(FAQ) && FAQ.pdfUrl) ? FAQ.pdfUrl : null) ||
@@ -722,6 +778,9 @@
     var scopeIdx = getScopeIndex();
     var B = block('Q&As', {maxWidth:'100%'}); B.setAttribute('data-block','faq-root');
 
+    // Nav sofort
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
+
     var rTop = row(); rTop.className += ' ppx-center';
     rTop.appendChild(btn('Alle FAQs als PDF', function(){ try{ window.open(getFaqPdfUrl(),'_blank','noopener'); }catch(e){} }, '', '📄'));
     B.appendChild(rTop);
@@ -730,28 +789,34 @@
       var cats = getFaqCats();
       if (!cats.length){
         B.appendChild(line('Häufige Fragen folgen in Kürze.'));
-        B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ])); return;
+        return;
       }
       B.appendChild(line('Wonach möchtest du schauen?'));
-      var G = grid();
+
+      var G = grid(); // volle Breite (2 Spalten)
       cats.forEach(function(ct){
         var label = (ct.icon ? (ct.icon+' ') : '') + (ct.title || 'Kategorie');
         G.appendChild(chip(label, function(){ renderFaqCat(ct); }, 'ppx-cat'));
       });
       B.appendChild(G);
-      B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
+
+      // Scroll zu den Kategorien (unterhalb des PDF-Buttons)
+      try{ G.scrollIntoView({behavior:'smooth', block:'end'}); }catch(e){ jumpBottom(); }
     }, D.long);
   }
-
   function renderFaqCat(ct){
     var scopeIdx = getScopeIndex();
     var title = (ct && (ct.title || ct.name)) || 'Fragen';
     var items = (ct && Array.isArray(ct.items)) ? ct.items.slice() : [];
-    var B = block(title, {maxWidth:'100%'}); B.setAttribute('data-block','faq-cat');
+    var B = block(title, {maxWidth:'100%'}); 
+    B.setAttribute('data-block','faq-cat');
+
+    // Nav sofort
+    B.appendChild(navSym(backBtnAt(scopeIdx), homeBtn()));
 
     if (!items.length){
       B.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.'));
-      B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ])); return;
+      return;
     }
 
     B.appendChild(line('Wähle eine Frage:'));
@@ -762,7 +827,6 @@
       L.appendChild(btn(q, function(){ delay(function(){ renderFaqAnswer(ct, it, scopeIdx); }, D.tap); }, '', '➜'));
     });
     B.appendChild(L);
-    B.appendChild(nav([ backBtnAt(scopeIdx), homeBtn() ]));
   }
 
   function isOrderQuick(it){
@@ -775,7 +839,12 @@
     var a = (it && (it.a || it.answer)) || '';
     var more = it && it.more;
 
-    var B = block(q, {maxWidth:'100%'}); B.setAttribute('data-block','faq-answer');
+    var B = block(q, {maxWidth:'100%'}); 
+    B.setAttribute('data-block','faq-answer');
+
+    // Nav sofort
+    B.appendChild(navSym(backBtnAt(backScopeIdx), homeBtn()));
+
     if (a)    B.appendChild(line(a));
     if (more) B.appendChild(line(more));
 
@@ -784,20 +853,23 @@
       var orderUrl = (CFG.orderUrl || (CFG.links && CFG.links.lieferando) || 'https://www.lieferando.de/');
       r.appendChild(btn('Lieferando öffnen', function(){ try{ window.open(orderUrl,'_blank','noopener'); }catch(e){} }, 'ppx-cta', '⚡'));
       if (CFG.phone){ r.appendChild(btn('Anrufen', function(){ window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,''); }, '', '📞')); }
-      B.appendChild(r); B.appendChild(nav([ backBtnAt(backScopeIdx), homeBtn() ])); return;
+      B.appendChild(r);
+      return;
     }
 
     setTimeout(function(){ askAfterFaqAnswer(backScopeIdx); }, 2000);
   }
 
   function askAfterFaqAnswer(backScopeIdx){
-    var Q = block(null, {maxWidth:'100%'}); Q.setAttribute('data-block','faq-answer-ask');
-    Q.appendChild(line('Hilft dir das? Möchtest du als nächstes reservieren? 🙂'));
+    var Q = block(null, {maxWidth:'100%'}); 
+    Q.setAttribute('data-block','faq-answer-ask');
+    Q.appendChild(line('Konnte dir das helfen? Wenn nicht, lass uns gerne eine Nachricht da!'));
     var r = row(); r.style.justifyContent='flex-start';
-    r.appendChild(btn('Ja, bitte reservieren', function(){ delay(stepReservieren, D.step); }, 'ppx-cta', '🗓️'));
+    r.appendChild(btn('Ja, bitte zum Kontaktformular', function(){ delay(stepContactForm, D.step); }, 'ppx-cta', '📝'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
-    Q.appendChild(nav([ backBtnAt(backScopeIdx) ]));
+    // Back ohne Delay
+    Q.appendChild(navSym(backBtnAt(backScopeIdx), null));
   }
 
 })(); // Ende IIFE
