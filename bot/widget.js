@@ -1,5 +1,5 @@
 /* ============================================================================
-   PPX Widget (v7.8.1 – Notes deutlicher, Header wirklich zentriert, Nav sofort)
+   PPX Widget (v7.8.2 – Hours zentriert, Reservieren-Delays fein, Button-Reihenfolge)
    ============================================================================ */
 (function () {
   'use strict';
@@ -11,7 +11,7 @@
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs  || [];
 
-  try { W.PPX_VERSION = '7.8.1'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded • notes on'); } catch(e){}
+  try { W.PPX_VERSION = '7.8.2'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded • notes on'); } catch(e){}
 
   // Delays
   var D = { tiny:120, tap:260, step:450, sub:550, long:1000 };
@@ -149,10 +149,7 @@
     var scopeIdx = getScopeIndex();
     var M = block(null,{maxWidth:'100%'}); 
     M.setAttribute('data-block','speisen-info');
-
-    // Intro-Note (deutlich)
     M.appendChild(note('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
-
     delay(function(){ renderSpeisenRoot(scopeIdx); }, D.step);
   }
 
@@ -172,17 +169,14 @@
     var B = block('SPEISEN',{maxWidth:'100%'}); 
     B.setAttribute('data-block','speisen-root');
 
-    // Body + Nav sofort
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
 
-    // PDF-Button
     var pdfUrl = CFG.menuPdf || (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) || CFG.menuPDF || 'speisekarte.pdf';
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Speisekarte als PDF', function(){ try{ window.open(pdfUrl,'_blank','noopener'); }catch(e){} }, '', '📄'));
     C.appendChild(r);
 
-    // „…oder …“ im gleichen Stil
     C.appendChild(note('…oder wähle eine Kategorie:'));
 
     delay(function(){
@@ -197,7 +191,6 @@
         G.appendChild(chip(catPretty, function(){ renderCategory(rawKey); }, 'ppx-cat', '►'));
       });
       C.appendChild(G);
-
       try{ G.scrollIntoView({behavior:'smooth', block:'end'}); }catch(e){ jumpBottom(); }
     }, D.long);
   }
@@ -210,7 +203,6 @@
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
 
-    // Überschrift als Note
     C.appendChild(note('Gern! Hier ist die Auswahl für '+pretty(catKey)+':'));
 
     var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
@@ -264,24 +256,30 @@
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     var scopeIdx = getScopeIndex()-1;
-    B.appendChild(navBottom(scopeIdx)); // Nav sofort
 
-    // Zwei Notes mit kurzem Delay
+    // 1) Erste Note sofort
     C.appendChild(note('Du möchtest gerne reservieren?'));
-    delay(function(){ C.appendChild(note('Darf ich bitte deinen Namen wissen?')); }, D.tiny);
 
-    var rowIn = row(); rowIn.className='ppx-input';
-    var inp = el('input',{type:'text',placeholder:'Vor- und Nachname'});
-    C.appendChild(rowIn); rowIn.appendChild(inp);
+    // 2) Nach 1 Sekunde: zweite Note + Eingabe + Nav & Weiter-Button (alles gleichzeitig)
+    delay(function(){
+      C.appendChild(note('Darf ich bitte deinen Namen wissen?'));
 
-    var r = row();
-    r.appendChild(btn('Weiter', function(){
-      var v = String(inp.value||'').trim();
-      if(v.length<2){ alert('Bitte gib einen gültigen Namen ein.'); inp.focus(); return; }
-      RESV.name = v;
-      delay(renderResvDate, D.step);
-    }, 'ppx-cta', '➡️'));
-    C.appendChild(r);
+      var rowIn = row(); rowIn.className='ppx-input';
+      var inp = el('input',{type:'text',placeholder:'Vor- und Nachname'});
+      C.appendChild(rowIn); rowIn.appendChild(inp);
+
+      var r = row();
+      r.appendChild(btn('Weiter', function(){
+        var v = String(inp.value||'').trim();
+        if(v.length<2){ alert('Bitte gib einen gültigen Namen ein.'); inp.focus(); return; }
+        RESV.name = v;
+        delay(renderResvDate, D.step);
+      }, 'ppx-cta', '➡️'));
+      C.appendChild(r);
+
+      // Nav unten sofort (kein extra Delay)
+      B.appendChild(navBottom(scopeIdx));
+    }, D.long);
   }
 
   function todayISO(){ var d=new Date(); var m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return d.getFullYear()+'-'+m+'-'+day; }
@@ -295,31 +293,35 @@
   function fmtDateReadable(d){ var wd=['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()]; var dd=String(d.getDate()).padStart(2,'0'), mm=String(d.getMonth()+1).padStart(2,'0'); return wd+', '+dd+'.'+mm+'.'; }
 
   function renderResvDate(){
-    var scopeIdx = getScopeIndex();
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-date');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(scopeIdx)); // Nav sofort
 
-    // Zwei Notes
+    // 1) Erste Note sofort
     C.appendChild(note('Perfekt, '+RESV.name+'! :)'));
-    delay(function(){ C.appendChild(note('Für welches Datum möchtest du reservieren?')); }, D.tiny);
 
-    var rowIn = row(); rowIn.className='ppx-input';
-    var inp = el('input',{type:'date', min:todayISO(), placeholder:'TT.MM.JJJJ'});
-    C.appendChild(rowIn); rowIn.appendChild(inp);
+    // 2) Nach 1 Sekunde: zweite Note + Eingabe + Nav
+    delay(function(){
+      C.appendChild(note('Für welches Datum möchtest du reservieren?'));
 
-    var r = row();
-    r.appendChild(btn('Weiter', function(){
-      var val = inp.value || '';
-      var d = val ? parseDateAny(val) : null;
-      if(!d){ alert('Bitte wähle ein Datum.'); inp.focus(); return; }
-      RESV.dateISO = d.toISOString().slice(0,10);
-      RESV.dateReadable = fmtDateReadable(d);
-      delay(function(){ renderResvTime(d, scopeIdx); }, D.step);
-    }, 'ppx-cta', '🗓️'));
-    C.appendChild(r);
+      var rowIn = row(); rowIn.className='ppx-input';
+      var inp = el('input',{type:'date', min:todayISO(), placeholder:'TT.MM.JJJJ'});
+      C.appendChild(rowIn); rowIn.appendChild(inp);
+
+      var r = row();
+      r.appendChild(btn('Weiter', function(){
+        var val = inp.value || '';
+        var d = val ? parseDateAny(val) : null;
+        if(!d){ alert('Bitte wähle ein Datum.'); inp.focus(); return; }
+        RESV.dateISO = d.toISOString().slice(0,10);
+        RESV.dateReadable = fmtDateReadable(d);
+        delay(function(){ renderResvTime(d, getScopeIndex()-1); }, D.step);
+      }, 'ppx-cta', '🗓️'));
+      C.appendChild(r);
+
+      B.appendChild(navBottom(getScopeIndex()-1));
+    }, D.long);
   }
 
   function hmToMin(s){ var a=String(s||'').trim().replace(/\s/g,''); var m=a.match(/^(\d{1,2}):(\d{2})$/); if(!m) return NaN; var h=+m[1], mi=+m[2]; if(h===24&&mi===0) return 1440; return h*60+mi; }
@@ -339,15 +341,12 @@
     if(!from||!to) return [];
     var openMin = hmToMin(from), closeMin = hmToMin(to);
     if (isNaN(openMin)||isNaN(closeMin)) return [];
-    var lastStartExclusive = closeMin - 60; // 1h Puffer
+    var lastStartExclusive = closeMin - 60;
     if (lastStartExclusive <= openMin) return [];
     var slots = []; for(var t=openMin; t<lastStartExclusive; t+=30){ slots.push(t); }
     var now = new Date();
     var isToday = now.getFullYear()===d.getFullYear() && now.getMonth()===d.getMonth() && now.getDate()===d.getDate();
-    if(isToday){
-      var lead = (now.getHours()*60 + now.getMinutes()) + 240; // +4h Vorlauf
-      slots = slots.filter(function(t){ return t >= lead; });
-    }
+    if(isToday){ var lead = (now.getHours()*60 + now.getMinutes()) + 240; slots = slots.filter(function(t){ return t >= lead; }); }
     return slots;
   }
 
@@ -423,32 +422,36 @@
   }
   // Persons
   function renderResvPersons(){
-    var scopeIdx = getScopeIndex();
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-persons');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(scopeIdx)); // Nav sofort
 
-    // Zwei Notes
+    // 1) Erste Note sofort
     C.appendChild(note('Super, '+RESV.name+'!'));
-    delay(function(){ C.appendChild(note('Für wie viele Personen darf ich den Tisch vorbereiten?')); }, D.tiny);
 
-    var rowIn = row(); rowIn.className='ppx-input';
-    var inp = el('input',{type:'number', min:'1', max:'20', value:'2'});
-    C.appendChild(rowIn); rowIn.appendChild(inp);
+    // 2) Nach 1 Sekunde: zweite Note + Eingabe + Nav
+    delay(function(){
+      C.appendChild(note('Für wie viele Personen darf ich den Tisch vorbereiten?'));
 
-    var r = row();
-    r.appendChild(btn('Weiter', function(){
-      var val = Number(inp.value||0);
-      if(!val || val<1){ alert('Bitte gib eine gültige Anzahl ein.'); inp.focus(); return; }
-      RESV.persons = String(val);
-      delay(function(){ renderResvPhone(scopeIdx); }, D.step);
-    }, 'ppx-cta', '➡️'));
-    C.appendChild(r);
+      var rowIn = row(); rowIn.className='ppx-input';
+      var inp = el('input',{type:'number', min:'1', max:'20', value:'2'});
+      C.appendChild(rowIn); rowIn.appendChild(inp);
+
+      var r = row();
+      r.appendChild(btn('Weiter', function(){
+        var val = Number(inp.value||0);
+        if(!val || val<1){ alert('Bitte gib eine gültige Anzahl ein.'); inp.focus(); return; }
+        RESV.persons = String(val);
+        delay(function(){ renderResvPhone(getScopeIndex()-1); }, D.step);
+      }, 'ppx-cta', '➡️'));
+      C.appendChild(r);
+
+      B.appendChild(navBottom(getScopeIndex()-1));
+    }, D.long);
   }
 
-  // Phone (optional)
+  // Phone (optional) – Buttons vertauscht (Weiter links, Ohne Tel rechts)
   function renderResvPhone(backScopeIdx){
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-phone');
@@ -463,12 +466,13 @@
     C.appendChild(rowIn); rowIn.appendChild(inp);
 
     var r = row();
-    r.appendChild(btn('Ohne Telefon weiter', function(){ 
-      RESV.phone=''; delay(renderResvEmail, D.step);
-    }, 'ppx-secondary', '⏭️'));
+    // Neu: „Weiter“ zuerst
     r.appendChild(btn('Weiter', function(){ 
       RESV.phone = String(inp.value||'').trim(); delay(renderResvEmail, D.step);
     }, 'ppx-cta', '➡️'));
+    r.appendChild(btn('Ohne Telefon weiter', function(){ 
+      RESV.phone=''; delay(renderResvEmail, D.step);
+    }, 'ppx-secondary', '⏭️'));
     C.appendChild(r);
   }
 
@@ -476,32 +480,36 @@
   function isValidEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(s||'').trim()); }
 
   function renderResvEmail(){
-    var scopeIdx = getScopeIndex();
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-email');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(scopeIdx)); // Nav sofort
 
-    // Zwei Notes
+    // 1) Erste Note sofort
     C.appendChild(note('Und deine E-Mail für die Bestätigung?'));
-    delay(function(){ C.appendChild(note('Wir schicken dir dort eine kurze Eingangsbestätigung.')); }, D.tiny);
 
-    var rowIn = row(); rowIn.className='ppx-input';
-    var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
-    C.appendChild(rowIn); rowIn.appendChild(inp);
+    // 2) Nach 1 Sekunde: zweite Note + Eingabe + Nav
+    delay(function(){
+      C.appendChild(note('Wir schicken dir dort eine kurze Eingangsbestätigung.'));
 
-    var r = row();
-    r.appendChild(btn('Anfrage senden', function(){
-      var v = String(inp.value||'').trim();
-      if(!isValidEmail(v)){ alert('Bitte gib eine gültige E-Mail-Adresse ein.'); inp.focus(); return; }
-      RESV.email = v;
-      delay(submitReservation, D.tap);
-    }, 'ppx-cta', '✉️'));
-    C.appendChild(r);
+      var rowIn = row(); rowIn.className='ppx-input';
+      var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
+      C.appendChild(rowIn); rowIn.appendChild(inp);
+
+      var r = row();
+      r.appendChild(btn('Anfrage senden', function(){
+        var v = String(inp.value||'').trim();
+        if(!isValidEmail(v)){ alert('Bitte gib eine gültige E-Mail-Adresse ein.'); inp.focus(); return; }
+        RESV.email = v;
+        delay(submitReservation, D.tap);
+      }, 'ppx-cta', '✉️'));
+      C.appendChild(r);
+
+      B.appendChild(navBottom(getScopeIndex()-1));
+    }, D.long);
   }
 
-  // Submit Reservation (EmailJS → Fehleranzeige + optionaler Mailto-Button)
+  // Submit Reservation
   function submitReservation(){
     var brand = (CFG.brand||'Restaurant');
     var payload = {
@@ -557,7 +565,6 @@
     r.appendChild(homeBtn());
     B.appendChild(r);
   }
-
   // ==== 5) ÖFFNUNGSZEITEN ====================================================
   function parseSpanToText(span){
     var from,to;
@@ -603,7 +610,9 @@
     var B = block('ÖFFNUNGSZEITEN', {maxWidth:'100%', hCenter:true}); 
     B.setAttribute('data-block','hours');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{class:'ppx-body'}); 
+    C.style.textAlign = 'center'; // <<< Öffnungszeiten-ZEILEN zentrieren
+    B.appendChild(C);
     // Nur Zurück (Home entfällt hier)
     B.appendChild(navBottomBackOnly(scopeIdx));
 
@@ -627,6 +636,7 @@
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
   }
+
   // ==== 6) KONTAKTDATEN ======================================================
   function stepKontakt(){
     var scopeIdx = getScopeIndex();
@@ -634,7 +644,7 @@
     B.setAttribute('data-block','kontakt');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+    B.appendChild(navBottom(scopeIdx));
 
     if (CFG.phone){
       C.appendChild(line('📞 '+CFG.phone));
@@ -667,20 +677,17 @@
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     var scopeIdx = getScopeIndex()-1;
-    B.appendChild(navBottom(scopeIdx)); // Nav sofort
-
     C.appendChild(note('Du möchtest uns gerne eine Nachricht da lassen?'));
-    // kurzer Delay, dann erst zur E-Mail
-    delay(renderContactEmail, D.step);
+    delay(function(){ renderContactEmail(); }, D.step);
+    B.appendChild(navBottom(scopeIdx));
   }
 
   function renderContactEmail(){
-    var scopeIdx = getScopeIndex();
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-email');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+    B.appendChild(navBottom(getScopeIndex()-1));
 
     C.appendChild(note('Alles klar – dann brauche ich erstmal deine E-Mail-Adresse.'));
 
@@ -699,14 +706,12 @@
   }
 
   function renderContactMessage(){
-    var scopeIdx = getScopeIndex();
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-msg');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+    B.appendChild(navBottom(getScopeIndex()-1));
 
-    // Textänderung + Note-Stil
     C.appendChild(note('Lass uns unten eine Nachricht da.'));
 
     var rowIn = row(); rowIn.className='ppx-input';
@@ -803,7 +808,7 @@
     var B = block('Q&As', {maxWidth:'100%'}); B.setAttribute('data-block','faq-root');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+    B.appendChild(navBottom(scopeIdx));
 
     var rTop = row(); rTop.className += ' ppx-center';
     rTop.appendChild(btn('Alle FAQs als PDF', function(){ try{ window.open(getFaqPdfUrl(),'_blank','noopener'); }catch(e){} }, '', '📄'));
@@ -831,7 +836,7 @@
     B.setAttribute('data-block','faq-cat');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+    B.appendChild(navBottom(scopeIdx));
 
     var title = (ct && (ct.title || ct.name)) || 'Fragen';
     C.appendChild(note(title));
@@ -859,13 +864,12 @@
     B.setAttribute('data-block','faq-answer');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(backScopeIdx)); // Nav sofort
+    B.appendChild(navBottom(backScopeIdx));
 
     var q = (it && (it.q || it.question)) || 'Frage';
     var a = (it && (it.a || it.answer)) || '';
     var more = it && it.more;
 
-    // Überschrift der Antwort als Note (deutlich)
     C.appendChild(note(q));
     if (a)    C.appendChild(line(a));
     if (more) C.appendChild(line(more));
