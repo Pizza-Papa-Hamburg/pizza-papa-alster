@@ -1,5 +1,5 @@
 /* ============================================================================
-   PPX Widget (v7.7.1 – Nav unten & klein; Home-Header zentriert)
+   PPX Widget (v7.8.0 – Notes, Nav sofort, Header zentriert, Hours ohne Home)
    ============================================================================ */
 (function () {
   'use strict';
@@ -11,10 +11,10 @@
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs  || [];
 
-  try { W.PPX_VERSION = '7.7.1'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
+  try { W.PPX_VERSION = '7.8.0'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded'); } catch(e){}
 
   // Delays
-  var D = { tap:260, step:450, sub:550, long:1000 };
+  var D = { tiny:120, tap:260, step:450, sub:550, long:1000 };
   function delay(fn, ms){ setTimeout(fn, ms); }
 
   // EmailJS
@@ -37,7 +37,7 @@
   // STYLE (kompakt injiziert)
   (function () {
     var old = document.getElementById('ppx-style-v760'); if(old) old.remove();
-    var css = ":root{--ppx-green-850:#0f3b33;--ppx-green-800:#114136;--ppx-green-700:#154a3e;--ppx-green-650:#1a5044;--ppx-green-600:#195446;--ppx-ink:#f1f7f4;--ppx-gold:#e6c48a;--ppx-gold-ink:#2a2a1f;--ppx-border:rgba(255,255,255,.10);--ppx-shadow:0 4px 12px rgba(0,0,0,.20);}#ppx-panel.ppx-v5 #ppx-v{overflow-y:auto;max-height:calc(100vh - 120px);-webkit-overflow-scrolling:touch;padding:10px 10px 16px;}#ppx-panel.ppx-v5 #ppx-v .ppx-bot{background:linear-gradient(180deg,rgba(14,59,51,.45),rgba(14,59,51,.30));border:1px solid var(--ppx-border);border-radius:14px;padding:14px;margin:12px auto;max-width:640px;box-shadow:var(--ppx-shadow);text-align:left!important}#ppx-panel.ppx-v5 #ppx-v [data-block^=resv-],#ppx-panel.ppx-v5 #ppx-v [data-block^=cf-],#ppx-panel.ppx-v5 #ppx-v [data-block^=speisen-],#ppx-panel.ppx-v5 #ppx-v [data-block^=faq-],#ppx-panel.ppx-v5 #ppx-v [data-block=kontakt],#ppx-panel.ppx-v5 #ppx-v [data-block=hours]{max-width:100%!important;margin-left:0!important;margin-right:0!important}#ppx-panel.ppx-v5 #ppx-v .ppx-h{background:var(--ppx-green-800);color:var(--ppx-ink);border:1px solid var(--ppx-border);border-radius:12px;padding:10px 12px;margin:-2px -2px 10px;font-family:Cinzel,serif;font-weight:600;letter-spacing:.02em;text-transform:uppercase;font-size:18px;text-align:left}#ppx-panel.ppx-v5 #ppx-v .ppx-m{color:var(--ppx-ink);line-height:1.5;margin:6px 0 10px;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:18px}#ppx-panel.ppx-v5 #ppx-v .ppx-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start!important;margin-top:8px;width:100%}#ppx-panel.ppx-v5 #ppx-v .ppx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px;width:100%}#ppx-panel.ppx-v5 #ppx-v .ppx-b,#ppx-panel.ppx-v5 #ppx-v .ppx-chip{-webkit-appearance:none;appearance:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:flex-start!important;gap:10px;width:100%!important;text-align:left;color:var(--ppx-ink);border:1px solid var(--ppx-border);border-radius:14px;padding:10px 14px!important;background:var(--ppx-green-650);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 2px 8px rgba(0,0,0,.20);transition:transform .06s,filter .2s,box-shadow .2s,background .2s;font-family:'Cormorant Garamond',serif;font-weight:400!important;font-size:17px!important}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{background:var(--ppx-green-600)}#ppx-panel.ppx-v5 #ppx-v .ppx-chip{background:var(--ppx-green-700)}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary,#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.22);padding:8px 12px!important;font-size:15px!important;box-shadow:none}#ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,#ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{content:attr(data-ic);display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;min-width:26px;border-radius:999px;background:var(--ppx-gold);color:var(--ppx-gold-ink);font-size:15px;line-height:1;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08),0 1px 0 rgba(255,255,255,.22) inset}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected,#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{filter:brightness(1.10);box-shadow:0 0 0 2px rgba(230,196,138,.55) inset,0 2px 8px rgba(0,0,0,.26)}#ppx-panel.ppx-v5 #ppx-v .ppx-input{display:flex;gap:8px;margin-top:8px}#ppx-panel.ppx-v5 #ppx-v .ppx-input input,#ppx-panel.ppx-v5 #ppx-v .ppx-input select,#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#fff;font-size:15px;outline:none}#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{min-height:96px;resize:vertical}#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:280px;overflow:auto;padding-right:4px}@media (max-width:520px){#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:260px}}#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-row{justify-content:center!important}#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-b,#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-chip{justify-content:center!important;text-align:center!important}#ppx-panel.ppx-v5 #ppx-v .ppx-nav{display:flex;gap:10px;width:100%;margin-top:10px}#ppx-panel.ppx-v5 #ppx-v .ppx-nav.ppx-bottom{justify-content:space-between!important}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-back{width:auto!important;min-width:130px!important;flex:0 0 auto!important;font-size:14px!important;padding:8px 10px!important}";
+    var css = ":root{--ppx-green-850:#0f3b33;--ppx-green-800:#114136;--ppx-green-700:#154a3e;--ppx-green-650:#1a5044;--ppx-green-600:#195446;--ppx-ink:#f1f7f4;--ppx-gold:#e6c48a;--ppx-gold-ink:#2a2a1f;--ppx-border:rgba(255,255,255,.10);--ppx-shadow:0 4px 12px rgba(0,0,0,.20);}#ppx-panel.ppx-v5 #ppx-v{overflow-y:auto;max-height:calc(100vh - 120px);-webkit-overflow-scrolling:touch;padding:10px 10px 16px;}#ppx-panel.ppx-v5 #ppx-v .ppx-bot{background:linear-gradient(180deg,rgba(14,59,51,.45),rgba(14,59,51,.30));border:1px solid var(--ppx-border);border-radius:14px;padding:14px;margin:12px auto;max-width:640px;box-shadow:var(--ppx-shadow);text-align:left!important}#ppx-panel.ppx-v5 #ppx-v [data-block^=resv-],#ppx-panel.ppx-v5 #ppx-v [data-block^=cf-],#ppx-panel.ppx-v5 #ppx-v [data-block^=speisen-],#ppx-panel.ppx-v5 #ppx-v [data-block^=faq-],#ppx-panel.ppx-v5 #ppx-v [data-block=kontakt],#ppx-panel.ppx-v5 #ppx-v [data-block=hours]{max-width:100%!important;margin-left:0!important;margin-right:0!important}#ppx-panel.ppx-v5 #ppx-v .ppx-h{background:var(--ppx-green-800);color:var(--ppx-ink);border:1px solid var(--ppx-border);border-radius:12px;padding:10px 12px;margin:-2px -2px 10px;font-family:Cinzel,serif;font-weight:600;letter-spacing:.02em;text-transform:uppercase;font-size:18px;text-align:left}#ppx-panel.ppx-v5 #ppx-v .ppx-m{color:var(--ppx-ink);line-height:1.5;margin:6px 0 10px;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:18px}#ppx-panel.ppx-v5 #ppx-v .ppx-note{font-weight:600}#ppx-panel.ppx-v5 #ppx-v .ppx-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start!important;margin-top:8px;width:100%}#ppx-panel.ppx-v5 #ppx-v .ppx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px;width:100%}#ppx-panel.ppx-v5 #ppx-v .ppx-b,#ppx-panel.ppx-v5 #ppx-v .ppx-chip{-webkit-appearance:none;appearance:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:flex-start!important;gap:10px;width:100%!important;text-align:left;color:var(--ppx-ink);border:1px solid var(--ppx-border);border-radius:14px;padding:10px 14px!important;background:var(--ppx-green-650);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 2px 8px rgba(0,0,0,.20);transition:transform .06s,filter .2s,box-shadow .2s,background .2s;font-family:'Cormorant Garamond',serif;font-weight:400!important;font-size:17px!important}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-cta{background:var(--ppx-green-600)}#ppx-panel.ppx-v5 #ppx-v .ppx-chip{background:var(--ppx-green-700)}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-secondary,#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-secondary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.22);padding:8px 12px!important;font-size:15px!important;box-shadow:none}#ppx-panel.ppx-v5 #ppx-v .ppx-b[data-ic]::before,#ppx-panel.ppx-v5 #ppx-v .ppx-chip[data-ic]::before{content:attr(data-ic);display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;min-width:26px;border-radius:999px;background:var(--ppx-gold);color:var(--ppx-gold-ink);font-size:15px;line-height:1;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08),0 1px 0 rgba(255,255,255,.22) inset}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-selected,#ppx-panel.ppx-v5 #ppx-v .ppx-chip.ppx-selected{filter:brightness(1.10);box-shadow:0 0 0 2px rgba(230,196,138,.55) inset,0 2px 8px rgba(0,0,0,.26)}#ppx-panel.ppx-v5 #ppx-v .ppx-input{display:flex;gap:8px;margin-top:8px}#ppx-panel.ppx-v5 #ppx-v .ppx-input input,#ppx-panel.ppx-v5 #ppx-v .ppx-input select,#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#fff;font-size:15px;outline:none}#ppx-panel.ppx-v5 #ppx-v .ppx-input textarea{min-height:96px;resize:vertical}#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:280px;overflow:auto;padding-right:4px}@media (max-width:520px){#ppx-panel.ppx-v5 #ppx-v .ppx-grid.ppx-slotgrid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:260px}}#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-row{justify-content:center!important}#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-b,#ppx-panel.ppx-v5 #ppx-v [data-block=home] .ppx-chip{justify-content:center!important;text-align:center!important}#ppx-panel.ppx-v5 #ppx-v .ppx-nav{display:flex;gap:10px;width:100%;margin-top:10px}#ppx-panel.ppx-v5 #ppx-v .ppx-nav.ppx-bottom{justify-content:space-between!important}#ppx-panel.ppx-v5 #ppx-v .ppx-b.ppx-back{width:auto!important;min-width:130px!important;flex:0 0 auto!important;font-size:14px!important;padding:8px 10px!important}";
     var tag = document.createElement('style'); tag.id = 'ppx-style-v760'; tag.textContent = css; document.head.appendChild(tag);
   })();
 
@@ -86,6 +86,7 @@
     if($view) $view.appendChild(w); jumpBottom(); return w;
   }
   function line(txt){ return el('div',{class:'ppx-m'},txt); }
+  function note(txt){ return el('div',{class:'ppx-m ppx-note'},txt); }
   function row(){ return el('div',{class:'ppx-row'}); }
   function grid(){ return el('div',{class:'ppx-grid'}); }
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
@@ -94,12 +95,12 @@
   // Buttons / Nav
   function btn(label, onClick, extraCls, ic){ var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
   function chip(label, onClick, extraCls, ic){ var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
-  function nav(btns){ var r=el('div',{class:'ppx-nav'}); btns.forEach(function(b){ if(b) r.appendChild(b); }); return r; }
   function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary ppx-back'); }
   function goHome(){ popToScope(0); stepHome(true); }
   function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', '🏠'); }
   function homeNavBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary ppx-back', '🏠'); }
   function navBottom(scopeIdx){ return el('div',{class:'ppx-nav ppx-bottom'}, backBtnAt(scopeIdx), homeNavBtn()); }
+  function navBottomBackOnly(scopeIdx){ return el('div',{class:'ppx-nav ppx-bottom'}, backBtnAt(scopeIdx)); }
 
   // ==== 3) Home & Navigation =================================================
   function stepHome(force){
@@ -120,9 +121,10 @@
     var scopeIdx = getScopeIndex();
     var M = block(null,{maxWidth:'100%'}); 
     M.setAttribute('data-block','speisen-info');
-    M.appendChild(line('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
 
-    // Nach kurzer Einblendpause eigentliche Auswahl rendern
+    // Intro-Note
+    M.appendChild(note('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
+
     delay(function(){ renderSpeisenRoot(scopeIdx); }, D.step);
   }
 
@@ -142,14 +144,20 @@
     var B = block('SPEISEN',{maxWidth:'100%'}); 
     B.setAttribute('data-block','speisen-root');
 
+    // Body-Container vor Nav, damit Nav sofort unten sichtbar ist
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(scopeIdx)); // sofort, nie verzögert
+
+    // PDF-Button
     var pdfUrl = CFG.menuPdf || (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) || CFG.menuPDF || 'speisekarte.pdf';
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Speisekarte als PDF', function(){ try{ window.open(pdfUrl,'_blank','noopener'); }catch(e){} }, '', '📄'));
-    B.appendChild(r);
+    C.appendChild(r);
+
+    // …oder-Kopie im gleichen Stil wie „Super Wahl …“
+    C.appendChild(note('…oder wähle eine Kategorie:'));
 
     delay(function(){
-      B.appendChild(line('…oder wähle eine Kategorie:'));
-
       var cats = Object.keys(DISH);
       cats = cats.length ? orderCats(cats.map(function(k){ return pretty(k); })) :
                            ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
@@ -160,20 +168,22 @@
         var rawKey = map[catPretty] || catPretty.toLowerCase();
         G.appendChild(chip(catPretty, function(){ renderCategory(rawKey); }, 'ppx-cat', '►'));
       });
-      B.appendChild(G);
+      C.appendChild(G);
 
-      // Nav unten & klein, ohne Delay
-      B.appendChild(navBottom(scopeIdx));
-
-      // sanft zu den Kategorien scrollen
       try{ G.scrollIntoView({behavior:'smooth', block:'end'}); }catch(e){ jumpBottom(); }
     }, D.long);
   }
 
   function renderCategory(catKey){
     var scopeIdx = getScopeIndex();
-    var B = block('Gern! Hier ist die Auswahl für '+pretty(catKey)+':', {maxWidth:'100%'}); 
+    var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','speisen-cat');
+
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(scopeIdx));
+
+    // Überschrift als Note, nicht als Panel-Titel
+    C.appendChild(note('Gern! Hier ist die Auswahl für '+pretty(catKey)+':'));
 
     var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
     if (!list.length) list = [
@@ -186,24 +196,22 @@
       var label = (it && it.name) ? it.name : 'Artikel';
       G.appendChild(chip(label, function(){ renderItem(catKey, it); }, '', '➜'));
     });
-    B.appendChild(G);
-
-    // Nav unten
-    B.appendChild(navBottom(scopeIdx));
+    C.appendChild(G);
   }
 
   function renderItem(catKey, item){
     var scopeIdx = getScopeIndex();
-    var title = (item && item.name) ? item.name : pretty(catKey);
-    var B = block(title, {maxWidth:'100%'}); 
+    var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','speisen-item');
 
-    if (item && (item.info || item.desc)) B.appendChild(line(item.info || item.desc));
-    if (item && item.price) B.appendChild(line('Preis: ' + String(item.price)));
-    if (item && item.hinweis) B.appendChild(line('ℹ️ ' + item.hinweis));
-
-    // Nav unten sofort
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
+
+    var title = (item && item.name) ? item.name : pretty(catKey);
+    C.appendChild(note(title));
+    if (item && (item.info || item.desc)) C.appendChild(line(item.info || item.desc));
+    if (item && item.price) C.appendChild(line('Preis: ' + String(item.price)));
+    if (item && item.hinweis) C.appendChild(line('ℹ️ ' + item.hinweis));
 
     setTimeout(function(){ askReserveAfterItem(scopeIdx); }, 3000);
   }
@@ -211,27 +219,32 @@
   function askReserveAfterItem(scopeIdx){
     var Q = block(null, {maxWidth:'100%'}); 
     Q.setAttribute('data-block','speisen-item-ask');
-    Q.appendChild(line('Na, Appetit bekommen? 😍 Soll ich dir gleich einen Tisch reservieren?'));
+    Q.appendChild(note('Na, Appetit bekommen? 😍 Soll ich dir gleich einen Tisch reservieren?'));
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ delay(stepReservieren, D.step); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
-    // eigener Block: kein zusätzlicher Back nötig
   }
-
   // ==== 4) RESERVIEREN – Flow ===============================================
   var RESV = null;
 
   function stepReservieren(){
     RESV = { name:'', dateISO:'', dateReadable:'', time:'', persons:'', phone:'', email:'' };
+
     var B = block('RESERVIEREN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-name');
-    B.appendChild(line('Du möchtest gerne reservieren?'));
-    B.appendChild(line('Darf ich bitte deinen Namen wissen?'));
+
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var scopeIdx = getScopeIndex()-1;
+    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+
+    // Zwei Notes mit sehr kurzem Delay
+    C.appendChild(note('Du möchtest gerne reservieren?'));
+    delay(function(){ C.appendChild(note('Darf ich bitte deinen Namen wissen?')); }, D.tiny);
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'text',placeholder:'Vor- und Nachname'});
-    rowIn.appendChild(inp); B.appendChild(rowIn);
+    C.appendChild(rowIn); rowIn.appendChild(inp);
 
     var r = row();
     r.appendChild(btn('Weiter', function(){
@@ -240,11 +253,7 @@
       RESV.name = v;
       delay(renderResvDate, D.step);
     }, 'ppx-cta', '➡️'));
-    B.appendChild(r);
-
-    // Nav unten & klein
-    var scopeIdx = getScopeIndex()-1;
-    B.appendChild(navBottom(scopeIdx));
+    C.appendChild(r);
   }
 
   function todayISO(){ var d=new Date(); var m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return d.getFullYear()+'-'+m+'-'+day; }
@@ -259,13 +268,19 @@
 
   function renderResvDate(){
     var scopeIdx = getScopeIndex();
-    var B = block('Perfekt, '+RESV.name+'! :)', {maxWidth:'100%'}); 
+    var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-date');
-    B.appendChild(line('Für welches Datum möchtest du reservieren?'));
+
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+
+    // Zwei Notes: „Perfekt, <name>!“ + Frage
+    C.appendChild(note('Perfekt, '+RESV.name+'! :)'));
+    delay(function(){ C.appendChild(note('Für welches Datum möchtest du reservieren?')); }, D.tiny);
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'date', min:todayISO(), placeholder:'TT.MM.JJJJ'});
-    rowIn.appendChild(inp); B.appendChild(rowIn);
+    C.appendChild(rowIn); rowIn.appendChild(inp);
 
     var r = row();
     r.appendChild(btn('Weiter', function(){
@@ -276,10 +291,9 @@
       RESV.dateReadable = fmtDateReadable(d);
       delay(function(){ renderResvTime(d, scopeIdx); }, D.step);
     }, 'ppx-cta', '🗓️'));
-    B.appendChild(r);
-
-    B.appendChild(navBottom(scopeIdx));
+    C.appendChild(r);
   }
+
   function hmToMin(s){ var a=String(s||'').trim().replace(/\s/g,''); var m=a.match(/^(\d{1,2}):(\d{2})$/); if(!m) return NaN; var h=+m[1], mi=+m[2]; if(h===24&&mi===0) return 1440; return h*60+mi; }
   function minToHM(n){ var h=Math.floor(n/60), m=n%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
 
@@ -329,13 +343,17 @@
   }
 
   function renderResvTime(dateObj, backScopeIdx){
-    var B = block('Um welche Uhrzeit möchtest du reservieren?', {maxWidth:'100%'}); 
+    var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-time');
+
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(backScopeIdx)); // Nav sofort
+
+    C.appendChild(note('Um welche Uhrzeit möchtest du reservieren?'));
 
     var minutes = buildSlotsForDate(dateObj);
     if(!minutes.length){
-      B.appendChild(line('Für dieses Datum sind aktuell keine Reservierungszeiten verfügbar (geschlossen oder zu kurzfristig).'));
-      B.appendChild(navBottom(backScopeIdx));
+      C.appendChild(line('Für dieses Datum sind aktuell keine Reservierungszeiten verfügbar (geschlossen oder zu kurzfristig).'));
       return;
     }
 
@@ -343,15 +361,14 @@
 
     if (groups.length === 1){
       var only = groups[0];
-      B.appendChild(line(minToHM(only.from) + ' – ' + minToHM(only.to)));
+      C.appendChild(line(minToHM(only.from) + ' – ' + minToHM(only.to)));
       var G = grid(); G.classList.add('ppx-slotgrid');
       delay(function(){
         only.slots.forEach(function(t){
           var hm = minToHM(t);
           G.appendChild(chip(hm, function(){ RESV.time = hm; delay(renderResvPersons, D.step); }, '', '🕒'));
         });
-        B.appendChild(G);
-        B.appendChild(navBottom(backScopeIdx));
+        C.appendChild(G);
       }, D.sub);
       return;
     }
@@ -371,23 +388,27 @@
           slotWrap.appendChild(G);
         }, D.tap);
       }, 'ppx-group'));
-      B.appendChild(r);
+      C.appendChild(r);
     });
 
-    delay(function(){ B.appendChild(slotWrap); B.appendChild(navBottom(backScopeIdx)); }, D.sub);
+    delay(function(){ C.appendChild(slotWrap); }, D.sub);
   }
-
   // Persons
   function renderResvPersons(){
     var scopeIdx = getScopeIndex();
-    var B = block('Super, '+RESV.name+'!', {maxWidth:'100%'}); 
+    var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-persons');
 
-    B.appendChild(line('Für wie viele Personen darf ich den Tisch vorbereiten?'));
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+
+    // Zwei Notes
+    C.appendChild(note('Super, '+RESV.name+'!'));
+    delay(function(){ C.appendChild(note('Für wie viele Personen darf ich den Tisch vorbereiten?')); }, D.tiny);
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'number', min:'1', max:'20', value:'2'});
-    rowIn.appendChild(inp); B.appendChild(rowIn);
+    C.appendChild(rowIn); rowIn.appendChild(inp);
 
     var r = row();
     r.appendChild(btn('Weiter', function(){
@@ -396,32 +417,31 @@
       RESV.persons = String(val);
       delay(function(){ renderResvPhone(scopeIdx); }, D.step);
     }, 'ppx-cta', '➡️'));
-    B.appendChild(r);
-
-    B.appendChild(navBottom(scopeIdx));
+    C.appendChild(r);
   }
 
   // Phone (optional)
   function renderResvPhone(backScopeIdx){
-    var B = block('Magst du mir deine Nummer dalassen? (optional)', {maxWidth:'100%'}); 
+    var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-phone');
+
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(backScopeIdx)); // Nav sofort
+
+    C.appendChild(note('Magst du mir deine Nummer dalassen? (optional)'));
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'tel',placeholder:'+49 …'});
-    rowIn.appendChild(inp); B.appendChild(rowIn);
+    C.appendChild(rowIn); rowIn.appendChild(inp);
 
     var r = row();
     r.appendChild(btn('Ohne Telefon weiter', function(){ 
-      RESV.phone='';
-      delay(renderResvEmail, D.step);
+      RESV.phone=''; delay(renderResvEmail, D.step);
     }, 'ppx-secondary', '⏭️'));
     r.appendChild(btn('Weiter', function(){ 
-      RESV.phone = String(inp.value||'').trim(); 
-      delay(renderResvEmail, D.step);
+      RESV.phone = String(inp.value||'').trim(); delay(renderResvEmail, D.step);
     }, 'ppx-cta', '➡️'));
-    B.appendChild(r);
-
-    B.appendChild(navBottom(backScopeIdx));
+    C.appendChild(r);
   }
 
   // Email (required)
@@ -429,14 +449,19 @@
 
   function renderResvEmail(){
     var scopeIdx = getScopeIndex();
-    var B = block('Und deine E-Mail für die Bestätigung?', {maxWidth:'100%'}); 
+    var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-email');
 
-    B.appendChild(line('Wir schicken dir dort eine kurze Eingangsbestätigung.'));
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+
+    // Zwei Notes
+    C.appendChild(note('Und deine E-Mail für die Bestätigung?'));
+    delay(function(){ C.appendChild(note('Wir schicken dir dort eine kurze Eingangsbestätigung.')); }, D.tiny);
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
-    rowIn.appendChild(inp); B.appendChild(rowIn);
+    C.appendChild(rowIn); rowIn.appendChild(inp);
 
     var r = row();
     r.appendChild(btn('Anfrage senden', function(){
@@ -445,22 +470,15 @@
       RESV.email = v;
       delay(submitReservation, D.tap);
     }, 'ppx-cta', '✉️'));
-    B.appendChild(r);
-
-    B.appendChild(navBottom(scopeIdx));
+    C.appendChild(r);
   }
+
   // Submit Reservation (EmailJS → Fehleranzeige + optionaler Mailto-Button)
   function submitReservation(){
     var brand = (CFG.brand||'Restaurant');
     var payload = {
-      brand: brand,
-      name: RESV.name,
-      date: RESV.dateReadable,
-      time: RESV.time,
-      persons: RESV.persons,
-      phone: RESV.phone||'',
-      email: RESV.email,
-      message: ''
+      brand: brand, name: RESV.name, date: RESV.dateReadable, time: RESV.time,
+      persons: RESV.persons, phone: RESV.phone||'', email: RESV.email, message: ''
     };
     var svcId   = CFG.EMAIL && (CFG.EMAIL.service || CFG.EMAIL.serviceId);
     var tplTo   = CFG.EMAIL && (CFG.EMAIL.toTemplate || CFG.EMAIL.templateId);
@@ -482,14 +500,8 @@
   function mailtoHrefReservation(p){
     var addr = CFG.email || (CFG.EMAIL && (CFG.EMAIL.to || CFG.EMAIL.toEmail)) || 'info@example.com';
     var bodyLines = [
-      'Reservierungsanfrage',
-      'Name: '+p.name,
-      'Datum: '+p.date,
-      'Uhrzeit: '+p.time,
-      'Personen: '+p.persons,
-      'Telefon: '+(p.phone||'-'),
-      'E-Mail: '+p.email,
-      '— gesendet via Bot'
+      'Reservierungsanfrage','Name: '+p.name,'Datum: '+p.date,'Uhrzeit: '+p.time,
+      'Personen: '+p.persons,'Telefon: '+(p.phone||'-'),'E-Mail: '+p.email,'— gesendet via Bot'
     ];
     var body = encodeURIComponent(bodyLines.join('\n'));
     return 'mailto:'+addr+'?subject='+encodeURIComponent('Reservierung')+'&body='+body;
@@ -519,6 +531,24 @@
   }
 
   // ==== 5) ÖFFNUNGSZEITEN ====================================================
+  function parseSpanToText(span){
+    var from,to;
+    if (Array.isArray(span)){ from=span[0]; to=span[1]; }
+    else if (isObj(span)){ from=span.from||span.start; to=span.to||span.end; }
+    else if (typeof span==='string'){
+      var m = span.match(/(\d{1,2}:\d{2}).*?(\d{1,2}:\d{2})/);
+      if (m){ from=m[1]; to=m[2]; }
+    }
+    if (!from || !to) return 'geschlossen';
+    return from+' – '+to+' Uhr';
+  }
+  function hoursFromOpen(){
+    var dnames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    var out = []; var O = (CFG.OPEN||{});
+    for (var i=1;i<=6;i++){ out.push([dnames[i], parseSpanToText(O[String(i)])]); }
+    out.push([dnames[0], parseSpanToText(O['0'])]);
+    return out;
+  }
   function normalizeHoursLines(v){
     var out = [];
     if (Array.isArray(v)){
@@ -539,82 +569,64 @@
     }
     return out;
   }
-  function parseSpanToText(span){
-    var from,to;
-    if (Array.isArray(span)){ from=span[0]; to=span[1]; }
-    else if (isObj(span)){ from=span.from||span.start; to=span.to||span.end; }
-    else if (typeof span==='string'){
-      var m = span.match(/(\d{1,2}:\d{2}).*?(\d{1,2}:\d{2})/);
-      if (m){ from=m[1]; to=m[2]; }
-    }
-    if (!from || !to) return 'geschlossen';
-    return from+' – '+to+' Uhr';
-  }
-  function hoursFromOpen(){
-    var dnames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-    var out = []; var O = (CFG.OPEN||{});
-    for (var i=1;i<=6;i++){ out.push([dnames[i], parseSpanToText(O[String(i)])]); }
-    out.push([dnames[0], parseSpanToText(O['0'])]);
-    return out;
-  }
+
   function stepHours(){
     var scopeIdx = getScopeIndex();
-    var B = block('ÖFFNUNGSZEITEN', {maxWidth:'100%'}); 
+    var B = block('ÖFFNUNGSZEITEN', {maxWidth:'100%', hCenter:true}); 
     B.setAttribute('data-block','hours');
+
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    // Nur Zurück (Home entfällt hier)
+    B.appendChild(navBottomBackOnly(scopeIdx));
 
     var lines = normalizeHoursLines(CFG.hoursLines);
     if (!lines.length) lines = hoursFromOpen();
     if (!Array.isArray(lines) || !lines.length) {
-      B.appendChild(line('Keine Zeiten hinterlegt.'));
+      C.appendChild(line('Keine Zeiten hinterlegt.'));
     } else {
       lines.forEach(function(rowArr){
         var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr);
-        B.appendChild(line('• '+txt));
+        C.appendChild(line('• '+txt));
       });
     }
-
-    // Nav unten
-    B.appendChild(navBottom(scopeIdx));
-
     setTimeout(function(){ askReserveAfterHours(scopeIdx); }, 2000);
   }
   function askReserveAfterHours(scopeIdx){
     var Q = block(null, {maxWidth:'100%'}); Q.setAttribute('data-block','hours-ask');
-    Q.appendChild(line('Samstagabend ist meist voll – möchtest du dir jetzt schon einen Platz sichern?'));
+    Q.appendChild(note('Samstagabend ist meist voll – möchtest du dir jetzt schon einen Platz sichern?'));
     var r = row(); r.style.justifyContent='flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ delay(stepReservieren, D.step); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
   }
-
   // ==== 6) KONTAKTDATEN ======================================================
   function stepKontakt(){
     var scopeIdx = getScopeIndex();
     var B = block('KONTAKTDATEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','kontakt');
 
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+
     if (CFG.phone){
-      B.appendChild(line('📞 '+CFG.phone));
+      C.appendChild(line('📞 '+CFG.phone));
       var r1=row(); r1.style.justifyContent='flex-start';
       r1.appendChild(btn('Anrufen', function(){ window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,''); }, '', '📞'));
-      B.appendChild(r1);
+      C.appendChild(r1);
     }
     if (CFG.email){
-      B.appendChild(line('✉️  '+CFG.email));
+      C.appendChild(line('✉️  '+CFG.email));
       var r2=row(); r2.style.justifyContent='flex-start';
       r2.appendChild(btn('E-Mail schreiben', function(){ window.location.href='mailto:'+CFG.email; }, '', '✉️'));
-      B.appendChild(r2);
+      C.appendChild(r2);
     }
     if (CFG.address){
-      B.appendChild(line('📍 '+CFG.address));
+      C.appendChild(line('📍 '+CFG.address));
       var maps='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(CFG.address);
       var r3=row(); r3.style.justifyContent='flex-start';
       r3.appendChild(btn('Anfahrt öffnen', function(){ window.open(maps,'_blank'); }, '', '🗺️'));
-      B.appendChild(r3);
+      C.appendChild(r3);
     }
-
-    // Nav unten
-    B.appendChild(navBottom(scopeIdx));
   }
 
   // ==== 7) KONTAKTFORMULAR ===================================================
@@ -624,17 +636,29 @@
     CF = { email:'', message:'' };
     var B = block('KONTAKTFORMULAR', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-intro');
-    B.appendChild(line('Du möchtest uns gerne eine Nachricht da lassen?'));
+
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var scopeIdx = getScopeIndex()-1;
+    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+
+    C.appendChild(note('Du möchtest uns gerne eine Nachricht da lassen?'));
+    // kurzer Delay, dann erst zur E-Mail
     delay(renderContactEmail, D.step);
   }
+
   function renderContactEmail(){
     var scopeIdx = getScopeIndex();
-    var B = block('Alles klar – dann brauche ich erstmal deine E-Mail-Adresse.', {maxWidth:'100%'}); 
+    var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-email');
+
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+
+    C.appendChild(note('Alles klar – dann brauche ich erstmal deine E-Mail-Adresse.'));
 
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
-    rowIn.appendChild(inp); B.appendChild(rowIn);
+    C.appendChild(rowIn); rowIn.appendChild(inp);
 
     var r = row();
     r.appendChild(btn('Weiter', function(){
@@ -643,18 +667,23 @@
       CF.email = v;
       delay(renderContactMessage, D.step);
     }, 'ppx-cta', '➡️'));
-    B.appendChild(r);
-
-    B.appendChild(navBottom(scopeIdx));
+    C.appendChild(r);
   }
+
   function renderContactMessage(){
     var scopeIdx = getScopeIndex();
-    var B = block('Worum geht’s?', {maxWidth:'100%'}); 
+    var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-msg');
+
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+
+    // Textänderung + Note-Stil
+    C.appendChild(note('Lass uns unten eine Nachricht da.'));
 
     var rowIn = row(); rowIn.className='ppx-input';
     var ta = el('textarea',{placeholder:'Hier kannst du dein Anliegen äußern. Wir freuen uns über deine Nachricht! :)'});
-    rowIn.appendChild(ta); B.appendChild(rowIn);
+    C.appendChild(rowIn); rowIn.appendChild(ta);
 
     var r = row();
     r.appendChild(btn('Absenden', function(){
@@ -663,9 +692,7 @@
       CF.message = msg;
       delay(submitContactForm, D.tap);
     }, 'ppx-cta', '✉️'));
-    B.appendChild(r);
-
-    B.appendChild(navBottom(scopeIdx));
+    C.appendChild(r);
   }
 
   function submitContactForm(){
@@ -712,16 +739,15 @@
     r.appendChild(homeBtn());
     B.appendChild(r);
   }
-  // ==== 8) FAQ – Helpers & Root =============================================
+
+  // ==== 8) FAQ ===============================================================
   function getFaqPdfUrl(){
     return (CFG.faqPdf) ||
            ((isObj(FAQ) && FAQ.pdfUrl) ? FAQ.pdfUrl : null) ||
            (CFG.pdf && (CFG.pdf.faq || CFG.pdf.url)) ||
            'pizza_papa_faq.pdf';
   }
-
   var FAQ_ORDER = ['Speisekarte','Allergene','Lieferung','Öffnungszeiten','Preise','Bestellung'];
-
   function orderFaqCats(cats){
     var allow = Object.create(null); FAQ_ORDER.forEach(function(t){ allow[t]=1; });
     var filtered = cats.filter(function(c){
@@ -735,7 +761,6 @@
       return (ta in pos ? pos[ta] : 999) - (tb in pos ? pos[tb] : 999) || ta.localeCompare(tb);
     });
   }
-
   function getFaqCats(){
     if (Array.isArray(FAQ)) { return orderFaqCats([{ key:'all', title:'Speisekarte', icon:'🍕', items:FAQ }]); }
     if (isObj(FAQ)) {
@@ -747,63 +772,53 @@
 
   function stepQAs(){
     var scopeIdx = getScopeIndex();
-    var B = block('Q&As', {maxWidth:'100%'}); 
-    B.setAttribute('data-block','faq-root');
+    var B = block('Q&As', {maxWidth:'100%'}); B.setAttribute('data-block','faq-root');
 
-    // Top-Zeile: PDF
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(scopeIdx)); // Nav sofort
+
     var rTop = row(); rTop.className += ' ppx-center';
     rTop.appendChild(btn('Alle FAQs als PDF', function(){ try{ window.open(getFaqPdfUrl(),'_blank','noopener'); }catch(e){} }, '', '📄'));
-    B.appendChild(rTop);
+    C.appendChild(rTop);
 
     delay(function(){
       var cats = getFaqCats();
-      if (!cats.length){
-        B.appendChild(line('Häufige Fragen folgen in Kürze.'));
-        B.appendChild(navBottom(scopeIdx));
-        return;
-      }
+      if (!cats.length){ C.appendChild(line('Häufige Fragen folgen in Kürze.')); return; }
+      C.appendChild(note('Wonach möchtest du schauen?'));
 
-      B.appendChild(line('Wonach möchtest du schauen?'));
-
-      var G = grid(); // volle Breite, 2 Spalten
+      var G = grid();
       cats.forEach(function(ct){
         var label = (ct.icon ? (ct.icon+' ') : '') + (ct.title || 'Kategorie');
         G.appendChild(chip(label, function(){ renderFaqCat(ct); }, 'ppx-cat'));
       });
-      B.appendChild(G);
+      C.appendChild(G);
 
-      // Nav unten
-      B.appendChild(navBottom(scopeIdx));
-
-      // Scroll zu den Kategorien (unterhalb des PDF-Buttons)
       try{ G.scrollIntoView({behavior:'smooth', block:'end'}); }catch(e){ jumpBottom(); }
     }, D.long);
   }
 
   function renderFaqCat(ct){
     var scopeIdx = getScopeIndex();
-    var title = (ct && (ct.title || ct.name)) || 'Fragen';
-    var items = (ct && Array.isArray(ct.items)) ? ct.items.slice() : [];
-    var B = block(title, {maxWidth:'100%'}); 
+    var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','faq-cat');
 
-    if (!items.length){
-      B.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.'));
-      B.appendChild(navBottom(scopeIdx));
-      return;
-    }
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(scopeIdx)); // Nav sofort
 
-    B.appendChild(line('Wähle eine Frage:'));
+    var title = (ct && (ct.title || ct.name)) || 'Fragen';
+    C.appendChild(note(title));
+
+    var items = (ct && Array.isArray(ct.items)) ? ct.items.slice() : [];
+    if (!items.length){ C.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.')); return; }
+
+    C.appendChild(note('Wähle eine Frage:'));
     var L = row();
     items.forEach(function(it){
       var q = (it && (it.q || it.question)) || '';
       if (!q) return;
       L.appendChild(btn(q, function(){ delay(function(){ renderFaqAnswer(ct, it, scopeIdx); }, D.tap); }, '', '➜'));
     });
-    B.appendChild(L);
-
-    // Nav unten
-    B.appendChild(navBottom(scopeIdx));
+    C.appendChild(L);
   }
 
   function isOrderQuick(it){
@@ -812,23 +827,27 @@
   }
 
   function renderFaqAnswer(ct, it, backScopeIdx){
+    var B = block(null, {maxWidth:'100%'}); 
+    B.setAttribute('data-block','faq-answer');
+
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    B.appendChild(navBottom(backScopeIdx)); // Nav sofort
+
     var q = (it && (it.q || it.question)) || 'Frage';
     var a = (it && (it.a || it.answer)) || '';
     var more = it && it.more;
 
-    var B = block(q, {maxWidth:'100%'}); 
-    B.setAttribute('data-block','faq-answer');
-
-    if (a)    B.appendChild(line(a));
-    if (more) B.appendChild(line(more));
+    // Überschrift der Antwort als Note (wie „Super Wahl …“)
+    C.appendChild(note(q));
+    if (a)    C.appendChild(line(a));
+    if (more) C.appendChild(line(more));
 
     if (isOrderQuick(it)){
       var r = row(); r.style.justifyContent = 'flex-start';
       var orderUrl = (CFG.orderUrl || (CFG.links && CFG.links.lieferando) || 'https://www.lieferando.de/');
       r.appendChild(btn('Lieferando öffnen', function(){ try{ window.open(orderUrl,'_blank','noopener'); }catch(e){} }, 'ppx-cta', '⚡'));
       if (CFG.phone){ r.appendChild(btn('Anrufen', function(){ window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,''); }, '', '📞')); }
-      B.appendChild(r);
-      B.appendChild(navBottom(backScopeIdx));
+      C.appendChild(r);
       return;
     }
 
@@ -838,14 +857,11 @@
   function askAfterFaqAnswer(backScopeIdx){
     var Q = block(null, {maxWidth:'100%'}); 
     Q.setAttribute('data-block','faq-answer-ask');
-    Q.appendChild(line('Konnte dir das helfen? Wenn nicht, lass uns gerne eine Nachricht da!'));
+    Q.appendChild(note('Konnte dir das helfen? Wenn nicht, lass uns gerne eine Nachricht da!'));
     var r = row(); r.style.justifyContent='flex-start';
     r.appendChild(btn('Ja, bitte zum Kontaktformular', function(){ delay(stepContactForm, D.step); }, 'ppx-cta', '📝'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
-
-    // Nav unten (zusätzlicher Back/Home nicht nötig, kommt vom vorherigen Block)
-    Q.appendChild(navBottom(backScopeIdx));
   }
 
 })(); // Ende IIFE
