@@ -1,5 +1,5 @@
 /* ============================================================================
-   PPX Widget (v7.8.2 – Hours zentriert, Reservieren-Delays fein, Button-Reihenfolge)
+   PPX Widget (v7.9.0 – Scroll-Always, Q&As Header-Style, Home-Order)
    ============================================================================ */
 (function () {
   'use strict';
@@ -11,7 +11,7 @@
   var DISH = DATA.dishes || {};
   var FAQ  = DATA.faqs  || [];
 
-  try { W.PPX_VERSION = '7.8.2'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded • notes on'); } catch(e){}
+  try { W.PPX_VERSION = '7.9.0'; console.log('[PPX] widget v'+W.PPX_VERSION+' loaded • notes on'); } catch(e){}
 
   // Delays
   var D = { tiny:120, tap:260, step:450, sub:550, long:1000 };
@@ -79,7 +79,7 @@
     window.addEventListener('keydown', function(e){ if(e.key==='Escape') closePanel(); });
     $panel.addEventListener('click', function(ev){
       var t=ev.target&&ev.target.closest?ev.target.closest('.ppx-b, .ppx-chip'):null;
-      if(t&&$view&&$view.contains(t)){ t.classList.add('ppx-selected'); jumpBottom(); delay(jumpBottom,140); delay(jumpBottom,700); }
+      if(t&&$view&&$view.contains(t)){ t.classList.add('ppx-selected'); keepBottom(); }
     });
     document.addEventListener('click', function(ev){ var t=ev.target&&ev.target.closest?ev.target.closest('#ppx-launch'):null; if(t) openPanel(); });
     if($panel.classList.contains('ppx-open') && !$panel.dataset.init){ $panel.dataset.init='1'; stepHome(); }
@@ -91,6 +91,7 @@
   // 2) Utils
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
   function jumpBottom(){ if(!$view) return; try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){} }
+  function keepBottom(){ jumpBottom(); setTimeout(jumpBottom,80); setTimeout(jumpBottom,200); }
   function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){
     if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); }
     else if(k==='text'){ n.textContent=attrs[k]; }
@@ -111,14 +112,14 @@
       var h=el('div',{class:'ppx-h',style:hStyle},title);
       w.appendChild(h);
     }
-    if($view) $view.appendChild(w); jumpBottom(); return w;
+    if($view) $view.appendChild(w); keepBottom(); return w;
   }
-  function line(txt){ return el('div',{class:'ppx-m'},txt); }
-  function note(txt){ return el('div',{class:'ppx-m ppx-note'},txt); }
-  function row(){ return el('div',{class:'ppx-row'}); }
-  function grid(){ return el('div',{class:'ppx-grid'}); }
+  function line(txt){ var n=el('div',{class:'ppx-m'},txt); keepBottom(); return n; }
+  function note(txt){ var n=el('div',{class:'ppx-m ppx-note'},txt); keepBottom(); return n; }
+  function row(){ var n=el('div',{class:'ppx-row'}); keepBottom(); return n; }
+  function grid(){ var n=el('div',{class:'ppx-grid'}); keepBottom(); return n; }
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
-  function popToScope(idx){ if(!$view) return; while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); } jumpBottom(); }
+  function popToScope(idx){ if(!$view) return; while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); } keepBottom(); }
 
   // Buttons / Nav
   function btn(label, onClick, extraCls, ic){ var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
@@ -135,27 +136,37 @@
     if (!force && $view && $view.querySelector('[data-block="home"]')) return;
     var brand=(CFG.brand||'Pizza Papa Hamburg');
     var B=block('Hauptmenü', {hCenter:true}); B.setAttribute('data-block','home');
-    B.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
-    B.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
-    var r1=row(); r1.appendChild(btn('Speisen',function(){ stepSpeisen(); },'ppx-cta','🍽️')); B.appendChild(r1);
-    var r2=row(); r2.appendChild(btn('Reservieren',function(){ stepReservieren(); },'','📅')); B.appendChild(r2);
-    var r2b=row(); r2b.appendChild(btn('Kontaktformular',function(){ stepContactForm(); },'','📝')); B.appendChild(r2b);
-    var r4=row(); r4.appendChild(btn('Kontaktdaten',function(){ stepKontakt(); },'','☎️')); B.appendChild(r4);
-    var r3=row(); r3.appendChild(btn('Öffnungszeiten',function(){ stepHours(); },'','⏰')); B.appendChild(r3);
-    var r5=row(); r5.appendChild(btn('Q&As',function(){ stepQAs(); },'','❓')); B.appendChild(r5);
+    var C=el('div',{class:'ppx-body'}); B.appendChild(C);
+
+    C.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
+    C.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
+
+    var r1=row(); r1.appendChild(btn('Speisen',function(){ stepSpeisen(); },'ppx-cta','🍽️')); C.appendChild(r1);
+    var r2=row(); r2.appendChild(btn('Reservieren',function(){ stepReservieren(); },'','📅')); C.appendChild(r2);
+
+    // Reihenfolge geändert: Erst Kontaktdaten, dann Kontaktformular
+    var r3=row(); r3.appendChild(btn('Kontaktdaten',function(){ stepKontakt(); },'','☎️')); C.appendChild(r3);
+    var r4=row(); r4.appendChild(btn('Kontaktformular',function(){ stepContactForm(); },'','📝')); C.appendChild(r4);
+
+    var r5=row(); r5.appendChild(btn('Öffnungszeiten',function(){ stepHours(); },'','⏰')); C.appendChild(r5);
+    var r6=row(); r6.appendChild(btn('Q&As',function(){ stepQAs(); },'','❓')); C.appendChild(r6);
+
+    keepBottom();
   }
   // ==== 3b) SPEISEN ==========================================================
   function stepSpeisen(){
     var scopeIdx = getScopeIndex();
     var M = block(null,{maxWidth:'100%'}); 
     M.setAttribute('data-block','speisen-info');
-    M.appendChild(note('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
+    var C = el('div',{class:'ppx-body'}); M.appendChild(C);
+    C.appendChild(note('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
+    keepBottom();
     delay(function(){ renderSpeisenRoot(scopeIdx); }, D.step);
   }
 
   function orderCats(keys){
-    var pref = Array.isArray(CFG.menuOrder) && CFG.menuOrder.length ? CFG.menuOrder.map(pretty) :
-               ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
+    var pref = Array.isArray(CFG.menuOrder) && CFG.menuOrder.length ? CFG.menuOrder.map(pretty)
+               : ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
     var pos  = Object.create(null);
     pref.forEach(function(k,i){ pos[k]=i; });
     return keys.slice().sort(function(a,b){
@@ -171,18 +182,19 @@
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
+    keepBottom();
 
     var pdfUrl = CFG.menuPdf || (CFG.pdf && (CFG.pdf.menu || CFG.pdf.url)) || CFG.menuPDF || 'speisekarte.pdf';
     var r = row(); r.style.justifyContent = 'flex-start';
     r.appendChild(btn('Speisekarte als PDF', function(){ try{ window.open(pdfUrl,'_blank','noopener'); }catch(e){} }, '', '📄'));
     C.appendChild(r);
-
     C.appendChild(note('…oder wähle eine Kategorie:'));
+    keepBottom();
 
     delay(function(){
       var cats = Object.keys(DISH);
-      cats = cats.length ? orderCats(cats.map(function(k){ return pretty(k); })) :
-                           ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
+      cats = cats.length ? orderCats(cats.map(function(k){ return pretty(k); }))
+                         : ['Antipasti','Salate','Pizza','Pasta','Desserts','Getränke'];
       var map = {}; Object.keys(DISH).forEach(function(k){ map[pretty(k)] = k; });
 
       var G = grid();
@@ -191,7 +203,7 @@
         G.appendChild(chip(catPretty, function(){ renderCategory(rawKey); }, 'ppx-cat', '►'));
       });
       C.appendChild(G);
-      try{ G.scrollIntoView({behavior:'smooth', block:'end'}); }catch(e){ jumpBottom(); }
+      keepBottom();
     }, D.long);
   }
 
@@ -202,8 +214,10 @@
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
+    keepBottom();
 
     C.appendChild(note('Gern! Hier ist die Auswahl für '+pretty(catKey)+':'));
+    keepBottom();
 
     var list = Array.isArray(DISH[catKey]) ? DISH[catKey] : [];
     if (!list.length) list = [
@@ -217,6 +231,7 @@
       G.appendChild(chip(label, function(){ renderItem(catKey, it); }, '', '➜'));
     });
     C.appendChild(G);
+    keepBottom();
   }
 
   function renderItem(catKey, item){
@@ -226,12 +241,14 @@
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
+    keepBottom();
 
     var title = (item && item.name) ? item.name : pretty(catKey);
     C.appendChild(note(title));
     if (item && (item.info || item.desc)) C.appendChild(line(item.info || item.desc));
     if (item && item.price) C.appendChild(line('Preis: ' + String(item.price)));
     if (item && item.hinweis) C.appendChild(line('ℹ️ ' + item.hinweis));
+    keepBottom();
 
     setTimeout(function(){ askReserveAfterItem(scopeIdx); }, 3000);
   }
@@ -244,8 +261,10 @@
     r.appendChild(btn('Ja, bitte reservieren', function(){ delay(stepReservieren, D.step); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     Q.appendChild(r);
+    keepBottom();
   }
-  // ==== 4) RESERVIEREN – Flow ===============================================
+
+  // ==== 4) RESERVIEREN – Flow (Teil 1) ======================================
   var RESV = null;
 
   function stepReservieren(){
@@ -257,10 +276,9 @@
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     var scopeIdx = getScopeIndex()-1;
 
-    // 1) Erste Note sofort
     C.appendChild(note('Du möchtest gerne reservieren?'));
+    keepBottom();
 
-    // 2) Nach 1 Sekunde: zweite Note + Eingabe + Nav & Weiter-Button (alles gleichzeitig)
     delay(function(){
       C.appendChild(note('Darf ich bitte deinen Namen wissen?'));
 
@@ -277,8 +295,8 @@
       }, 'ppx-cta', '➡️'));
       C.appendChild(r);
 
-      // Nav unten sofort (kein extra Delay)
       B.appendChild(navBottom(scopeIdx));
+      keepBottom();
     }, D.long);
   }
 
@@ -298,10 +316,9 @@
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
 
-    // 1) Erste Note sofort
     C.appendChild(note('Perfekt, '+RESV.name+'! :)'));
+    keepBottom();
 
-    // 2) Nach 1 Sekunde: zweite Note + Eingabe + Nav
     delay(function(){
       C.appendChild(note('Für welches Datum möchtest du reservieren?'));
 
@@ -321,9 +338,9 @@
       C.appendChild(r);
 
       B.appendChild(navBottom(getScopeIndex()-1));
+      keepBottom();
     }, D.long);
   }
-
   function hmToMin(s){ var a=String(s||'').trim().replace(/\s/g,''); var m=a.match(/^(\d{1,2}):(\d{2})$/); if(!m) return NaN; var h=+m[1], mi=+m[2]; if(h===24&&mi===0) return 1440; return h*60+mi; }
   function minToHM(n){ var h=Math.floor(n/60), m=n%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
 
@@ -365,7 +382,7 @@
       var a = bounds[j], b = bounds[j+1]; var gSlots = mins.filter(function(t){ return t>=a && t<b; });
       if (gSlots.length >= 2){ groups.push({ from:a, to:b, slots:gSlots }); }
     }
-    if (!groups.length) groups = [{ from:start, to:endExclusive, slots:mins }];
+    if (!groups.length) groups = [{ from:start, to=endExclusive, slots:mins }];
     return groups;
   }
 
@@ -374,13 +391,14 @@
     B.setAttribute('data-block','resv-time');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(backScopeIdx)); // Nav sofort
-
+    B.appendChild(navBottom(backScopeIdx));
     C.appendChild(note('Um welche Uhrzeit möchtest du reservieren?'));
+    keepBottom();
 
     var minutes = buildSlotsForDate(dateObj);
     if(!minutes.length){
       C.appendChild(line('Für dieses Datum sind aktuell keine Reservierungszeiten verfügbar (geschlossen oder zu kurzfristig).'));
+      keepBottom();
       return;
     }
 
@@ -396,6 +414,7 @@
           G.appendChild(chip(hm, function(){ RESV.time = hm; delay(renderResvPersons, D.step); }, '', '🕒'));
         });
         C.appendChild(G);
+        keepBottom();
       }, D.sub);
       return;
     }
@@ -413,13 +432,16 @@
             G.appendChild(chip(hm, function(){ RESV.time = hm; delay(renderResvPersons, D.step); }, '', '🕒'));
           });
           slotWrap.appendChild(G);
+          keepBottom();
         }, D.tap);
       }, 'ppx-group'));
       C.appendChild(r);
+      keepBottom();
     });
 
-    delay(function(){ C.appendChild(slotWrap); }, D.sub);
+    delay(function(){ C.appendChild(slotWrap); keepBottom(); }, D.sub);
   }
+
   // Persons
   function renderResvPersons(){
     var B = block(null, {maxWidth:'100%'}); 
@@ -427,10 +449,9 @@
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
 
-    // 1) Erste Note sofort
     C.appendChild(note('Super, '+RESV.name+'!'));
+    keepBottom();
 
-    // 2) Nach 1 Sekunde: zweite Note + Eingabe + Nav
     delay(function(){
       C.appendChild(note('Für wie viele Personen darf ich den Tisch vorbereiten?'));
 
@@ -448,16 +469,17 @@
       C.appendChild(r);
 
       B.appendChild(navBottom(getScopeIndex()-1));
+      keepBottom();
     }, D.long);
   }
 
-  // Phone (optional) – Buttons vertauscht (Weiter links, Ohne Tel rechts)
+  // Phone (optional) – Weiter links, Ohne Tel rechts
   function renderResvPhone(backScopeIdx){
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-phone');
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
-    B.appendChild(navBottom(backScopeIdx)); // Nav sofort
+    B.appendChild(navBottom(backScopeIdx));
 
     C.appendChild(note('Magst du mir deine Nummer dalassen? (optional)'));
 
@@ -466,7 +488,6 @@
     C.appendChild(rowIn); rowIn.appendChild(inp);
 
     var r = row();
-    // Neu: „Weiter“ zuerst
     r.appendChild(btn('Weiter', function(){ 
       RESV.phone = String(inp.value||'').trim(); delay(renderResvEmail, D.step);
     }, 'ppx-cta', '➡️'));
@@ -474,6 +495,7 @@
       RESV.phone=''; delay(renderResvEmail, D.step);
     }, 'ppx-secondary', '⏭️'));
     C.appendChild(r);
+    keepBottom();
   }
 
   // Email (required)
@@ -485,10 +507,9 @@
 
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
 
-    // 1) Erste Note sofort
     C.appendChild(note('Und deine E-Mail für die Bestätigung?'));
+    keepBottom();
 
-    // 2) Nach 1 Sekunde: zweite Note + Eingabe + Nav
     delay(function(){
       C.appendChild(note('Wir schicken dir dort eine kurze Eingangsbestätigung.'));
 
@@ -506,6 +527,7 @@
       C.appendChild(r);
 
       B.appendChild(navBottom(getScopeIndex()-1));
+      keepBottom();
     }, D.long);
   }
 
@@ -546,40 +568,43 @@
   function showReservationSuccess(kind){
     var B = block('RESERVIERUNG', {maxWidth:'100%'}); 
     B.setAttribute('data-block','reservieren-success');
-    B.appendChild(line('Danke für deine Anfrage! Schau doch mal in deinem E-Mail-Postfach vorbei! ;)'));
-    B.appendChild(line('Möchtest du noch etwas anderes wissen?'));
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+
+    C.appendChild(line('Danke für deine Anfrage! Schau doch mal in deinem E-Mail-Postfach vorbei! ;)'));
+    C.appendChild(line('Möchtest du noch etwas anderes wissen?'));
     var r = row();
     r.appendChild(btn('Ja, zeig mir die Q&As', function(){ delay(stepQAs, D.step); }, 'ppx-cta', '❓'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
-    B.appendChild(r);
+    C.appendChild(r);
+    keepBottom();
   }
 
   function showReservationError(msg, payload){
     var B = block('SENDEN FEHLGESCHLAGEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-error');
-    B.appendChild(line('Uff, das hat gerade nicht geklappt. Grund (technisch): '+(msg||'unbekannt')));
-    B.appendChild(line('Du kannst es nochmal versuchen oder deine E-Mail-App manuell öffnen.'));
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+
+    C.appendChild(line('Uff, das hat gerade nicht geklappt. Grund (technisch): '+(msg||'unbekannt')));
+    C.appendChild(line('Du kannst es nochmal versuchen oder deine E-Mail-App manuell öffnen.'));
     var r = row();
     r.appendChild(btn('Nochmal senden', function(){ delay(submitReservation, D.tap); }, 'ppx-cta', '⤴️'));
     r.appendChild(btn('E-Mail manuell öffnen', function(){ try{ window.location.href = mailtoHrefReservation(payload); }catch(e){} }, 'ppx-secondary', '✉️'));
     r.appendChild(homeBtn());
-    B.appendChild(r);
+    C.appendChild(r);
+    keepBottom();
   }
   // ==== 5) ÖFFNUNGSZEITEN ====================================================
   function parseSpanToText(span){
     var from,to;
     if (Array.isArray(span)){ from=span[0]; to=span[1]; }
     else if (isObj(span)){ from=span.from||span.start; to=span.to||span.end; }
-    else if (typeof span==='string'){
-      var m = span.match(/(\d{1,2}:\d{2}).*?(\d{1,2}:\d{2})/);
-      if (m){ from=m[1]; to=m[2]; }
-    }
+    else if (typeof span==='string'){ var m = span.match(/(\d{1,2}:\d{2}).*?(\d{1,2}:\d{2})/); if (m){ from=m[1]; to=m[2]; } }
     if (!from || !to) return 'geschlossen';
     return from+' – '+to+' Uhr';
   }
   function hoursFromOpen(){
     var dnames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-    var out = []; var O = (CFG.OPEN||{});
+    var out = [], O = (CFG.OPEN||{});
     for (var i=1;i<=6;i++){ out.push([dnames[i], parseSpanToText(O[String(i)])]); }
     out.push([dnames[0], parseSpanToText(O['0'])]);
     return out;
@@ -588,20 +613,11 @@
     var out = [];
     if (Array.isArray(v)){
       v.forEach(function(it){
-        if (Array.isArray(it) && it.length >= 2){
-          out.push([ String(it[0]), String(it[1]) ]);
-        } else if (isObj(it)){
-          var day = it.day || it.name || it.title || it[0];
-          var time = it.time || it.hours || it[1];
-          if (day && time) out.push([ String(day), String(time) ]);
-        }
-      });
-      return out;
+        if (Array.isArray(it) && it.length >= 2){ out.push([ String(it[0]), String(it[1]) ]); }
+        else if (isObj(it)){ var day = it.day||it.name||it.title||it[0]; var time = it.time||it.hours||it[1]; if (day && time) out.push([ String(day), String(time) ]); }
+      }); return out;
     }
-    if (isObj(v)){
-      var order = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
-      order.forEach(function(d){ if (v[d]) out.push([d, String(v[d])]); });
-    }
+    if (isObj(v)){ ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'].forEach(function(d){ if (v[d]) out.push([d, String(v[d])]); }); }
     return out;
   }
 
@@ -610,22 +626,14 @@
     var B = block('ÖFFNUNGSZEITEN', {maxWidth:'100%', hCenter:true}); 
     B.setAttribute('data-block','hours');
 
-    var C = el('div',{class:'ppx-body'}); 
-    C.style.textAlign = 'center'; // <<< Öffnungszeiten-ZEILEN zentrieren
-    B.appendChild(C);
-    // Nur Zurück (Home entfällt hier)
+    var C = el('div',{class:'ppx-body'}); C.style.textAlign='center'; B.appendChild(C);
     B.appendChild(navBottomBackOnly(scopeIdx));
 
     var lines = normalizeHoursLines(CFG.hoursLines);
     if (!lines.length) lines = hoursFromOpen();
-    if (!Array.isArray(lines) || !lines.length) {
-      C.appendChild(line('Keine Zeiten hinterlegt.'));
-    } else {
-      lines.forEach(function(rowArr){
-        var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr);
-        C.appendChild(line('• '+txt));
-      });
-    }
+    if (!Array.isArray(lines) || !lines.length) C.appendChild(line('Keine Zeiten hinterlegt.'));
+    else { lines.forEach(function(rowArr){ var txt = Array.isArray(rowArr) ? (rowArr[0]+': '+rowArr[1]) : String(rowArr); C.appendChild(line('• '+txt)); }); }
+    keepBottom();
     setTimeout(function(){ askReserveAfterHours(scopeIdx); }, 2000);
   }
   function askReserveAfterHours(scopeIdx){
@@ -634,7 +642,7 @@
     var r = row(); r.style.justifyContent='flex-start';
     r.appendChild(btn('Ja, bitte reservieren', function(){ delay(stepReservieren, D.step); }, 'ppx-cta', '🗓️'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
-    Q.appendChild(r);
+    Q.appendChild(r); keepBottom();
   }
 
   // ==== 6) KONTAKTDATEN ======================================================
@@ -665,6 +673,7 @@
       r3.appendChild(btn('Anfahrt öffnen', function(){ window.open(maps,'_blank'); }, '', '🗺️'));
       C.appendChild(r3);
     }
+    keepBottom();
   }
 
   // ==== 7) KONTAKTFORMULAR ===================================================
@@ -678,6 +687,7 @@
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     var scopeIdx = getScopeIndex()-1;
     C.appendChild(note('Du möchtest uns gerne eine Nachricht da lassen?'));
+    keepBottom();
     delay(function(){ renderContactEmail(); }, D.step);
     B.appendChild(navBottom(scopeIdx));
   }
@@ -690,7 +700,6 @@
     B.appendChild(navBottom(getScopeIndex()-1));
 
     C.appendChild(note('Alles klar – dann brauche ich erstmal deine E-Mail-Adresse.'));
-
     var rowIn = row(); rowIn.className='ppx-input';
     var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
     C.appendChild(rowIn); rowIn.appendChild(inp);
@@ -699,10 +708,9 @@
     r.appendChild(btn('Weiter', function(){
       var v = String(inp.value||'').trim();
       if(!isValidEmail(v)){ alert('Bitte gib eine gültige E-Mail-Adresse ein.'); inp.focus(); return; }
-      CF.email = v;
-      delay(renderContactMessage, D.step);
+      CF.email = v; delay(renderContactMessage, D.step);
     }, 'ppx-cta', '➡️'));
-    C.appendChild(r);
+    C.appendChild(r); keepBottom();
   }
 
   function renderContactMessage(){
@@ -713,7 +721,6 @@
     B.appendChild(navBottom(getScopeIndex()-1));
 
     C.appendChild(note('Lass uns unten eine Nachricht da.'));
-
     var rowIn = row(); rowIn.className='ppx-input';
     var ta = el('textarea',{placeholder:'Hier kannst du dein Anliegen äußern. Wir freuen uns über deine Nachricht! :)'});
     C.appendChild(rowIn); rowIn.appendChild(ta);
@@ -722,10 +729,9 @@
     r.appendChild(btn('Absenden', function(){
       var msg = String(ta.value||'').trim();
       if(!msg){ alert('Bitte schreib kurz, worum es geht.'); ta.focus(); return; }
-      CF.message = msg;
-      delay(submitContactForm, D.tap);
+      CF.message = msg; delay(submitContactForm, D.tap);
     }, 'ppx-cta', '✉️'));
-    C.appendChild(r);
+    C.appendChild(r); keepBottom();
   }
 
   function submitContactForm(){
@@ -756,21 +762,22 @@
   function showContactSuccess(kind){
     var B = block('NACHRICHT GESENDET', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-success');
-    B.appendChild(line('Danke – deine Nachricht ist bei uns eingegangen. Wir melden uns so schnell wie möglich!'));
-    var r = row();
-    r.appendChild(btn('Zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
-    B.appendChild(r);
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    C.appendChild(line('Danke – deine Nachricht ist bei uns eingegangen. Wir melden uns so schnell wie möglich!'));
+    var r = row(); r.appendChild(btn('Zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
+    C.appendChild(r); keepBottom();
   }
   function showContactError(msg, payload){
     var B = block('SENDEN FEHLGESCHLAGEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-error');
-    B.appendChild(line('Uff, das hat leider nicht geklappt. Grund (technisch): '+(msg||'unbekannt')));
-    B.appendChild(line('Du kannst es nochmal versuchen oder deine E-Mail-App manuell öffnen.'));
+    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    C.appendChild(line('Uff, das hat leider nicht geklappt. Grund (technisch): '+(msg||'unbekannt')));
+    C.appendChild(line('Du kannst es nochmal versuchen oder deine E-Mail-App manuell öffnen.'));
     var r = row();
     r.appendChild(btn('Nochmal senden', function(){ delay(submitContactForm, D.tap); }, 'ppx-cta', '⤴️'));
     r.appendChild(btn('E-Mail manuell öffnen', function(){ try{ window.location.href = mailtoHrefContact(payload); }catch(e){} }, 'ppx-secondary', '✉️'));
     r.appendChild(homeBtn());
-    B.appendChild(r);
+    C.appendChild(r); keepBottom();
   }
 
   // ==== 8) FAQ ===============================================================
@@ -795,7 +802,7 @@
     });
   }
   function getFaqCats(){
-    if (Array.isArray(FAQ)) { return orderFaqCats([{ key:'all', title:'Speisekarte', icon:'🍕', items:FAQ }]); }
+    if (Array.isArray(FAQ)) return orderFaqCats([{ key:'all', title:'Speisekarte', icon:'🍕', items:FAQ }]);
     if (isObj(FAQ)) {
       if (Array.isArray(FAQ.cats)) return orderFaqCats(FAQ.cats.slice());
       if (Array.isArray(FAQ.items)) return orderFaqCats([{ key:'all', title:(FAQ.title||'Speisekarte'), icon:(FAQ.icon||'🍕'), items:FAQ.items }]);
@@ -816,7 +823,7 @@
 
     delay(function(){
       var cats = getFaqCats();
-      if (!cats.length){ C.appendChild(line('Häufige Fragen folgen in Kürze.')); return; }
+      if (!cats.length){ C.appendChild(line('Häufige Fragen folgen in Kürze.')); keepBottom(); return; }
       C.appendChild(note('Wonach möchtest du schauen?'));
 
       var G = grid();
@@ -824,34 +831,35 @@
         var label = (ct.icon ? (ct.icon+' ') : '') + (ct.title || 'Kategorie');
         G.appendChild(chip(label, function(){ renderFaqCat(ct); }, 'ppx-cat'));
       });
-      C.appendChild(G);
-
-      try{ G.scrollIntoView({behavior:'smooth', block:'end'}); }catch(e){ jumpBottom(); }
+      C.appendChild(G); keepBottom();
     }, D.long);
   }
 
+  // Kategorie-Ansicht mit Header im Screenshot-Stil
   function renderFaqCat(ct){
     var scopeIdx = getScopeIndex();
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','faq-cat');
 
+    // Header wie im Screenshot
+    var title = (ct && (ct.title || ct.name)) || 'Fragen';
+    B.appendChild(el('div',{class:'ppx-h'}, title));
+
     var C = el('div',{class:'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
 
-    var title = (ct && (ct.title || ct.name)) || 'Fragen';
-    C.appendChild(note(title));
+    C.appendChild(note('Wähle eine Frage:'));
 
     var items = (ct && Array.isArray(ct.items)) ? ct.items.slice() : [];
-    if (!items.length){ C.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.')); return; }
+    if (!items.length){ C.appendChild(line('Für diese Kategorie sind noch keine Fragen hinterlegt.')); keepBottom(); return; }
 
-    C.appendChild(note('Wähle eine Frage:'));
     var L = row();
     items.forEach(function(it){
       var q = (it && (it.q || it.question)) || '';
       if (!q) return;
       L.appendChild(btn(q, function(){ delay(function(){ renderFaqAnswer(ct, it, scopeIdx); }, D.tap); }, '', '➜'));
     });
-    C.appendChild(L);
+    C.appendChild(L); keepBottom();
   }
 
   function isOrderQuick(it){
@@ -873,14 +881,14 @@
     C.appendChild(note(q));
     if (a)    C.appendChild(line(a));
     if (more) C.appendChild(line(more));
+    keepBottom();
 
     if (isOrderQuick(it)){
       var r = row(); r.style.justifyContent = 'flex-start';
       var orderUrl = (CFG.orderUrl || (CFG.links && CFG.links.lieferando) || 'https://www.lieferando.de/');
       r.appendChild(btn('Lieferando öffnen', function(){ try{ window.open(orderUrl,'_blank','noopener'); }catch(e){} }, 'ppx-cta', '⚡'));
       if (CFG.phone){ r.appendChild(btn('Anrufen', function(){ window.location.href='tel:'+String(CFG.phone).replace(/\s+/g,''); }, '', '📞')); }
-      C.appendChild(r);
-      return;
+      C.appendChild(r); keepBottom(); return;
     }
 
     setTimeout(function(){ askAfterFaqAnswer(backScopeIdx); }, 2000);
@@ -893,7 +901,7 @@
     var r = row(); r.style.justifyContent='flex-start';
     r.appendChild(btn('Ja, bitte zum Kontaktformular', function(){ delay(stepContactForm, D.step); }, 'ppx-cta', '📝'));
     r.appendChild(btn('Nein, zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
-    Q.appendChild(r);
+    Q.appendChild(r); keepBottom();
   }
 
 })(); // Ende IIFE
