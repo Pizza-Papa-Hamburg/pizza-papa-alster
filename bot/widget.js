@@ -1,5 +1,5 @@
 /* ============================================================================
-   PPX Widget (v7.9.1 – Scroll-Always, Q&As Header-Style, Home-Order, Template-Safe)
+   PPX Widget (v7.9.3 – Scroll-Always, Q&As Header-Style, Home-Order, Template-Safe)
    ============================================================================ */
 (function(){
   'use strict';
@@ -7,9 +7,9 @@
   // 0) Daten & Setup (template-ready)
   var W = window;
   var PPX = W.PPX = W.PPX || {};
-  PPX.VERSION = '7.9.1';
+  PPX.VERSION = '7.9.3';
 
-  // primär aus window.PPX_DATA lesen (template), Fallback auf __PPX_DATA__ (aktueller Loader)
+  // Primär aus window.PPX_DATA lesen (Template), Fallback auf __PPX_DATA__ (aktueller Loader)
   var RAW  = W.PPX_DATA || W.__PPX_DATA__ || {};
   var CFG  = RAW.cfg    || {};
   var DISH = RAW.dishes || {};
@@ -95,50 +95,62 @@
   function isObj(v){ return v && typeof v === 'object' && !Array.isArray(v); }
   function jumpBottom(){ if(!$view) return; try{ $view.scrollTop=$view.scrollHeight; requestAnimationFrame(function(){ $view.scrollTop=$view.scrollHeight; }); }catch(e){} }
   function keepBottom(){ jumpBottom(); setTimeout(jumpBottom,80); setTimeout(jumpBottom,200); }
-  function el(tag, attrs){ var n=document.createElement(tag); attrs=attrs||{}; Object.keys(attrs).forEach(function(k){
-    if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); }
-    else if(k==='text'){ n.textContent=attrs[k]; }
-    else if(k==='html'){ n.innerHTML=attrs[k]; }
-    else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); }
-    else { n.setAttribute(k, attrs[k]); }
-  });
-  for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); }
-  return n; }
+  function el(tag, attrs){
+    var n=document.createElement(tag); attrs=attrs||{};
+    Object.keys(attrs).forEach(function(k){
+      if(k==='style'&&isObj(attrs[k])){ Object.assign(n.style,attrs[k]); }
+      else if(k==='text'){ n.textContent=attrs[k]; }
+      else if(k==='html'){ n.innerHTML=attrs[k]; }
+      else if(k.slice(0,2)==='on'&&typeof attrs[k]==='function'){ n.addEventListener(k.slice(2),attrs[k]); }
+      else if(k==='className' || k==='class'){ n.setAttribute('class', attrs[k]); }
+      else { n.setAttribute(k, attrs[k]); }
+    });
+    for(var i=2;i<arguments.length;i++){ var c=arguments[i]; if(c==null) continue; n.appendChild(typeof c==='string'?document.createTextNode(c):c); }
+    return n;
+  }
   function pretty(s){ return String(s||'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g, function(c){ return c.toUpperCase(); }); }
 
   // zentrierbarer Block-Header
   function block(title,opts){
     opts=opts||{};
-    var w=el('div',{class:'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}});
+    var w=el('div',{'class':'ppx-bot ppx-appear',style:{maxWidth:(opts.maxWidth||'640px'),margin:'12px auto'}});
     if(title){
       var hStyle = opts.hCenter ? {justifyContent:'center', textAlign:'center'} : null;
-      var h=el('div',{class:'ppx-h',style:hStyle},title);
+      var h=el('div',{'class':'ppx-h',style:hStyle},title);
       w.appendChild(h);
     }
     if($view) $view.appendChild(w); keepBottom(); return w;
   }
-  function line(txt){ var n=el('div',{class:'ppx-m'},txt); return n; }
-  function note(txt){ var n=el('div',{class:'ppx-m ppx-note'},txt); return n; }
-  function row(){ var n=el('div',{class:'ppx-row'}); return n; }
-  function grid(){ var n=el('div',{class:'ppx-grid'}); return n; }
+  function line(txt){ return el('div',{'class':'ppx-m'},txt); }
+  function note(txt){ return el('div',{'class':'ppx-m ppx-note'},txt); }
+  function row(){ return el('div',{'class':'ppx-row'}); }
+  function grid(){ return el('div',{'class':'ppx-grid'}); }
   function getScopeIndex(){ return $view ? $view.children.length : 0; }
   function popToScope(idx){ if(!$view) return; while($view.children.length>idx){ var last=$view.lastElementChild; if(!last) break; last.remove(); } keepBottom(); }
 
   // Buttons / Nav
-  function btn(label, onClick, extraCls, ic){ var a={class:'ppx-b '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
-  function chip(label, onClick, extraCls, ic){ var a={class:'ppx-chip '+(extraCls||''),onclick:onClick,type:'button'}; if(ic) a['data-ic']=ic; var n=el('button',a); n.appendChild(el('span',{class:'ppx-label'},label)); return n; }
+  function btn(label, onClick, extraCls, ic){
+    var a={'class':'ppx-b '+(extraCls||''),'onclick':onClick,'type':'button'};
+    if(ic) a['data-ic']=ic;
+    var n=el('button',a); n.appendChild(el('span',{'class':'ppx-label'},label)); return n;
+  }
+  function chip(label, onClick, extraCls, ic){
+    var a={'class':'ppx-chip '+(extraCls||''),'onclick':onClick,'type':'button'};
+    if(ic) a['data-ic']=ic;
+    var n=el('button',a); n.appendChild(el('span',{'class':'ppx-label'},label)); return n;
+  }
   function backBtnAt(scopeIdx){ return btn('← Zurück', function(){ popToScope(scopeIdx); }, 'ppx-secondary ppx-back'); }
   function goHome(){ popToScope(0); stepHome(true); }
   function homeBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary', '🏠'); }
   function homeNavBtn(){ return btn('Zurück ins Hauptmenü', goHome, 'ppx-secondary ppx-back', '🏠'); }
-  function navBottom(scopeIdx){ return el('div',{class:'ppx-nav ppx-bottom'}, backBtnAt(scopeIdx), homeNavBtn()); }
-  function navBottomBackOnly(scopeIdx){ return el('div',{class:'ppx-nav ppx-bottom'}, backBtnAt(scopeIdx)); }
+  function navBottom(scopeIdx){ return el('div',{'class':'ppx-nav ppx-bottom'}, backBtnAt(scopeIdx), homeNavBtn()); }
+  function navBottomBackOnly(scopeIdx){ return el('div',{'class':'ppx-nav ppx-bottom'}, backBtnAt(scopeIdx)); }
   // ==== 3) Home & Navigation =================================================
   function stepHome(force){
     if (!force && $view && $view.querySelector('[data-block="home"]')) return;
     var brand=(CFG.brand||'Pizza Papa Hamburg');
     var B=block('Hauptmenü', {hCenter:true}); B.setAttribute('data-block','home');
-    var C=el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C=el('div',{'class':'ppx-body'}); B.appendChild(C);
 
     C.appendChild(line('👋 WILLKOMMEN BEI '+brand.toUpperCase()+'!'));
     C.appendChild(line('Schön, dass du da bist. Wie können wir dir heute helfen?'));
@@ -161,7 +173,7 @@
     var scopeIdx = getScopeIndex();
     var M = block(null,{maxWidth:'100%'}); 
     M.setAttribute('data-block','speisen-info');
-    var C = el('div',{class:'ppx-body'}); M.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); M.appendChild(C);
     C.appendChild(note('Super Wahl 👍  Hier sind unsere Speisen-Kategorien:'));
     keepBottom();
     delay(function(){ renderSpeisenRoot(scopeIdx); }, D.step);
@@ -183,7 +195,7 @@
     var B = block('SPEISEN',{maxWidth:'100%'}); 
     B.setAttribute('data-block','speisen-root');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
     keepBottom();
 
@@ -215,7 +227,7 @@
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','speisen-cat');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
     keepBottom();
 
@@ -242,7 +254,7 @@
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','speisen-item');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
     keepBottom();
 
@@ -276,7 +288,7 @@
     var B = block('RESERVIEREN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-name');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     var scopeIdx = getScopeIndex()-1;
 
     C.appendChild(note('Du möchtest gerne reservieren?'));
@@ -286,7 +298,7 @@
       C.appendChild(note('Darf ich bitte deinen Namen wissen?'));
 
       var rowIn = row(); rowIn.className='ppx-input';
-      var inp = el('input',{type:'text',placeholder:'Vor- und Nachname'});
+      var inp = el('input',{'type':'text','placeholder':'Vor- und Nachname'});
       C.appendChild(rowIn); rowIn.appendChild(inp);
 
       var r = row();
@@ -317,7 +329,7 @@
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-date');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
 
     C.appendChild(note('Perfekt, '+RESV.name+'! :)'));
     keepBottom();
@@ -326,7 +338,7 @@
       C.appendChild(note('Für welches Datum möchtest du reservieren?'));
 
       var rowIn = row(); rowIn.className='ppx-input';
-      var inp = el('input',{type:'date', min:todayISO(), placeholder:'TT.MM.JJJJ'});
+      var inp = el('input',{'type':'date','min':todayISO(),'placeholder':'TT.MM.JJJJ'});
       C.appendChild(rowIn); rowIn.appendChild(inp);
 
       var r = row();
@@ -375,7 +387,7 @@
     var start = mins[0]; var lastStart = mins[mins.length-1]; var endExclusive = lastStart + 30;
     var L = endExclusive - start; if (L <= 0) return [{ from:start, to:endExclusive, slots:mins }];
     var G = (L <= 180) ? 1 : (L <= 360 ? 2 : 3);
-    if (G === 1) return [{ from:start, to=endExclusive, slots:mins }];
+    if (G === 1) return [{ from:start, to:endExclusive, slots:mins }];
     var step = Math.max(60, Math.round((L / G) / 30) * 30);
     var cuts = []; for (var i=1; i<G; i++){ cuts.push(start + step*i); }
     cuts = cuts.map(function(c){ var onHour = Math.round(c / 60) * 60; if (Math.abs(onHour - c) <= 30) return onHour; return Math.round(c / 30) * 30; })
@@ -393,7 +405,7 @@
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-time');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(backScopeIdx));
     C.appendChild(note('Um welche Uhrzeit möchtest du reservieren?'));
     keepBottom();
@@ -422,7 +434,7 @@
       return;
     }
 
-    var slotWrap = el('div', {class:'ppx-slotwrap'});
+    var slotWrap = el('div', {'class':'ppx-slotwrap'});
     groups.forEach(function(g){
       var label = minToHM(g.from) + ' – ' + minToHM(g.to);
       var r = row(); r.classList.add('ppx-grouprow');
@@ -450,7 +462,7 @@
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-persons');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
 
     C.appendChild(note('Super, '+RESV.name+'!'));
     keepBottom();
@@ -459,7 +471,7 @@
       C.appendChild(note('Für wie viele Personen darf ich den Tisch vorbereiten?'));
 
       var rowIn = row(); rowIn.className='ppx-input';
-      var inp = el('input',{type:'number', min:'1', max:'20', value:'2'});
+      var inp = el('input',{'type':'number','min':'1','max':'20','value':'2'});
       C.appendChild(rowIn); rowIn.appendChild(inp);
 
       var r = row();
@@ -476,18 +488,18 @@
     }, D.long);
   }
 
-  // Phone (optional) – Weiter links, Ohne Tel rechts
+  // Phone (optional)
   function renderResvPhone(backScopeIdx){
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-phone');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(backScopeIdx));
 
     C.appendChild(note('Magst du mir deine Nummer dalassen? (optional)'));
 
     var rowIn = row(); rowIn.className='ppx-input';
-    var inp = el('input',{type:'tel',placeholder:'+49 …'});
+    var inp = el('input',{'type':'tel','placeholder':'+49 …'});
     C.appendChild(rowIn); rowIn.appendChild(inp);
 
     var r = row();
@@ -508,7 +520,7 @@
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-email');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
 
     C.appendChild(note('Und deine E-Mail für die Bestätigung?'));
     keepBottom();
@@ -517,7 +529,7 @@
       C.appendChild(note('Wir schicken dir dort eine kurze Eingangsbestätigung.'));
 
       var rowIn = row(); rowIn.className='ppx-input';
-      var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
+      var inp = el('input',{'type':'email','placeholder':'dein.name@example.com'});
       C.appendChild(rowIn); rowIn.appendChild(inp);
 
       var r = row();
@@ -571,7 +583,7 @@
   function showReservationSuccess(kind){
     var B = block('RESERVIERUNG', {maxWidth:'100%'}); 
     B.setAttribute('data-block','reservieren-success');
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
 
     C.appendChild(line('Danke für deine Anfrage! Schau doch mal in deinem E-Mail-Postfach vorbei! ;)'));
     C.appendChild(line('Möchtest du noch etwas anderes wissen?'));
@@ -585,7 +597,7 @@
   function showReservationError(msg, payload){
     var B = block('SENDEN FEHLGESCHLAGEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','resv-error');
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
 
     C.appendChild(line('Uff, das hat gerade nicht geklappt. Grund (technisch): '+(msg||'unbekannt')));
     C.appendChild(line('Du kannst es nochmal versuchen oder deine E-Mail-App manuell öffnen.'));
@@ -629,7 +641,7 @@
     var B = block('ÖFFNUNGSZEITEN', {maxWidth:'100%', hCenter:true}); 
     B.setAttribute('data-block','hours');
 
-    var C = el('div',{class:'ppx-body'}); C.style.textAlign='center'; B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); C.style.textAlign='center'; B.appendChild(C);
     B.appendChild(navBottomBackOnly(scopeIdx));
 
     var lines = normalizeHoursLines(CFG.hoursLines);
@@ -654,7 +666,7 @@
     var B = block('KONTAKTDATEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','kontakt');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
 
     if (CFG.phone){
@@ -687,7 +699,7 @@
     var B = block('KONTAKTFORMULAR', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-intro');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     var scopeIdx = getScopeIndex()-1;
     C.appendChild(note('Du möchtest uns gerne eine Nachricht da lassen?'));
     keepBottom();
@@ -699,12 +711,12 @@
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-email');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(getScopeIndex()-1));
 
     C.appendChild(note('Alles klar – dann brauche ich erstmal deine E-Mail-Adresse.'));
     var rowIn = row(); rowIn.className='ppx-input';
-    var inp = el('input',{type:'email',placeholder:'dein.name@example.com'});
+    var inp = el('input',{'type':'email','placeholder':'dein.name@example.com'});
     C.appendChild(rowIn); rowIn.appendChild(inp);
 
     var r = row();
@@ -720,12 +732,12 @@
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-msg');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(getScopeIndex()-1));
 
     C.appendChild(note('Lass uns unten eine Nachricht da.'));
     var rowIn = row(); rowIn.className='ppx-input';
-    var ta = el('textarea',{placeholder:'Hier kannst du dein Anliegen äußern. Wir freuen uns über deine Nachricht! :)'});
+    var ta = el('textarea',{'placeholder':'Hier kannst du dein Anliegen äußern. Wir freuen uns über deine Nachricht! :)'});
     C.appendChild(rowIn); rowIn.appendChild(ta);
 
     var r = row();
@@ -765,7 +777,7 @@
   function showContactSuccess(kind){
     var B = block('NACHRICHT GESENDET', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-success');
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     C.appendChild(line('Danke – deine Nachricht ist bei uns eingegangen. Wir melden uns so schnell wie möglich!'));
     var r = row(); r.appendChild(btn('Zurück ins Hauptmenü', function(){ goHome(); }, 'ppx-secondary', '🏠'));
     C.appendChild(r); keepBottom();
@@ -773,7 +785,7 @@
   function showContactError(msg, payload){
     var B = block('SENDEN FEHLGESCHLAGEN', {maxWidth:'100%'}); 
     B.setAttribute('data-block','cf-error');
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     C.appendChild(line('Uff, das hat leider nicht geklappt. Grund (technisch): '+(msg||'unbekannt')));
     C.appendChild(line('Du kannst es nochmal versuchen oder deine E-Mail-App manuell öffnen.'));
     var r = row();
@@ -817,7 +829,7 @@
     var scopeIdx = getScopeIndex();
     var B = block('Q&As', {maxWidth:'100%'}); B.setAttribute('data-block','faq-root');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
 
     var rTop = row(); rTop.className += ' ppx-center';
@@ -846,9 +858,9 @@
 
     // Header wie im Screenshot
     var title = (ct && (ct.title || ct.name)) || 'Fragen';
-    B.appendChild(el('div',{class:'ppx-h'}, title));
+    B.appendChild(el('div',{'class':'ppx-h'}, title));
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(scopeIdx));
 
     C.appendChild(note('Wähle eine Frage:'));
@@ -874,7 +886,7 @@
     var B = block(null, {maxWidth:'100%'}); 
     B.setAttribute('data-block','faq-answer');
 
-    var C = el('div',{class:'ppx-body'}); B.appendChild(C);
+    var C = el('div',{'class':'ppx-body'}); B.appendChild(C);
     B.appendChild(navBottom(backScopeIdx));
 
     var q = (it && (it.q || it.question)) || 'Frage';
